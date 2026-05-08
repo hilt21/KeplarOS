@@ -1,0 +1,6 @@
+[package]
+name = "keplar-rpc"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

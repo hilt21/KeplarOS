@@ -1,0 +1,46 @@
+name: Card YAML Validation
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  validate-cards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq
+          pip install --user jsonschema
+          sudo wget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_amd64 && sudo chmod +x /usr/bin/yq
+
+      - name: Find changed card YAML files
+        id: cards
+        run: |
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^docs/cards/.*\.(ya?ml)$' || true
+
+      - name: Validate card files
+        if: always()
+        run: |
+          set -e
+          for f in $(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^docs/cards/.*\.(ya?ml)$' || true); do
+            echo "Validating $f"
+            # convert YAML to JSON and validate against schema
+            yq -o=json eval "$f" | python3 -c "import sys,json,jsonschema; s=json.load(open('docs/development-guidelines/card-schema.json')); jsonschema.validate(json.load(sys.stdin), s)" || (echo "Validation failed for $f" && exit 1)
+          done
+
+      - name: Post audit log (optional)
+        if: success()
+        env:
+          AUDIT_WEBHOOK: ${{ secrets.KEPLAR_AUDIT_WEBHOOK }}
+        run: |
+          python3 - <<'PY'
+import os, json, requests
+webhook = os.getenv('AUDIT_WEBHOOK')
+if webhook:
+    payload = {"event":"card_validation","status":"success","commit":os.getenv('GITHUB_SHA')}
+    requests.post(webhook, json=payload, timeout=10)
+PY

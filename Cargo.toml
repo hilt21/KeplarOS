@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/keplar-core",
+  "crates/keplar-server",
+  "crates/keplar-cli",
+  "crates/keplar-rpc",
+  "crates/keplar-scanner",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]

@@ -1,0 +1,10 @@
+[package]
+name = "keplar-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "keplar"
+path = "src/main.rs"
+
+[dependencies]
