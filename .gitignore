@@ -1,1 +1,30 @@
 .DS_Store
+
+# Node / pnpm monorepo
+node_modules/
+.pnpm-store/
+*.log
+*.tsbuildinfo
+coverage/
+.pnpm-debug.log*
+
+# Build artifacts
+.next/
+out/
+dist/
+build/
+
+# Drizzle local SQLite (per S1)
+apps/web/db/dev.db
+apps/web/db/dev.db-journal
+apps/web/db/dev.db-wal
+apps/web/db/dev.db-shm
+apps/web/.drizzle/
+
+# Local env files
+.env
+.env*.local
+
+# IDE / OS
+.vscode/
+.idea/

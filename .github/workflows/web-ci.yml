@@ -1,0 +1,68 @@
+name: web-ci
+
+on:
+  push:
+    branches: [master, 20260606-dev-bootstrap]
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/web-ci.yml"
+
+concurrency:
+  group: web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build & Test (apps/web)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        working-directory: apps/web
+        run: pnpm typecheck
+
+      - name: Lint
+        working-directory: apps/web
+        run: pnpm lint
+        continue-on-error: false
+
+      - name: Test
+        working-directory: apps/web
+        run: pnpm test
+
+      - name: Build
+        working-directory: apps/web
+        run: pnpm build
+        env:
+          # Allow Next.js build to skip telemetry prompt in CI
+          NEXT_TELEMETRY_DISABLED: "1"

@@ -1,0 +1,68 @@
+{
+  "change_id": "20260606-s1-scaffold",
+  "title": "Phase 1 S1 脚手架与基础设施 (pnpm + Next.js 15 + Drizzle + Vitest + Tailwind 4 + CI)",
+  "status": "testing",
+  "branch": "20260606-dev-bootstrap",
+  "phase1_subproject": "S1",
+  "features": [
+    {
+      "id": "F-001",
+      "title": "S1 脚手架与基础设施",
+      "description": "建立 KEPLAR Phase 1 Web demo 工程的运行骨架: pnpm 9 工作区、Next.js 15 + TS strict 应用、Drizzle 占位 schema、Vitest smoke、ESLint 9 + Prettier 3、Tailwind 4 + DESIGN.md 令牌桥接、GitHub Actions CI。S1 不引入任何领域逻辑、状态机、API、UI 业务组件。",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "AC-1 pnpm install 在仓库根成功, pnpm-lock.yaml 被提交",
+        "AC-2 pnpm --filter web dev 启动 Next.js 15 dev server, 根路径渲染 'KEPLAR Phase 1 S1 Ready' 页面, data-theme='dark' 下 DESIGN.md 暗色令牌生效",
+        "AC-3 pnpm --filter web build 成功生成生产构建, 0 error",
+        "AC-4 pnpm --filter web typecheck (tsc --noEmit) 通过, tsconfig strict: true",
+        "AC-5 pnpm --filter web lint (ESLint 9 flat config) 通过, 0 error, warning 数记录于 implementation/notes.md",
+        "AC-6 pnpm --filter web test 跑 Vitest, smoke 用例通过",
+        "AC-7 仓库根不存在 package.json 根清单; apps/web/package.json 含 dev/build/start/test/typecheck/lint 脚本",
+        "AC-8 .github/workflows/web-ci.yml 存在, push 到 master 与 20260606-dev-bootstrap, 以及 apps/web/** PR 触发时跑通 install/typecheck/lint/test/build",
+        "AC-9 apps/web/README.md 存在, 含启动/构建/测试/Lint/桥接说明",
+        "AC-10 apps/web/db/schema.ts 存在但为空 schema, drizzle-kit check 或 config 解析无 error",
+        "AC-11 .gitignore 增补 node_modules/、.next/、*.tsbuildinfo、apps/web/db/dev.db*、apps/web/.drizzle/ 等条目",
+        "AC-12 Cargo.toml、apps/desktop/、crates/*、docs/specs/*、docs/architecture/*、DESIGN.md、README.md、LICENSE、AGENTS.md、CLAUDE.md、.harness/** 在本 change 中除 sprint_progress.md 与 request_analysis/* 外未被修改",
+        "AC-13 本 change 的所有工件均位于 .harness/changes/20260606-s1-scaffold/ 与 apps/web/ 之内"
+      ],
+      "affected_areas": [
+        "ui_minimal",
+        "tests",
+        "docs",
+        "ci"
+      ],
+      "dependencies": [],
+      "test_needs": [
+        "Vitest smoke 用例覆盖 React 18 渲染环境",
+        "tsc --noEmit 验证 TS strict",
+        "ESLint flat config 验证",
+        "next build 验证生产构建与 CSS 变量产物",
+        "GitHub Actions workflow 语法与触发条件"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass",
+        "Required verification matrix items pass or have documented exceptions",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "optional",
+        "smoke": "required",
+        "e2e": "not_applicable"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}
