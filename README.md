@@ -148,6 +148,7 @@ and agent workflow rules:
 ├── docs/          # Product, architecture, specification, and review docs
 ├── .harness/      # Agent workflow, rules, skills, templates, and handoff flow
 ├── DESIGN.md      # Visual and interaction design direction
+├── LICENSE        # MIT License
 └── README.md      # GitHub project overview
 ```
 
@@ -201,9 +202,10 @@ analysis, review, implementation, testing, and handoff remain traceable.
 
 ## License
 
-No root `LICENSE` file is currently present. Add one before public release or
-external distribution. Unless the project owner chooses otherwise, MIT is a
-reasonable default for an early application scaffold.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file
+for details. The MIT License grants permission for both commercial and private
+use, modification, and distribution, subject to the conditions and limitations
+outlined in the license file.
 
 ## Acknowledgements
 
@@ -213,4 +215,3 @@ human-in-the-loop governance, enterprise architecture, and audit-first delivery.
 The project documentation under [`docs/`](docs/) and development harness under
 [`.harness/`](.harness/) are the canonical references for product and
 engineering decisions.
-
