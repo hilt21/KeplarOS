@@ -2,12 +2,15 @@ name: web-ci
 
 on:
   push:
-    branches: [master, 20260606-dev-bootstrap]
+    branches: [master]
   pull_request:
     paths:
       - "apps/web/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - ".github/workflows/web-ci.yml"
+      - ".nvmrc"
 
 concurrency:
   group: web-ci-${{ github.ref }}
@@ -15,7 +18,7 @@ concurrency:
 
 jobs:
   build-test:
-    name: Build & Test (apps/web)
+    name: Build & Test (workspace root)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -25,44 +28,16 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: ".nvmrc"
 
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.5.1
+      - name: Activate pnpm
+        run: corepack prepare pnpm@11.5.1 --activate
 
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/share/pnpm/store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Install dependencies
-        working-directory: apps/web
+      - name: Install (frozen lockfile)
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck
-        working-directory: apps/web
-        run: pnpm typecheck
-
-      - name: Lint
-        working-directory: apps/web
-        run: pnpm lint
-        continue-on-error: false
-
-      - name: Test
-        working-directory: apps/web
-        run: pnpm test
-
-      - name: Build
-        working-directory: apps/web
-        run: pnpm build
-        env:
-          # Allow Next.js build to skip telemetry prompt in CI
-          NEXT_TELEMETRY_DISABLED: "1"
+      - name: Verify (typecheck + lint + test + build + format:check)
+        run: pnpm check
