@@ -86,13 +86,12 @@ Parent change: `20260606-s1-scaffold` (commit `eea017e`,已 commit)
 
 ## Current Focus
 
-- **等人类 F-004 commit 指令**。F-001 + F-002 + F-003 已 commit(`74e61d1` + `0fc9dd3` + `26d0311` + `9785ead`),F-004 implementation 已完成(3 源 + 3 测试文件,5 baseline + db:check + db:migrate 全绿,224/224 测试通过)。
+- **Phase 4 + 5 收口**。F-001 + F-002 + F-003 + F-004 已 commit(`74e61d1` + `0fc9dd3` + `26d0311` + `9785ead` + `ce6883c`),S2 实施阶段全部完成。等人类指令启动 Phase 4 testing/results.md 与 Phase 5 delivery。
 
 ## Next Step
 
-1. 收到人类"commit" 指令后:F-004 commit 落仓
-2. Phase 4 Testing 收口:写 `testing/results.md`(5 baseline + 224/224 测试记录)
-3. Phase 5 Delivery:`delivery/summary.md` + `handoff.md`;`sprint_progress.md` 推 `complete`;S2 → S3 handoff
+1. 收到指令后:Phase 4 Testing 收口 → 写 `testing/results.md`(5 baseline + 224/224 测试记录)
+2. Phase 5 Delivery → 写 `delivery/summary.md` + `delivery/handoff.md`;`sprint_progress.md` 推 `complete`;S2 → S3 handoff
 
 ## Risks & Notes (摘自 review/findings.md,精简版)
 
@@ -115,3 +114,4 @@ Parent change: `20260606-s1-scaffold` (commit `eea017e`,已 commit)
 - `2026-06-07`: **F-003 commit `26d0311`** — 17 files, +936 / -15。"feat(s2-f003): Authorization matrix"。Working tree clean。等人类"开始实施 F-004"指令。
 - `2026-06-07`: 人类"执行" → F-004 启动。
 - `2026-06-07`: **F-004 ✅ implementation 完成**。`apps/web/src/lib/audit/{run-with-audit,index}.ts` + `apps/web/src/lib/db/client.ts` 3 source + 3 test 文件(`__tests__/audit/{run-with-audit,append-only,integration}.test.ts`)10 case;`runWithAudit<T>(db, ctx, fn)` 业务 + audit_entries + 可选 realtime_events 同事务原子写;realtime sequence 用单 SQL `SELECT COALESCE(MAX,0)+1` 子查询(AC-4.4);append-only 由 `@/lib/audit` index.ts NOT exporting 4 个名字 enforce(AC-4.7);`getDb()` Drizzle + better-sqlite3 单例(WAL + foreign_keys=ON,AC-4.8);`@/lib/audit` 聚合 re-export;5 baseline + db:check + db:migrate + 224/224 测试全绿(S1 26 + F-001 30 + F-002 117 + F-003 41 + F-004 10);`implementation/notes.md` 追加 F-004 段(6 决策 + 4 实施期注意点 + 3 新风险 R-12/R-13/R-14);`feature_list.json` F-004 → `completed` × 3。等人类 F-004 commit 指令。
+- `2026-06-07`: **F-004 commit `ce6883c`** — 9 files, +804 / -19。"feat(s2-f004): Audit transaction wrapper + db client"。Working tree clean。等人类"Phase 4 + 5"指令。
