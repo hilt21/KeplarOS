@@ -2,11 +2,12 @@
  * F-003 T-007: Goal Space 权限单测
  *
  * 覆盖范围(per F-003 AC-3.2 / AC-3.3 + § 4 API 矩阵 goalSpaces 行):
- *   - initiator 全可见(canReadGoalSpace=true 跨 own / other goalSpace)
+ *   - initiator 仅 own goalSpace 可读(canReadGoalSpace own=true / cross-owner=false)
  *   - initiator 写仅 own goalSpace(canManageGoalSpace own=true / other=false)
  *   - chain_user / viewer 一律 false(读 / 写)
  *
  * 真相源: docs/specs/authorization_matrix.md § 3 资源归属 + § 4 API 矩阵
+ * 修订: PR #1 review P1 #1 — cross-owner 读取从 true 改为 false。
  */
 
 import { describe, expect, it } from "vitest";
@@ -31,12 +32,12 @@ const bOther = goalCtx(GOAL_B, OTHER_OWNER); // 资源在 B,B 由 OTHER_OWNER �
 // ─── 1. canReadGoalSpace ─────────────────────────────────────────────
 
 describe("canReadGoalSpace", () => {
-  it("AC-3.2: initiator 全可见(自己的 goalSpace → true)", () => {
+  it("AC-3.2: initiator 读 own goalSpace → true", () => {
     expect(canReadGoalSpace({ id: OWNER, role: "initiator" }, aOwn)).toBe(true);
   });
 
-  it("AC-3.2: initiator 全可见(他人的 goalSpace → true,S2 范围内)", () => {
-    expect(canReadGoalSpace({ id: OWNER, role: "initiator" }, bOther)).toBe(true);
+  it("AC-3.2 (revised): initiator 只能读自己创建的 goalSpace,跨 owner 一律 false", () => {
+    expect(canReadGoalSpace({ id: OWNER, role: "initiator" }, bOther)).toBe(false);
   });
 
   it("AC-3.2: chain_user 一律 false(S2 范围不引入间接访问)", () => {
