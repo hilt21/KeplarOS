@@ -83,4 +83,20 @@ CREATE INDEX `idx_cards_goal_space` ON `cards` (`goal_space_id`);--> statement-b
 CREATE INDEX `idx_cards_node_board` ON `cards` (`node_board_id`);--> statement-breakpoint
 CREATE INDEX `idx_cards_state` ON `cards` (`state`);--> statement-breakpoint
 CREATE INDEX `idx_cards_assigned_to` ON `cards` (`assigned_to`);--> statement-breakpoint
+-- Enum CHECK for cards.state (Commit 4). The cards table was rebuilt above
+-- (DROP/CREATE __new_cards → RENAME), so any trigger defined on the old cards
+-- table in 0001 is dropped along with it. Re-establish the trigger here on
+-- the rebuilt table so the CHECK actually enforces. Symmetric INSERT+UPDATE.
+CREATE TRIGGER IF NOT EXISTS trg_cards_state_check
+BEFORE INSERT ON `cards`
+FOR EACH ROW WHEN NOT (NEW.`state` IN ('backlog','todo','dev','review','done','blocked','cancelled'))
+BEGIN
+  SELECT RAISE(ABORT, 'cards.state must be one of backlog|todo|dev|review|done|blocked|cancelled');
+END;--> statement-breakpoint
+CREATE TRIGGER IF NOT EXISTS trg_cards_state_check_u
+BEFORE UPDATE ON `cards`
+FOR EACH ROW WHEN NOT (NEW.`state` IN ('backlog','todo','dev','review','done','blocked','cancelled'))
+BEGIN
+  SELECT RAISE(ABORT, 'cards.state must be one of backlog|todo|dev|review|done|blocked|cancelled');
+END;--> statement-breakpoint
 PRAGMA foreign_keys=ON;
