@@ -2,7 +2,19 @@
   "name": "keplar",
   "version": "0.1.0",
   "private": true,
-  "scripts": {},
-  "dependencies": {},
-  "devDependencies": {}
+  "packageManager": "pnpm@11.5.1",
+  "engines": {
+    "node": ">=20.0.0 <21.0.0"
+  },
+  "scripts": {
+    "typecheck": "pnpm --filter @keplar/web typecheck",
+    "lint": "pnpm --filter @keplar/web lint",
+    "test": "pnpm --filter @keplar/web test",
+    "build": "pnpm --filter @keplar/web build",
+    "format:check": "pnpm --filter @keplar/web format:check",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm format:check",
+    "db:generate": "pnpm --filter @keplar/web db:generate",
+    "db:migrate": "pnpm --filter @keplar/web db:migrate",
+    "db:check": "pnpm --filter @keplar/web db:check"
+  }
 }
