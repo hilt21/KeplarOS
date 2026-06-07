@@ -145,4 +145,4 @@ BEFORE UPDATE ON `agent_executions`
 FOR EACH ROW WHEN NEW.`card_id` IS NULL
 BEGIN
   SELECT RAISE(ABORT, 'agent_executions.card_id must not be NULL');
-END;--> statement-breakpoint
+END;

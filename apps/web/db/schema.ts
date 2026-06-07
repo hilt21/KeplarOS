@@ -336,9 +336,7 @@ export const agentExecutions = sqliteTable(
     sessionId: text("session_id").references(() => sessions.id),
     agentRole: text("agent_role").notNull(),
     trigger: text("trigger").notNull(),
-    status: text("status", { enum: AGENT_EXECUTION_STATUS_VALUES })
-      .notNull()
-      .default("queued"),
+    status: text("status", { enum: AGENT_EXECUTION_STATUS_VALUES }).notNull().default("queued"),
     attempt: integer("attempt").notNull().default(1),
     maxAttempts: integer("max_attempts").notNull().default(2),
     requestedByType: text("requested_by_type", { enum: TRANSITION_ACTOR_VALUES })

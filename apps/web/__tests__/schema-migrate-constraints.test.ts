@@ -111,11 +111,9 @@ describe("T-100: enum CHECK triggers reject illegal values", () => {
   });
 
   it("BEFORE UPDATE trigger also rejects 'wontfix' on cards.state (symmetric enforcement)", () => {
-    expect(() =>
-      db
-        .prepare("UPDATE cards SET state = 'wontfix' WHERE id = 'c1'")
-        .run(),
-    ).toThrow(/cards\.state must be one of/i);
+    expect(() => db.prepare("UPDATE cards SET state = 'wontfix' WHERE id = 'c1'").run()).toThrow(
+      /cards\.state must be one of/i,
+    );
   });
 });
 
