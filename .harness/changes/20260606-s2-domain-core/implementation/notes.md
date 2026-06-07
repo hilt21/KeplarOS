@@ -410,3 +410,131 @@ AC-3.9 把 execute 定义为"viewer 一律 false + 非 viewer 需 canReadCard + 
 - **新增 R-10**:`canManageNodeBoardMembers` 与 `canManageNodeBoard` 当前主体等价(决策 1),若 S3 handler 接入时希望"非 own goalSpace 的 initiator 可管理 members(可治理代理)"语义,需回 F-003 拆出差异逻辑;暂定 S2 现状足够,per spec § 3 只允许 own goalSpace initiator
 - **新增 R-11**:`Actor` 不带 `goalSpaceId` 字段(决策 2),S3 session 注入 actor 时若需要"actor 当前所在 goalSpace"用于 UI context 切换,应单独从 request url / session 解析,不要给 Actor 加字段(否则破坏纯函数 + 跨域隐式防御)
 
+---
+
+# F-004 Implementation Notes
+
+Change: `20260606-s2-domain-core`
+Feature: F-004 — Audit Transaction Wrapper
+Branch: `20260606-s2-domain-core` (from `20260606-dev-bootstrap` @ `eea017e`)
+Date: 2026-06-07
+Status: ✅ implementation complete, all baseline commands green
+
+## Summary
+
+`apps/web/src/lib/audit/` + `apps/web/src/lib/db/` 下落地 3 个文件:
+
+- `audit/run-with-audit.ts` (122 行) — `AuditContext` 13 字段接口 + `AuditTx` 类型提取 + `runWithAudit<T>(db, ctx, fn): T` 主函数(业务 + audit_entries + 可选 realtime_events 同事务原子写)
+- `audit/index.ts` (15 行) — `@/lib/audit` 聚合 re-export(append-only 边界由 NOT exporting `updateAuditEntry` / `deleteAuditEntry` / `truncateAudit` / `dropAuditTable` 强制)
+- `db/client.ts` (53 行) — `getDb()` Drizzle + better-sqlite3 单例(WAL + foreign_keys=ON)+ `DrizzleDb` 类型供 runWithAudit 形参使用
+
+10 个新测试(4 runWithAudit + 4 append-only 静态 import check + 2 integration round-trip)全绿,与 F-001 + F-002 + F-003 合并后总 **224/224** 通过。
+
+## 真相源(实施中持续校对)
+
+- `docs/specs/database_design.md` § 3.9 (`audit_entries` 字段) + § 3.10 (`realtime_events` 字段含 unique index `(goal_space_id, sequence)`) + § 6 (SQLite 适配)
+- F-001 `apps/web/db/schema.ts` — `auditEntries` / `realtimeEvents` 表对象 + `EntityType` 7-value + `ActorType` 3-value enum
+- F-003 `apps/web/src/lib/authorization/assert.ts` — 复用 `ForbiddenError` 模式作 F-004 API 边界参考
+
+## 关键决策
+
+### 1. realtime sequence 用单 SQL `SELECT COALESCE(MAX(sequence), 0) + 1` 子查询,而非应用层 max+1
+
+AC-4.4 强制 sequence 严格 1..N 单调递增。两种实现路径:
+
+- **(a) 应用层**:`fn` 内先 SELECT max + 1,再 INSERT,事务隔离保护下不会并发覆盖,但需要 fn 先 SELECT 再 INSERT(2 round-trip),且若 fn 中其他写改变了 max 值,序列可能跳跃
+- **(b) 单 SQL 子查询**(选择):`tx.insert(realtimeEvents).values({ sequence: sql\`(SELECT COALESCE(MAX(sequence), 0) + 1 FROM realtime_events WHERE goal_space_id = ${goalSpaceId})\` })` — 1 round-trip,序列保证从当前 max+1 起步
+
+**F-004 选择 (b)**:better-sqlite3 是单进程同步驱动,WAL 模式下写串行化(per F-001 client.ts 注),单 SQL 子查询在同一事务内执行,避免 fn 在两次 round-trip 间被其他事务插入(虽然 better-sqlite3 串行化下不会发生,但子查询更原子)。T-013 段 3 验证 10 次严格 1..10。
+
+### 2. append-only 边界由 index.ts 不导出 enforce,非物理 DB 约束
+
+AC-4.7 强制 `audit_entries` append-only。两种 enforcement 路径:
+
+- **(a) DB 层 trigger**:`CREATE TRIGGER block_audit_update BEFORE UPDATE ON audit_entries BEGIN SELECT RAISE(FAIL, ...); END;` — 物理上无法 UPDATE
+- **(b) API 边界**:`@/lib/audit/index.ts` 不 re-export `updateAuditEntry` / `deleteAuditEntry` / `truncateAudit` / `dropAuditTable`(选择)
+
+**F-004 选择 (b)**:SQLite 的 `BEFORE UPDATE` trigger 在 production migration 中需独立 PR 评审与运维协调,scope 超出 F-004 范围(per review scope 防漂移)。API 边界即足够 — S2 范围内无任何调用者绕过 `@/lib/audit` 直接 raw SQL 改 audit 表;若 S3+ handler 有意绕过,那是 review/CI 抓的事,不是 F-004 强制门禁。T-014 用 `import * as auditModule from "@/lib/audit"; expect(auditModule).not.toHaveProperty("updateAuditEntry")` 静态 import 检查 4 个名字均未导出。
+
+### 3. `runWithAudit` 同步返回 `T` 而非 AC-4.1 写的 `Promise<T>`
+
+AC-4.1 签名 `runWithAudit(db, ctx, fn: (tx) => Promise<T>): Promise<T>`,但 better-sqlite3 是同步驱动,drizzle-orm/better-sqlite3 的 `db.transaction()` 返回 `T` 而非 `Promise<T>`。若硬走 async 路径,需 wrap `async tx =>` 内部 await(虽然 better-sqlite3 同步事务在 await 时已经 commit,语义错乱)。
+
+**F-004 选择**:`runWithAudit<T>(db, ctx, fn: (tx: AuditTx) => T): T` — 与底层 better-sqlite3 同步事务对齐,fn 同步执行,审计 + realtime 写也在 fn 同一同步上下文。若 S3+ 切到 Postgres/pg 异步驱动,该函数签名将由 owner 升级为 `Promise<T>`,迁移时一并处理。S2 范围内不预留 async 兼容(避免无意义的 Promise 包装层)。
+
+### 4. `AuditContext` 13 字段含 `goalSpaceId` + 3 个 realtime 字段,即使 `skipRealtime=true` 也必填
+
+`goalSpaceId` / `eventType` / `resourceType` / `resourceId` 4 个字段在 `skipRealtime=true` 时实际不写表,但仍要求 caller 填。两种设计:
+
+- **(a) Realtime 字段放子对象 `realtime?: { ... }`**:caller 需在 skipRealtime=true 时省略子对象,类型安全但 caller 体验差(每写一次都要判 skip 标记)
+- **(b) 平铺 13 字段,skip 时仍填**(选择):类型简单,call site 一次写齐;skip 仅影响"实际是否 insert",不影响 ctx 形状
+
+**F-004 选择 (b)**:简化 caller 体验。T-013 段 4 skipRealtime 测试 case 仍传 `goalSpaceId: "g1"` 等字段,验证"传了但 skip 后不写表"的契约。S3+ caller 写 ctx 时可考虑工厂函数统一生成默认值(后续 S3 决定)。
+
+### 5. `AuditTx` 用条件类型从 `DrizzleDb["transaction"]` 提取,避免重复声明
+
+Drizzle better-sqlite3 的 transaction 回调形参类型是 `BetterSQLite3Transaction<TSchema>`,本可以直接 `import` 那个类型,但 Drizzle 0.36 没有顶层 export `BetterSQLite3Transaction`,需从内部路径取(易碎)。
+
+**F-004 选择**:`type AuditTx = Parameters<DrizzleDb["transaction"]>[0] extends (tx: infer T) => unknown ? T : never` — 从 `DrizzleDb` 类型反推,跟随 Drizzle 内部签名变化自动适应。`DrizzleDb` 已在 `db/client.ts` 导出,run-with-audit.ts 仅 import 类型,无运行时循环依赖。
+
+### 6. `getDb()` 单例模式:重复调用返回同一 connection,避免 better-sqlite3 连接泄漏
+
+F-004 AC-4.8 要求导出 `getDb()`。better-sqlite3 每次 `new Database(path)` 都打开新 file handle + WAL file,进程内多实例会:
+- 占用多 file handle(可能突破 OS limit)
+- 同进程跨事务可见性错乱(WAL 模式允许多 reader + 1 writer,但同进程多 connection 仍可能锁定竞争)
+
+**F-004 选择**:模块级 `_cached: { sqlite, db } | null`,首次调用创建 + 设置 pragma + 缓存,后续返回同一对象。`@/lib/audit` 测试(T-013/T-015)显式不走 `getDb()`(per AC-4.8 description:"测试自建 new Database(':memory:') + drizzle(...) 不走本函数"),保持测试隔离与单例路径不混。
+
+## 实施期注意点
+
+- **test JSON 字段首次断言错**:`details` / `beforeState` / `afterState` / `payload` 字段 schema 标 `mode: "json"`,Drizzle 读时**自动 parse** 为 JS 对象(非 string)。初次写测试用 `JSON.parse(a.details as unknown as string)` → 失败 `SyntaxError: "[object Object]" is not valid JSON`。修复:删 `JSON.parse` 直接 `expect(a.details).toEqual({...})`。F-001 / F-002 / F-003 测试都是 enum literal union 字符串比对,未遇此问题;F-004 第一次触碰 JSON 字段 round-trip,记录给 S3+ handler 写读时参考。
+- **`db:migrate` 需在干净 `dev.db` 跑**:S1 阶段 `dev.db` 已 gitignore,但 F-001 实施时该文件已存在(本地)。F-004 跑 `db:migrate` 前 `rm -f apps/web/db/dev.db` 强制干净,验证 `migrations applied successfully` 与 schema 11 张表存在(F-001 baseline 复用此模式)
+- **vitest environmentMatchGlobs 已就位**:F-001 T-002 schema-migrate 触发 R-2(jsdom 加载 better-sqlite3 native module 偶发失败),`vitest.config.mts` 加 `__tests__/audit/**` glob → `node` env。F-004 T-013/T-015 复用此配置,无新 config 改动
+- **prettier 3 文件 format-on-save**:`run-with-audit.ts` (src) + `run-with-audit.test.ts` + `integration.test.ts`,Prettier 把多行对象字面量压成单行(100 列内),首次 `format:check` 失败 → `pnpm --filter web format` 自动修
+
+## 验证矩阵(F-004 verification)
+
+| 项 | 命令 | 结果 |
+|---|---|---|
+| typecheck | `pnpm --filter web typecheck` | ✅ 0 errors |
+| lint | `pnpm --filter web lint` | ✅ 0 errors |
+| format:check | `pnpm --filter web format:check` | ✅ All matched files use Prettier code style |
+| unit | `pnpm --filter web test` | ✅ 224/224 (S1 26 + F-001 30 + F-002 117 + F-003 41 + F-004 10) |
+| integration | T-015 真实 in-memory DB 端到端 round-trip | ✅ 2 case(11 audit 字段 + 7 realtime 字段全 round-trip;AC-4.5 跨 goalSpace 序列隔离) |
+| api_contract | n/a | n/a(S2 不含 API) |
+| migration | `pnpm --filter web db:check` + `db:migrate` | ✅ schema 一致 + 迁移应用成功(干净 dev.db) |
+| smoke | (optional) | ⏭️ 不强制(无 dev server) |
+| e2e | n/a | n/a |
+| build | `pnpm --filter web build` | ✅ 4 static pages |
+| 业务+audit+realtime 三段提交 | T-013 段 1 | ✅ 1 row each table |
+| audit fail → 业务回滚 | T-013 段 2(BEFORE INSERT trigger RAISE(FAIL)) | ✅ cards/audit/realtime 三段均为 0 row |
+| sequence 严格 1..10 | T-013 段 3 | ✅ 10 events sequence = [1..10] |
+| skipRealtime 不写 realtime | T-013 段 4 | ✅ audit 1 row / realtime 0 row |
+| append-only 静态 import 检查 | T-014 | ✅ 4 个名字均未导出 |
+| audit 11 字段 round-trip | T-015 段 1(JSON 字段 Drizzle auto-parse) | ✅ |
+| AC-4.5 跨 goalSpace 序列隔离 | T-015 段 2 | ✅ g-A [1,2,3] / g-B [1,2] |
+
+## 交付清单(此 commit)
+
+- `apps/web/src/lib/audit/run-with-audit.ts`(新建,122 行)
+- `apps/web/src/lib/audit/index.ts`(新建,15 行)
+- `apps/web/src/lib/db/client.ts`(新建,53 行)
+- `apps/web/__tests__/audit/run-with-audit.test.ts`(新建,T-013,4 case)
+- `apps/web/__tests__/audit/append-only.test.ts`(新建,T-014,4 case)
+- `apps/web/__tests__/audit/integration.test.ts`(新建,T-015,2 case)
+
+## 后续 S2 feature 接入点
+
+- **S3 API handler**:`GET /api/goal-spaces` / `POST /api/cards` / `PATCH /api/cards/:id` 等写路径一律 `db.transaction((tx) => { ...业务写... return runWithAudit(db, ctx, () => { ... return result; }); })` 模式,或直接 `runWithAudit(db, ctx, (tx) => { ...业务写... return result; })`。S3 handler 写 `ctx` 时应封装一个 `buildAuditContext(actor, action, entity, before, after)` 工厂函数,避免 13 字段散点
+- **F-002 接入点**:`assertGoalSpaceTransition(active, completed, opts)` 返回的 `missing: string[]` 可写进 `AuditContext.details.missing` 让审计可追溯"为什么 goal space 没能 complete"
+- **F-003 接入点**:`assertAccess` 在 runWithAudit 事务**前**调(预检);事务内仍可调 can 函数二次确认(防御 S3 handler 误用),但 forbidden 不应 throw 进事务(否则业务回滚 + 错误日志混乱)
+- **getDb()** 由 S3+ handler / middleware 注入,测试代码继续用 `new Database(':memory:')` 走自己的 connection
+
+## 风险登记(更新)
+
+- **R-7**(review/findings.md):4 commit 粒度 → F-001 + F-002 + F-003 + F-004 已落地,各 1 commit(等人类 commit 指令)
+- **新增 R-12**:append-only 边界由 API 层 enforce,非物理 DB trigger(决策 2);若 S3+ 引入 raw SQL 通道(运维脚本 / 调试工具)直接 UPDATE/DELETE audit_entries,DB 仍可改。S3 范围如涉及此类通道,需补 BEFORE UPDATE/DELETE trigger migration
+- **新增 R-13**:`runWithAudit` 同步返回(决策 3)与 AC-4.1 写 `Promise<T>` 不一致,迁移到 pg 异步驱动时需升级签名;S3 范围内同步,迁移期由 owner 同步修改 caller 端(不预留兼容层,避免死代码)
+- **新增 R-14**:`getDb()` 单例 + `process.cwd()` 相对路径在 vitest 单测下不命中(S2 测试已显式不走),但 S3+ handler 在 `next start` / `next dev` 进程内 cwd 变化时(`process.cwd() === apps/web/`)需保持;若 S3 部署到 Vercel / Docker 等 cwd 不定的环境,需把 db 路径改成 env(`DATABASE_URL` / `DEV_DB_PATH`)+ 配置文件(`drizzle.config.ts` 也读同一 env)。S2 范围内保持 `process.cwd()` 简单路径,记录给 S3 owner
+
+
