@@ -1,0 +1,52 @@
+@import "../styles/tokens.css";
+@import "tailwindcss";
+
+/* Bridge CSS variables (from tokens.css) into Tailwind 4 theme. */
+@theme {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-elevated: var(--color-surface-elevated);
+  --color-border: var(--color-border);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-secondary: var(--color-secondary);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+  --color-info: var(--color-info);
+  --spacing-2xs: var(--space-2xs);
+  --spacing-xs: var(--space-xs);
+  --spacing-sm: var(--space-sm);
+  --spacing-md: var(--space-md);
+  --spacing-lg: var(--space-lg);
+  --spacing-xl: var(--space-xl);
+  --spacing-2xl: var(--space-2xl);
+  --spacing-3xl: var(--space-3xl);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --font-display: var(--font-display);
+  --font-h1: var(--font-h1);
+  --font-h2: var(--font-h2);
+  --font-h3: var(--font-h3);
+  --font-body: var(--font-body);
+  --font-small: var(--font-small);
+  --font-micro: var(--font-micro);
+}
+
+html,
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-instrument-sans, system-ui, sans-serif);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
