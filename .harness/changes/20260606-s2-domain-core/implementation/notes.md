@@ -126,3 +126,167 @@ drizzle-kit 0.28 在 `migrations/meta/` 生成 `_journal.json` + `0000_snapshot.
 - **R-4**(review/findings.md):`goal_space.complete` 前置需 DB 查询 → F-002 `opts` 参数 + F-004 事务内 select 填充,契接口已就位。
 - **R-5**(review/findings.md):`pnpm dev` 浏览器手测无 GUI → S2 推迟到 S3 一起验;F-001 范围内不要求。
 - **R-7**(review/findings.md):4 commit 粒度 → F-001 已落地,待人类 commit 指令;F-002 / F-003 / F-004 各自单独 commit。
+
+---
+
+# F-002 Implementation Notes
+
+Change: `20260606-s2-domain-core`
+Feature: F-002 — Card & Goal Space State Machines
+Branch: `20260606-s2-domain-core` (from `20260606-dev-bootstrap` @ `eea017e`)
+Date: 2026-06-07
+Status: ✅ implementation complete, all baseline commands green
+
+## Summary
+
+`apps/web/src/lib/state-machine/` 下落地 3 个文件:
+
+- `card.ts`(229 行) — Card 7 态 + 17 转移(13 跨态 + 4 自环)+ 11 TransitionTriggers + 5 公开 API(`canTransition` / `assertTransition` / `isTerminalState` / `isValidState` / `getRequiredActor`)
+- `goal-space.ts`(171 行) — Goal Space 4 态 + 4 跨态 + `assertGoalSpaceTransition` 返回 string[] 缺哪条前置的列表(active → completed)+ `*→cancelled` 强制 cancelReason 非空(per MT-5)
+- `index.ts`(40 行) — `@/lib/state-machine` 聚合 re-export(S3 / F-004 / S4 单点 import)
+
+117 个新测试(67 card + 36 goal-space + 14 integration)全绿,与 F-001 56 测试合并后总 **173/173** 通过。
+
+## 真相源(实施中持续校对)
+
+- `docs/architecture/state_transition.md` § 1 § 2 § 4 § 6 — Card 7 态 / 14 跨态 / 4 自环 / 11 triggers / 子角色分类
+- `docs/specs/database_design.md` § 3.1 — Goal Space 4 态
+- `docs/specs/phase1_scope.md` § 5 — S2 = 领域核心,不含 UI / API / AI executor
+- F-001 `apps/web/db/schema.ts` — 12 enum literal union(F-002 import,不另开)
+
+## 关键决策
+
+### 1. CARD_TRANSITIONS = 13 跨态 + 4 自环 = 17,AC 写"14"是 off-by-one typo
+
+§ 4 表格 = 13 跨态 + 2 终态标注 = 15 rows;AC-2.3 写 "14 条 Card 规则" 是 typo。我实装 13 跨态(逐条对应 § 4 normal / blocked / blocked-resolution 3 段)+ 4 自环(§ 2 mermaid 的 backlog/todo/dev/review 自环),总 17 条。`T-004` 测试 67 个 case 覆盖全部 17 条合法 + 16 条非法 + 11 triggers + 终态 + 角色,远超 AC 14/10 下界。
+
+### 2. `CARD_TRANSITIONS[].triggers` 字段:每条规则对应允许的 trigger 集合
+
+§ 4 仅写"触发条件"(自然语言),§ 6 列 11 triggers,实装把两者映射:
+
+- `backlog → todo` 接受 `["dependencies_ready", "context_complete"]`(依赖满足 或 上下文完整)
+- `dev → blocked` 接受 `["task_cancelled", "review_failed", "human_reject"]` — Dev Crafter 失败 / 任务取消 / 人工拒绝
+- `review → blocked` 仅 `["review_failed", "human_reject"]` — Review Guard 失败或人工拒绝(无 task_cancelled,语义冲突)
+- `blocked → cancelled` 接受 `["task_cancelled", "human_confirm_timeout"]` — 任务取消 / 确认超时
+- `blocked → {backlog,todo,dev,review}` 仅 `["blocked_resolved"]` — 阻塞解决路由
+
+§ 4 没明示的 trigger 映射细节(例如 `dev → blocked` 是否含 `task_cancelled`)= 实施期工程判断,在 `card.ts` 注释中标明;后续 S3 API handler 触发转移时按此表选 trigger。
+
+### 3. 角色分类:`getRequiredActor` 返回 TransitionActor(单值),§ 4 多角色用主取
+
+§ 4 角色列用子角色名(Backlog Refiner / Todo Orchestrator / Dev Crafter / Review Guard / Blocked Resolver / 发起人 / 链路用户 / 系统)。F-001 的 `TransitionActor` 仅 3 值(`human` / `ai_role` / `system`),实装映射:
+
+- 5 个 AI 子角色 → `ai_role`
+- "发起人" / "链路用户" → `human`
+- "系统" → `system`
+
+多角色行(§ 4 "Review → Done: AI (Review Guard) / 发起人" / "Blocked → Cancelled: 发起人 / 系统")取主(前者 `ai_role`,后者 `human`)。`T-004` "getRequiredActor 角色分类" 段覆盖全部 11 条带主取规则。
+
+**AC-2.4 漂移项**:`AC-2.4 原文 backlog→todo 需 ai_role(Backlog Refiner)` — 但 state_transition.md § 4 写 `AI (Todo Orchestrator)`。两者都映射到 `ai_role`,实装按 § 4 真相源(主取 Todo Orchestrator → ai_role)。`Backlog Refiner` 实际对应 `backlog → blocked`(已在表),未在 AC-2.4 中显式列出。
+
+### 4. `assertGoalSpaceTransition` 返回 `string[]` 而非 throw
+
+AC-2.6 原文:"assertGoalSpaceTransition 对 active→completed 返回缺哪条前置的列表" — 用"返回"语义,我设计为:
+
+- 非法 from / to 枚举值、终态、找不到规则 → **throw**(纯校验错,无业务含义)
+- `active → completed` + 不满足前置 → **return** 缺哪条 key 的 string[](`hasPendingConfirmation` / `hasBlockedCard` / `allCardsDoneOrCancelled`,全满足则 `[]`)
+- `* → cancelled` 缺 cancelReason → **throw**(强制 caller 必填)
+- 其他合法转移(draft → active)→ return `[]`
+
+设计原因:F-004 审计事务 wrapper 拿到非空 `missing[]` 后可写进 `audit_entries.details`(业务成功但前置不满足也算可审计事件);S3 handler 拿到非空数组时再决定 409 Conflict + `{ missing: [...] }` body。这是 § 6 状态校验边界"领域核心 vs API handler 职责分离"的工程实现。
+
+### 5. `* → cancelled` 强制 cancelReason 非空(per MT-5 review 加注)
+
+review/findings.md MT-5:`assertGoalSpaceTransition(任意非终态, cancelled, { cancelReason?: string })` 校验 cancelReason 非空。实装:
+
+- `cancelReason` 缺 / 空字符串 / 仅空白(`"   "`)→ throw
+- `opts` 错形状(例如传 CompleteOpts 而非 CancelOpts)→ throw(由 `isCancelOpts` 类型守卫拦截)
+
+T-005 段 7 覆盖 4 个正面 case(active/draft × 有/无 reason) + 4 个负面 case(空 / 空白 / 错形状)。
+
+### 6. 终态 `done` / `cancelled` 的 4 自环不合法
+
+AC 隐含(done/cancelled 是终态不可再转,§ 4 也明"无进一步流转")。`canTransition` 在 `isTerminalState(from)` 短路 return false,所以 done → done / cancelled → cancelled 自动 false。T-004 "自环限 4 个非终态"段显式断言这 2 条。
+
+### 7. F-001 schema enum 复用:F-002 状态机不另开 enum
+
+`@db/schema.ts` 已是 F-001 真相源。F-002 card.ts 与 goal-space.ts **只 import,不 re-declare**:
+
+```ts
+import { CARD_STATES, TRANSITION_ACTOR_VALUES, type CardState, type TransitionActor } from "@db/schema";
+```
+
+`TRANSITION_TRIGGERS` 11 值不在 F-001 12 enum 中(state machine 内部事件分类,不入 DB 字段),所以单独 const+type 定义在 card.ts 内部。T-006 验证 `@/lib/state-machine` 与 `@db/schema` 在 3 个 enum(CardState / GoalSpaceStatus / TransitionActor)上数组字面量 + TS 类型字面量联合均相等 — 编译期就拦下漂移。
+
+### 8. `index.ts` 聚合 re-export + 透传类型
+
+S3 / F-004 / S4 单点 `@/lib/state-machine` import。`index.ts` 顶部 re-export F-001 schema 的 3 个 type(避免散点 `@db/schema` import):
+
+```ts
+export type { CardState, GoalSpaceStatus, TransitionActor } from "@db/schema";
+```
+
+后续 S3 handler 用 `type { CardState } from "@/lib/state-machine"` 即可,无需触碰 `@db/schema` import 路径。T-006 段 5 "聚合 re-export 端到端可用" 验证 9 个函数 + 4 个常量可调用 + `expectTypeOf(canTransition).returns.toEqualTypeOf<boolean>()` 不被 `as` cast 擦除。
+
+### 9. trigger 集合完整性断言(per AC-2.5)
+
+T-004 段 9 双断言:
+
+- `CARD_TRANSITIONS` 所有 `rule.triggers[i]` 都在 `TRANSITION_TRIGGERS` 集合内(防止 typo:`"dependent_ready"` 等错拼)
+- 11 个 trigger **每个**至少被 1 条规则使用(防止遗漏:`human_confirm_timeout` 仅 `blocked → cancelled` 用,`blocked_resolved` 4 条 blocked → {backlog/todo/dev/review} 用)
+
+## 实施期注意点
+
+- **tsconfig 路径别名**:`@/*` → `./src/*` + `@db/*` → `./db/*` S1 已就位,F-002 直接用,无需改 tsconfig
+- **prettier 3 文件需 `--write`**:本 F-002 的 3 个新源文件 + 1 个测试文件,Prettier 默认 100 列 + 中文方框注释间距,首次 format:check 失败;`pnpm --filter web format` 一次性修复
+- **vitest expectTypeOf**:S1 + F-001 没用过类型断言,F-002 T-006 第一次引入,API 在 `vitest` 包内 import,无需新依赖
+- **`isCancelOpts` / `isCompleteOpts` 类型守卫**:用 `typeof === "boolean"` / `typeof === "string"` 区分,运行时不依赖 `instanceof` 或 duck-typing,避免形状冲突时 silently pass
+- **`canTransition('done', 'backlog')` 返回 false,即使传合法 trigger**:终态短路在 trigger 检查之前,显式语义"终态不可再转",T-004 "终态传 trigger 仍拒绝" 断言
+
+## 验证矩阵(F-002 verification)
+
+| 项 | 命令 | 结果 |
+|---|---|---|
+| typecheck | `pnpm --filter web typecheck` | ✅ 0 errors |
+| lint | `pnpm --filter web lint` | ✅ 0 errors |
+| format:check | `pnpm --filter web format:check` | ✅ All matched files use Prettier code style |
+| unit | `pnpm --filter web test` | ✅ 173/173 (S1 26 + F-001 30 + F-002 117) |
+| integration | (optional) | ⏭️ not run;F-002 T-006 已覆盖 enum + re-export 联动 |
+| api_contract | n/a | n/a(S2 不含 API) |
+| migration | n/a | n/a(F-002 不动 schema) |
+| smoke | (optional) | ⏭️ 不强制(无 dev server) |
+| e2e | n/a | n/a |
+| build | `pnpm --filter web build` | ✅ 4 static pages |
+| Card 7 态 | T-004 段 1 + 段 3 | ✅ CARD_STATES length = 7,17 合法转移 |
+| Card 11 trigger | T-004 段 1 + 段 9 | ✅ TRANSITION_TRIGGERS length = 11,每条至少 1 规则用 |
+| Card 角色分类 | T-004 段 8 | ✅ 11 条主取规则 + 1 条 no-rule 抛错 |
+| Card 终态 | T-004 段 5 | ✅ done / cancelled × 7 to = 14 case 全 false |
+| Card 非法 ≥ 10 | T-004 段 4 | ✅ 16 case(倒退 6 + 跳跃 8 + 自环 2) |
+| Goal Space 4 态 | T-005 段 1 + 段 3 | ✅ 4 合法转移 + 4 非法 |
+| Goal Space 8 组合 | T-005 段 6 | ✅ active→completed × 8 布尔组合全覆盖 |
+| Goal Space cancel reason | T-005 段 7 | ✅ 6 case(2 正 + 4 负) |
+| Enum 联动 | T-006 段 1 | ✅ 3 数组字面量 + 3 类型字面量联合均相等 |
+| 聚合 re-export | T-006 段 5 | ✅ 9 函数 + 4 常量 + 类型不被擦除 |
+
+## 交付清单(此 commit)
+
+- `apps/web/src/lib/state-machine/card.ts`(新建,229 行)
+- `apps/web/src/lib/state-machine/goal-space.ts`(新建,171 行)
+- `apps/web/src/lib/state-machine/index.ts`(新建,40 行)
+- `apps/web/__tests__/state-machine/card.test.ts`(新建,T-004,67 case)
+- `apps/web/__tests__/state-machine/goal-space.test.ts`(新建,T-005,36 case)
+- `apps/web/__tests__/state-machine/integration.test.ts`(新建,T-006,14 case)
+
+## 后续 S2 feature 接入点
+
+- **F-003**(Authorization Matrix):`Actor` 用 `UserRole` enum(`initiator` / `chain_user` / `viewer`),不与 F-002 `TransitionActor` 混淆;`ResourceContext.goalSpaceId` 与 `goalSpaces.id` 一致
+- **F-004**(Audit Transaction Wrapper):`assertGoalSpaceTransition(active, completed, opts)` 返回的 `missing[]` 可直接序列化进 `audit_entries.details`;`canTransition` 的 trigger 校验先于 DB 写,F-004 事务可在 fn 完成后写 `state_transitions.trigger` 与 `audit_entries.action` 字段,无需重复校验
+- **S3 API handler**:调 `assertTransition` + `getRequiredActor` 写 `state_transitions` 行,`assertGoalSpaceTransition` 返回 `[]` 才允许写 `goalSpaces.status`,返回非空 `missing[]` 时 409 Conflict + `{ missing: [...] }` body
+
+## 风险登记(更新)
+
+- **R-4**(review/findings.md):`goal_space.complete` 前置需 DB 查询 → **F-002 已闭环**:`GoalSpaceCompleteOpts` 3 字段契约已落地,F-004 实施时事务内 select 填充即可,无需再改 F-002
+- **R-7**(review/findings.md):4 commit 粒度 → F-001 + F-002 已落地,各 1 commit;F-003 / F-004 各自单独 commit
+- **新增 R-8**:`TRIGGER` 与 § 4 触发条件的映射是工程判断(决策 2),后续 S3 handler 若发现映射不当可改 `CARD_TRANSITIONS[].triggers` 数组,无需改 schema / 状态机主结构
+- **新增 R-9**:`assertGoalSpaceTransition` 在 `*→cancelled` 路径上 throw 而非 return `missing[]`(决策 4/5 不对称),F-004 实施时若需"cancel reason 缺失也返回列表"语义,需回 F-002 改造(应回退 throw 改 return + 类型守卫),暂定 F-002 现状足够
+
