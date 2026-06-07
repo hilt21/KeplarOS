@@ -1,0 +1,234 @@
+{
+  "change_id": "20260606-s2-domain-core",
+  "title": "Phase 1 S2 领域核心 (Drizzle schema + 状态机 + 权限矩阵 + 审计事务)",
+  "status": "implementation",
+  "branch": "20260606-s2-domain-core (created 2026-06-07 from 20260606-dev-bootstrap @ eea017e)",
+  "phase1_subproject": "S2",
+  "parent_change": "20260606-s1-scaffold (commit eea017e)",
+  "features": [
+    {
+      "id": "F-001",
+      "title": "Drizzle Schema + Initial Migration",
+      "description": "在 apps/web/db/schema.ts 引入 11 张 KEPLAR 业务表的 Drizzle SQLite 定义(users / goal_spaces / node_boards / node_board_members / sessions / agent_executions / cards / state_transitions / human_confirmations / audit_entries / realtime_events),UUID 主键用 text + lower(hex(randomblob(16))) 默认,JSONB 用 text + JSON.parse/stringify,deleted_at 软删除,created_at/updated_at 默认 CURRENT_TIMESTAMP。partial unique index 用 sql`...` 块补。导出 enum literal union(goalSpaceStatus / cardState / nodeBoardStatus / sessionStatus / agentExecutionStatus / transitionActor / confirmationStatus / confirmationTriggerType / userRole / entityType / actorType / riskLevel)与 InferSelectModel/InferInsertModel 类型。新增 package.json scripts: db:generate / db:migrate / db:check / db:studio。生成 0001_*.sql 迁移并应用,sqlite3 .tables 列出 11 张表。S2 不引入 API / UI / AI executor。",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "AC-1.1 apps/web/db/schema.ts 导出 11 张 Drizzle SQLite 表定义 + 全部 enum literal union + InferSelectModel/InferInsertModel 类型,pnpm --filter web typecheck 0 errors",
+        "AC-1.2 UUID 主键用 text + lower(hex(randomblob(16))) 默认,JSONB 用 text 默认 '{}' / '[]',created_at/updated_at 默认 CURRENT_TIMESTAMP,与 docs/specs/database_design.md § 3 字段类型与默认值完全一致",
+        "AC-1.3 partial unique index 用 sql`CREATE UNIQUE INDEX ... WHERE ...` 块补全:node_board_members (board, user) WHERE removed_at IS NULL、node_boards (goal_space, key) WHERE deleted_at IS NULL、cards (goal_space, display_id) WHERE deleted_at IS NULL、human_confirmations (card) WHERE status='pending'、realtime_events (goal_space, sequence)",
+        "AC-1.4 enum literal union 值集合与 database_design.md § 1 + state_transition.md § 1 + authorization_matrix.md § 2 完全一致(无遗漏枚举值,顺序不强制)",
+        "AC-1.5 apps/web/package.json 新增 scripts: db:generate (drizzle-kit generate)、db:migrate (drizzle-kit migrate)、db:check (drizzle-kit check)、db:studio (drizzle-kit studio,可选)",
+        "AC-1.6 跑 pnpm --filter web db:generate 在 apps/web/db/migrations/0001_*.sql 生成迁移,人工校对 + 补 partial index,pnpm --filter web db:check 0 errors",
+        "AC-1.7 跑 pnpm --filter web db:migrate 在干净 apps/web/db/dev.db 应用 0001 成功,sqlite3 apps/web/db/dev.db '.tables' 列出全部 11 张表",
+        "AC-1.8 apps/web/README.md 增补 'Database' 段,含 11 张表概览 + db:generate / db:migrate / db:check 用法",
+        "AC-1.9 __tests__/schema.test.ts 验证 enum literal union 值集合与 3 个真相源文档完全一致"
+      ],
+      "affected_areas": [
+        "data_model",
+        "tests",
+        "docs"
+      ],
+      "dependencies": [
+        "S1 commit eea017e (脚手架)",
+        "docs/specs/database_design.md § 1 § 2 § 3 § 4 § 7.1 (schema 真相源)"
+      ],
+      "test_needs": [
+        "Vitest unit test for enum consistency",
+        "Vitest + better-sqlite3 in-memory migration test",
+        "drizzle-kit check 验证 schema 一致性"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass (vitest 26/26 S1 + F-001 新增 it 全绿)",
+        "Required verification matrix items pass (typecheck/lint/format:check/test/build/db:check/db:migrate 0 errors 0 warnings)",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "optional",
+        "api_contract": "not_applicable",
+        "migration": "required",
+        "smoke": "optional",
+        "e2e": "not_applicable"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    },
+    {
+      "id": "F-002",
+      "title": "Card & Goal Space State Machines",
+      "description": "apps/web/src/lib/state-machine/ 实现纯函数 Card 7 态(backlog/todo/dev/review/done/blocked/cancelled)与 Goal Space 4 态(draft/active/completed/cancelled)状态机。Card 按 state_transition.md § 4 转移表实现 canTransition/assertTransition/isTerminalState/getRequiredActor,trigger 名与 § 6 TransitionTrigger 一致(11 个 trigger)。Goal Space 实现 canGoalSpaceTransition/assertGoalSpaceTransition/isGoalSpaceTerminal,其中 assertGoalSpaceTransition 对 active→completed 返回缺哪条前置(hasPendingConfirmation/hasBlockedCard/allCardsDoneOrCancelled)的列表;opts 在 F-004 审计事务包装器中由事务内查询填充。纯函数不依赖 Drizzle 实例,便于单测。S2 不引入 API / UI / AI executor。",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "AC-2.1 apps/web/src/lib/state-machine/card.ts 导出 canTransition(from, to, trigger?): boolean / assertTransition(from, to, trigger?): void / isTerminalState(state): boolean / getRequiredActor(from, to): ActorType / isValidState(state): boolean / CARD_STATES / CARD_TRANSITIONS,pnpm --filter web test -- state-machine/card 全绿",
+        "AC-2.2 apps/web/src/lib/state-machine/goal-space.ts 导出 canGoalSpaceTransition / assertGoalSpaceTransition / isGoalSpaceTerminal / GOAL_SPACE_STATES,pnpm --filter web test -- state-machine/goal-space 全绿",
+        "AC-2.3 全部合法转移(state_transition.md § 4 表的 14 条 Card 规则)允许,至少 10 条非法转移拒绝,Done/Cancelled 终态不可再转",
+        "AC-2.4 角色分类正确:backlog→todo 需 ai_role(Backlog Refiner),todo→dev 需 ai_role(Dev Crafter),blocked→* 需 system 或 human(initiator),task_cancelled 需 human(initiator)或 system",
+        "AC-2.5 11 个 trigger literal 全部存在:dependencies_ready / context_complete / execution_start / evidence_submitted / review_passed / review_failed / human_confirm / human_reject / human_confirm_timeout / blocked_resolved / task_cancelled",
+        "AC-2.6 assertGoalSpaceTransition 对 active→completed 返回缺哪条前置的列表:缺 hasPendingConfirmation → ['hasPendingConfirmation'];缺 hasBlockedCard → ['hasBlockedCard'];缺 allCardsDoneOrCancelled → ['allCardsDoneOrCancelled'];全缺 → 三条都在;全满足 → 空数组",
+        "AC-2.7 __tests__/state-machine/card.test.ts 覆盖 ≥ 80% 行 + 全部 14 条合法转移 + ≥ 10 条非法转移 + 全部 11 个 trigger + 终态拒绝",
+        "AC-2.8 __tests__/state-machine/goal-space.test.ts 覆盖 ≥ 80% 行 + draft→active / active→completed / active→cancelled / draft→cancelled + 终态拒绝 + complete 前置条件缺一/缺二/缺三"
+      ],
+      "affected_areas": [
+        "domain_core",
+        "tests"
+      ],
+      "dependencies": [
+        "F-001 (CardState / GoalSpaceStatus / TransitionTrigger enum literal union)",
+        "docs/architecture/state_transition.md § 1 § 2 § 4 § 6"
+      ],
+      "test_needs": [
+        "Vitest unit test for card state machine (合法 + 非法 + 终态 + 角色 + trigger)",
+        "Vitest unit test for goal space state machine (转移 + 前置条件)",
+        "Vitest integration test for F-001 enum 联动"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass (F-002 新增 it 全绿)",
+        "Required verification matrix items pass (5 条 baseline 命令 0 errors 0 warnings)",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable"
+      },
+      "implementation_status": "not_started",
+      "test_status": "not_started",
+      "done_status": "not_started"
+    },
+    {
+      "id": "F-003",
+      "title": "Authorization Matrix",
+      "description": "apps/web/src/lib/authorization/ 实现纯函数权限矩阵,actor 抽象 Actor { id, role: 'initiator'|'chain_user'|'viewer' } + 资源归属。8 个 can 函数:canReadGoalSpace / canManageGoalSpace(initiator only) / canReadNodeBoard(initiator 全可见,非 initiator 需为有效成员) / canManageNodeBoard(initiator only) / canManageNodeBoardMembers(initiator only) / canReadCard(initiator 全可见,非 initiator 限本节点/本人) / canMutateCard(viewer 禁止,chain_user 限本节点/本人) / canDecideConfirmation(initiator only) / canExecuteCard(组合访问权 + 无 pending confirmation)。assertAccess(boolean, msg): void | throws ForbiddenError 抛错版本给 S3 handler。跨 goal_space_id 访问一律 false。每条 API 行(authorization_matrix.md § 4)+ initiator/chain_user/viewer × 每种资源 × allow/deny ≥ 30 case。S2 不引入真实登录,S3 注入 Actor from session。",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "AC-3.1 apps/web/src/lib/authorization/ 下分文件导出 8 个 can 函数 + Actor/AccessResult/ResourceContext 类型 + assertAccess 抛错版本 + index re-export,pnpm --filter web test -- authorization 全绿",
+        "AC-3.2 canReadGoalSpace: initiator 自己的 goalSpace → true,initiator 别人的 goalSpace → true(initiator 全可见),chain_user/viewer 别人的 goalSpace → false(除非通过 node_board_members 获得访问权,S2 范围内 goalSpace 单层不需成员关系)",
+        "AC-3.3 canManageGoalSpace: 仅 initiator == goal_spaces.initiator_id 才 true;chain_user/viewer 一律 false",
+        "AC-3.4 canReadNodeBoard: initiator → true;非 initiator 需在 members 列表中(removed_at IS NULL)才 true;否则 false",
+        "AC-3.5 canManageNodeBoard / canManageNodeBoardMembers: 仅 initiator 才 true;非 initiator 一律 false",
+        "AC-3.6 canReadCard: initiator → true;非 initiator 需为卡片 node_board 的有效成员 OR assigned_to == actor.id 才 true;否则 false",
+        "AC-3.7 canMutateCard: viewer 一律 false;chain_user 需为有效成员 OR assigned_to == actor.id 才 true;initiator 全 true",
+        "AC-3.8 canDecideConfirmation: 仅 initiator == goal_spaces.initiator_id 才 true;chain_user/viewer 一律 false",
+        "AC-3.9 canExecuteCard(actor, card, members, hasPendingConfirmation): viewer → false;非 viewer 需卡片可访问(canReadCard) AND hasPendingConfirmation == false 才 true;否则 false",
+        "AC-3.10 assertAccess(true, msg) 不抛;assertAccess(false, msg) 抛 ForbiddenError(msg)",
+        "AC-3.11 跨 goal_space_id 访问一律 false(actor.goalSpaceId !== resource.goalSpaceId)",
+        "AC-3.12 __tests__/authorization/ 6 个测试文件,共 ≥ 30 case,覆盖 initiator/chain_user/viewer × 资源 × allow/deny 全组合"
+      ],
+      "affected_areas": [
+        "authorization",
+        "tests"
+      ],
+      "dependencies": [
+        "F-001 (UserRole / CardState / NodeBoardStatus enum literal union)",
+        "docs/specs/authorization_matrix.md § 2 § 3 § 4 § 5"
+      ],
+      "test_needs": [
+        "Vitest unit test for goal space authorization",
+        "Vitest unit test for node board authorization",
+        "Vitest unit test for card authorization",
+        "Vitest unit test for confirmation authorization",
+        "Vitest unit test for execute authorization (组合 + pending confirmation)",
+        "Vitest unit test for assertAccess (true 不抛 / false 抛 ForbiddenError)"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass (F-003 新增 it 全绿,≥ 30 case)",
+        "Required verification matrix items pass (5 条 baseline 命令 0 errors 0 warnings)",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable"
+      },
+      "implementation_status": "not_started",
+      "test_status": "not_started",
+      "done_status": "not_started"
+    },
+    {
+      "id": "F-004",
+      "title": "Audit Transaction Wrapper",
+      "description": "apps/web/src/lib/audit/ 实现 runWithAudit(db, ctx, fn) 高阶函数,业务变更 + audit_entries 写 + 可选 realtime_events 写同事务;audit 失败回滚主操作;realtime sequence 单调递增(用单 SQL INSERT ... SELECT max(sequence)+1 FROM realtime_events WHERE goal_space_id = ? 解决并发覆盖);不导出 updateAuditEntry / deleteAuditEntry / truncateAudit(append-only 由 API 边界 enforce)。apps/web/src/lib/db/client.ts 辅助导出 getDb() 返回 Drizzle 实例 + better-sqlite3 连接。S2 不引入 API handler / SSE / AI executor,audit wrapper 由 S3 调用。",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "AC-4.1 apps/web/src/lib/audit/run-with-audit.ts 导出 runWithAudit(db: DrizzleDb, ctx: AuditContext, fn: (tx) => Promise<T>): Promise<T>,AuditContext 含 entityType / entityId / actor / action / beforeState? / afterState? / details? / skipRealtime?,pnpm --filter web typecheck 0 errors",
+        "AC-4.2 同事务原子性:fn(tx) 执行 + tx.insert(auditEntries).values(...) 写 audit + (skipRealtime 默认 false) tx.insert(realtimeEvents).values({sequence: max+1}) 写 realtime 三段全部提交成功;任何一个 throw 则全部回滚",
+        "AC-4.3 audit 写失败 → 业务回滚:fn 已 insert 一行 users,audit insert 抛错,该 users 行不在 db 中(SELECT 验证)",
+        "AC-4.4 realtime sequence 单调递增:连续 10 次 runWithAudit 在同一 goalSpaceId 下,realtime_events.sequence 严格 1..10",
+        "AC-4.5 跨 goalSpaceId 的 sequence 互不影响:goalSpaceA sequence 1..3,goalSpaceB sequence 1..5,各自从 1 开始递增",
+        "AC-4.6 skipRealtime: true 不写 realtime_events,只写 audit_entries",
+        "AC-4.7 append-only 边界:@/lib/audit 不导出 updateAuditEntry / deleteAuditEntry / truncateAudit / dropAuditTable / removeAuditEntry,静态 import 检查通过",
+        "AC-4.8 apps/web/src/lib/db/client.ts 导出 getDb() 返回 Drizzle + better-sqlite3 实例,db 文件路径 apps/web/db/dev.db,不引入新依赖",
+        "AC-4.9 __tests__/audit/run-with-audit.test.ts 4 个 case 覆盖:业务+audit+realtime 三段成功 / 业务成功+audit 失败回滚 / 连续 10 次 sequence 严格递增 / skipRealtime 不写 realtime",
+        "AC-4.10 __tests__/audit/append-only.test.ts 静态 import 检查 4 个名字均未导出"
+      ],
+      "affected_areas": [
+        "data_model",
+        "authorization",
+        "tests"
+      ],
+      "dependencies": [
+        "F-001 (audit_entries / realtime_events / cards / users schema + 字段类型)",
+        "F-002 (assertGoalSpaceTransition 用于 complete 前置条件校验,可选)"
+      ],
+      "test_needs": [
+        "Vitest + better-sqlite3 in-memory test for runWithAudit (4 case)",
+        "Vitest static import check for append-only boundary",
+        "Vitest integration test for F-001 schema 联动 (实际 insert + select)"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass (F-004 新增 it 全绿)",
+        "Required verification matrix items pass (5 条 baseline 命令 0 errors 0 warnings,含 vitest jsdom 与 better-sqlite3 兼容性)",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "required",
+        "api_contract": "not_applicable",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable"
+      },
+      "implementation_status": "not_started",
+      "test_status": "not_started",
+      "done_status": "not_started"
+    }
+  ]
+}
