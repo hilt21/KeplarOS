@@ -77,8 +77,9 @@ apps/web/
 │   ├── smoke.test.ts        # 渲染环境与工作区别名 smoke
 │   └── tokens.test.ts       # DESIGN.md 桥接覆盖
 ├── db/
-│   ├── schema.ts            # S1 占位空 schema(S2 填充领域表)
-│   └── migrations/          # drizzle-kit 输出目录
+│   ├── schema.ts            # S2 F-001 领域核心 schema(11 张表)
+│   ├── migrations/          # drizzle-kit 输出目录
+│   └── dev.db               # 本地开发 SQLite(已 gitignore)
 ├── public/                  # 静态资源
 ├── drizzle.config.ts        # Drizzle Kit 配置
 ├── eslint.config.js         # (待补,见 implementation/notes.md)
@@ -91,8 +92,59 @@ apps/web/
 └── .gitignore               # Next.js/Node/Drizzle 忽略规则
 ```
 
+## Database
+
+S2 F-001 起 `db/schema.ts` 提供 11 张 SQLite 表 + 12 个 enum literal union
+
+- 22 个 `InferSelectModel` / `InferInsertModel` 类型。真相源:
+  [`docs/specs/database_design.md`](../../docs/specs/database_design.md)。
+
+### 11 张表概览
+
+| 表                    | 作用                                                     | 关键索引(partial 用 `*_active` / `_pending` 标识)                                                                                                                            |
+| --------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`               | 平台用户(`initiator` / `chain_user` / `viewer`)          | `idx_users_email_unique`                                                                                                                                                     |
+| `goal_spaces`         | 目标空间(`draft` / `active` / `completed` / `cancelled`) | `idx_goal_spaces_initiator`, `idx_goal_spaces_status`                                                                                                                        |
+| `node_boards`         | 节点板(挂载在 goal_space 下)                             | `idx_node_boards_goal_space_key_active` _(partial, `WHERE deleted_at IS NULL`)_, `idx_node_boards_goal_space`                                                                |
+| `node_board_members`  | 节点板成员(支持软移除)                                   | `idx_node_board_members_board_user_active` _(partial, `WHERE removed_at IS NULL`)_, `idx_node_board_members_user`                                                            |
+| `sessions`            | 协作会话(用户与 goal_space 的中间层)                     | `idx_sessions_user`, `idx_sessions_goal_space`, `idx_sessions_status`                                                                                                        |
+| `cards`               | 任务卡(7 态状态机)                                       | `idx_cards_goal_space_display_id_active` _(partial, `WHERE deleted_at IS NULL`)_, `idx_cards_goal_space`, `idx_cards_node_board`, `idx_cards_state`, `idx_cards_assigned_to` |
+| `agent_executions`    | AI agent 执行轨迹                                        | `idx_agent_executions_card`, `idx_agent_executions_session`, `idx_agent_executions_status`                                                                                   |
+| `state_transitions`   | 状态机迁移审计                                           | `idx_state_transitions_entity`, `idx_state_transitions_created_at`                                                                                                           |
+| `human_confirmations` | 人类确认请求(高风险动作)                                 | `idx_human_confirmations_card_pending` _(partial, `WHERE status = 'pending'`)_, `idx_human_confirmations_status`, `idx_human_confirmations_expires_at`                       |
+| `audit_entries`       | 不可变审计流(append-only,F-004 强制)                     | `idx_audit_entries_entity`, `idx_audit_entries_occurred_at`                                                                                                                  |
+| `realtime_events`     | SSE 推送事件(含单调 sequence)                            | `idx_realtime_events_goal_space_sequence` _(full unique, 跨 goalSpace 互不干扰)_, `idx_realtime_events_published_at`                                                         |
+
+### SQLite 适配要点
+
+- **UUID 主键**:`text` + `DEFAULT (lower(hex(randomblob(16))))` —— 不依赖外部扩展
+- **JSONB 字段**:`text` + `mode: "json"` + 默认 `'{}'` / `'[]'` —— 应用层 parse/stringify,Drizzle ORM 透明
+- **时间戳**:`text` + `DEFAULT (datetime('now'))` —— ISO-8601 字符串,SSE 与审计可读
+- **soft delete**:`deleted_at` 字段(`node_boards` / `cards`)+ partial unique 索引
+- **append-only**:`audit_entries` 仅有 INSERT 路径,F-004 的 `runWithAudit` 在事务内强制
+
+### 常用命令
+
+```bash
+# 1. 修改 schema.ts 后重新生成迁移
+pnpm --filter web db:generate
+
+# 2. 在干净 dev.db 上应用全部迁移
+rm -f apps/web/db/dev.db
+pnpm --filter web db:migrate
+
+# 3. schema 内部一致性 + migration 一致性校验
+pnpm --filter web db:check
+
+# 4. (可选) Drizzle Studio 浏览器可视化
+pnpm --filter web db:studio
+
+# 5. 验证 11 张表存在
+sqlite3 apps/web/db/dev.db ".tables"
+```
+
 ## S2+ 后续子项目落地
 
-- **S2 领域核心**:在 `db/schema.ts` 引入 `goalSpace` / `nodeBoard` / `card` / `audit` 等表;新增 `db/migrations/0001_*.sql` 迁移;补状态机单测与权限矩阵用例。
+- **S2 领域核心**:✅ F-001 schema + migration 已落地;F-002 状态机 + F-003 权限矩阵 + F-004 审计事务 wrapper 进行中。详见 `.harness/changes/20260606-s2-domain-core/`。
 - **S3 API/SSE**:在 `src/app/api/` 引入 REST 路由;在 `src/app/api/events/` 引入 SSE handler;补 `__tests__/api.*.test.ts` 契约测试。
 - **S4 Dashboard UI**:在 `src/app/(dashboard)/` 引入看板页;补 Storybook + 视觉回归。
