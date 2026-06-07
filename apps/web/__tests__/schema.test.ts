@@ -54,13 +54,13 @@ describe("T-001: enum literal unions align with truth source docs", () => {
 
   it("agentExecutionStatus (database_design.md § 3.5) = 7 values", () => {
     expect(AGENT_EXECUTION_STATUS_VALUES).toEqual([
-      "pending",
+      "queued",
       "running",
       "completed",
       "failed",
-      "timeout",
+      "blocked",
+      "needs_confirmation",
       "cancelled",
-      "awaiting_confirmation",
     ]);
   });
 

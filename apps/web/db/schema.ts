@@ -51,13 +51,13 @@ export type SessionStatus = (typeof SESSION_STATUS_VALUES)[number];
 
 // § 3.5 agent_executions.status
 export const AGENT_EXECUTION_STATUS_VALUES = [
-  "pending",
+  "queued",
   "running",
   "completed",
   "failed",
-  "timeout",
+  "blocked",
+  "needs_confirmation",
   "cancelled",
-  "awaiting_confirmation",
 ] as const;
 export type AgentExecutionStatus = (typeof AGENT_EXECUTION_STATUS_VALUES)[number];
 
@@ -327,17 +327,32 @@ export const agentExecutions = sqliteTable(
     id: text("id")
       .primaryKey()
       .default(sql`(lower(hex(randomblob(16))))`),
-    cardId: text("card_id").references(() => cards.id),
+    goalSpaceId: text("goal_space_id")
+      .notNull()
+      .references(() => goalSpaces.id),
+    cardId: text("card_id")
+      .notNull()
+      .references(() => cards.id),
     sessionId: text("session_id").references(() => sessions.id),
     agentRole: text("agent_role").notNull(),
     trigger: text("trigger").notNull(),
-    status: text("status", { enum: AGENT_EXECUTION_STATUS_VALUES }).notNull().default("pending"),
+    status: text("status", { enum: AGENT_EXECUTION_STATUS_VALUES })
+      .notNull()
+      .default("queued"),
+    attempt: integer("attempt").notNull().default(1),
+    maxAttempts: integer("max_attempts").notNull().default(2),
+    requestedByType: text("requested_by_type", { enum: TRANSITION_ACTOR_VALUES })
+      .notNull()
+      .default("human"),
+    requestedById: text("requested_by_id"),
+    requestedByName: text("requested_by_name"),
     input: text("input", { mode: "json" })
       .$type<Record<string, unknown>>()
       .notNull()
       .default(sql`'{}'`),
     output: text("output", { mode: "json" }).$type<Record<string, unknown>>(),
-    error: text("error"),
+    errorCode: text("error_code"),
+    errorMessage: text("error_message"),
     durationMs: integer("duration_ms"),
     startedAt: text("started_at")
       .notNull()
@@ -351,6 +366,7 @@ export const agentExecutions = sqliteTable(
       .default(sql`(datetime('now'))`),
   },
   (t) => ({
+    goalSpaceIdx: index("idx_agent_executions_goal_space").on(t.goalSpaceId),
     cardIdx: index("idx_agent_executions_card").on(t.cardId),
     sessionIdx: index("idx_agent_executions_session").on(t.sessionId),
     statusIdx: index("idx_agent_executions_status").on(t.status),

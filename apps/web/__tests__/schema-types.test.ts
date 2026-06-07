@@ -128,6 +128,57 @@ describe("T-003: inferred row types compile and have the expected column set", (
     ]);
   });
 
+  it("AgentExecution select model carries the § 3.5 column set (goalSpaceId + cardId NOT NULL, attempt + maxAttempts, requested_by_*)", () => {
+    const sample: AgentExecution = {
+      id: "0".repeat(32),
+      goalSpaceId: "0".repeat(32),
+      cardId: "0".repeat(32),
+      sessionId: null,
+      agentRole: "x",
+      trigger: "x",
+      status: "queued",
+      attempt: 1,
+      maxAttempts: 2,
+      requestedByType: "human",
+      requestedById: null,
+      requestedByName: null,
+      input: {},
+      output: null,
+      errorCode: null,
+      errorMessage: null,
+      durationMs: null,
+      startedAt: "2026-06-07 00:00:00",
+      completedAt: null,
+      createdAt: "2026-06-07 00:00:00",
+      updatedAt: "2026-06-07 00:00:00",
+    };
+    expect(Object.keys(sample).sort()).toEqual(
+      [
+        "agentRole",
+        "attempt",
+        "cardId",
+        "completedAt",
+        "createdAt",
+        "durationMs",
+        "errorCode",
+        "errorMessage",
+        "goalSpaceId",
+        "id",
+        "input",
+        "maxAttempts",
+        "output",
+        "requestedById",
+        "requestedByName",
+        "requestedByType",
+        "sessionId",
+        "startedAt",
+        "status",
+        "trigger",
+        "updatedAt",
+      ].sort(),
+    );
+  });
+
   it("Schema type is a structural type usable in Drizzle db typing", () => {
     const s: Schema = schema;
     for (const key of Object.keys(s) as Array<keyof Schema>) {
