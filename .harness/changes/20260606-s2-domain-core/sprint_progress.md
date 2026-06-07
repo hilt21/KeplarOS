@@ -8,7 +8,7 @@ Parent change: `20260606-s1-scaffold` (commit `eea017e`,已 commit)
 
 ## Status Summary
 
-**Phase**: Implementation (Phase 3) — F-001 ✅ committed (`74e61d1`); F-002 ✅ committed (`0fc9dd3`); F-003 ✅ committed (next hash TBD); F-004 in_progress/not_started
+**Phase**: Implementation (Phase 3) — F-001 ✅ committed (`74e61d1`); F-002 ✅ committed (`0fc9dd3`); F-003 ✅ committed (`26d0311`); F-004 in_progress/not_started
 **Overall Progress**: **70%**(Phase 1+2 done;Phase 3.1 done;F-001 + F-002 + F-003 done & committed;F-004 not_started)
 **Target Features**: F-001 Schema / F-002 State Machine / F-003 Authorization / F-004 Audit Transaction(全部 P0)
 **Implementation Branch**: `20260606-s2-domain-core`(created 2026-06-07)
@@ -109,3 +109,4 @@ Parent change: `20260606-s1-scaffold` (commit `eea017e`,已 commit)
 - `2026-06-07`: **F-002 commit `0fc9dd3`** — 9 files, +1427 / -17。"feat(s2-f002): Card & Goal Space state machines"。Working tree clean。等人类"开始实施 F-003"指令。
 - `2026-06-07`: 人类"开始实施F-003" → F-003 启动。
 - `2026-06-07`: **F-003 ✅ implementation 完成**。`apps/web/src/lib/authorization/{types,goal-space,node-board,card,confirmation,execute,assert,index}.ts` 8 source + 6 test 文件;9 个 can 函数 + Actor / 5 Context / ForbiddenError / assertAccess;`@/lib/authorization` 聚合 re-export;5 baseline + 214/214 测试全绿(S1 26 + F-001 30 + F-002 117 + F-003 41);`implementation/notes.md` 追加 F-003 段(8 决策 + 2 新风险 R-10/R-11);`feature_list.json` F-003 → `completed` × 3。等人类 F-003 commit 指令。
+- `2026-06-07`: **F-003 commit `26d0311`** — 17 files, +936 / -15。"feat(s2-f003): Authorization matrix"。Working tree clean。等人类"开始实施 F-004"指令。
