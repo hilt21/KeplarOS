@@ -290,3 +290,123 @@ T-004 段 9 双断言:
 - **新增 R-8**:`TRIGGER` 与 § 4 触发条件的映射是工程判断(决策 2),后续 S3 handler 若发现映射不当可改 `CARD_TRANSITIONS[].triggers` 数组,无需改 schema / 状态机主结构
 - **新增 R-9**:`assertGoalSpaceTransition` 在 `*→cancelled` 路径上 throw 而非 return `missing[]`(决策 4/5 不对称),F-004 实施时若需"cancel reason 缺失也返回列表"语义,需回 F-002 改造(应回退 throw 改 return + 类型守卫),暂定 F-002 现状足够
 
+---
+
+# F-003 Implementation Notes
+
+Change: `20260606-s2-domain-core`
+Feature: F-003 — Authorization Matrix
+Branch: `20260606-s2-domain-core` (from `20260606-dev-bootstrap` @ `eea017e`)
+Date: 2026-06-07
+Status: ✅ implementation complete, all baseline commands green
+
+## Summary
+
+`apps/web/src/lib/authorization/` 下落地 8 个文件:
+
+- `types.ts` (100 行) — `Actor` / `ActorRole` / `AccessResult` + 5 Context 类型(`GoalSpaceContext` / `NodeBoardContext` / `CardContext` / `ConfirmationContext` / `ExecuteCardContext`)
+- `goal-space.ts` (28 行) — `canReadGoalSpace` + `canManageGoalSpace`
+- `node-board.ts` (39 行) — `canReadNodeBoard` + `canManageNodeBoard` + `canManageNodeBoardMembers`
+- `card.ts` (34 行) — `canReadCard` + `canMutateCard`
+- `confirmation.ts` (21 行) — `canDecideConfirmation`
+- `execute.ts` (28 行) — `canExecuteCard` 组合 `canReadCard` + `!hasPendingConfirmation`
+- `assert.ts` (45 行) — `assertAccess` + `ForbiddenError`(403 收口)
+- `index.ts` (35 行) — `@/lib/authorization` 聚合 re-export(9 can 函数 + 类型 + 工具)
+
+41 个新测试(7 goal-space + 8 node-board + 13 card + 4 confirmation + 5 execute + 4 assert)全绿,与 F-001 + F-002 合并后总 **214/214** 通过。
+
+## 真相源(实施中持续校对)
+
+- `docs/specs/authorization_matrix.md` § 2 (角色) § 3 (资源归属) § 4 (API 矩阵 28 行) § 5 (强制门禁)
+- F-001 `apps/web/db/schema.ts` — `UserRole` enum(initiator / chain_user / viewer)F-003 复用
+
+## 关键决策
+
+### 1. AC 写"8 个 can 函数",实装 9 个(AC 漂移)
+
+AC-3.1 原文:"实现 8 个 can 函数",但 AC-3.2..3.9 + AC-3.5 拆出 members 共列出 9 个:`canReadGoalSpace` / `canManageGoalSpace` / `canReadNodeBoard` / `canManageNodeBoard` / `canManageNodeBoardMembers` / `canReadCard` / `canMutateCard` / `canDecideConfirmation` / `canExecuteCard`。`canManageNodeBoardMembers` 与 `canManageNodeBoard` 主体等价(per spec § 4 nodeBoardMembers 行只允许 initiator),但语义分开便于 S3 handler 单一职责。**F-003 选择实装 9 个**;`index.ts` 注释标明 9 个,后续 review/S3 接入如发现 members 与 manage 主体可合并可省一个。
+
+### 2. `Actor = { id, role }`,无 `goalSpaceId` 字段 — 跨 goalSpace 防御隐式
+
+`Actor` 不存 `actor.goalSpaceId`;跨域防御靠每个 can 函数中"actor.id === ctx.goalSpaceInitiatorId"或"actor.id ∈ ctx.memberIds / assignedTo"的关系检查完成。`initiator` 读全可见(per AC-3.2:initiator 全可见),写仅 own goalSpace(per AC-3.3);非 initiator 缺成员 / 分配关系即 false(隐式跨域保护)。这样 S3 注入 actor 时无需从 request 解析 goalSpace 来源,handler 拿到 actor + resource 各自的 ctx 后调 can 函数即可。
+
+### 3. `canReadGoalSpace` 中 `ctx` 暂未引用,以 `_ctx` 标注
+
+per AC-3.2 + spec § 3 "S2 范围内不引入间接层;后续 S3 handler 调此函数前可先 union 多 nodeBoard canRead 结果":S2 goalSpace 单层无成员关系,非 initiator 一律 false,`ctx` 入参不读。改参数名为 `_ctx` 满足 `@typescript-eslint/no-unused-vars` 的 `^_` allow-list,避免 lint warning。注释明确"间接层落地后此处读 ctx",S3 引入 goalSpace 读多 nodeBoard 间接层时只需把 `_ctx` 改回 `ctx` 并加一行 `return ctx.someNewField !== undefined` 即可。
+
+### 4. `canExecuteCard` 组合而非独立 — 单一决策点
+
+AC-3.9 把 execute 定义为"viewer 一律 false + 非 viewer 需 canReadCard + 无 pending confirmation"。实装直接调 `canReadCard(actor, ctx.card)` 作为子检查,避免复制 canReadCard 的"initiator / chain_user / viewer 关系"逻辑到 canExecuteCard。后续 canReadCard 加新规则(如跨 goalSpace actor)时,canExecuteCard 自动继承。
+
+### 5. `assertAccess` 用 `asserts ... is true` 类型守卫
+
+签名 `function assertAccess(allowed: AccessResult, message?: string): asserts allowed is true` — S3 handler 调 `const allowed = canXxx(...); assertAccess(allowed, msg);` 后,TS 把 `allowed` 收窄为 `true`,后续 if 分支无需再判。S3 layer 不必写 `if (!allowed) throw new ForbiddenError()` 重复样板。
+
+### 6. `ForbiddenError` 仅 403 路径;409 走 service 层
+
+`canExecuteCard` 返回 false 可能是(a)无 read 权(403 语义)、(b)有 read 权但有 pending confirmation(409 语义)。本模块不区分这两种 false 路径;S3 handler 拿到 `canExecuteCard === false` 后,先调 `canReadCard` 二次判别,read false → 403 / read true + hasPending → 409。本模块注释明确"409 不走此路径(语义不同)",assert 文件只承担 403。
+
+### 7. 8 个 Context 字段冗余便于单函数决策(per AC-3.6 注释)
+
+`CardContext` 冗余存 `nodeBoardMemberIds` 而非仅 `nodeBoardId`,便于 `canReadCard` / `canMutateCard` 单函数决策(避免函数内 join)。S3 handler 在 DB 查 `node_board_members` 后把 member id 列表注入 ctx,can 函数不做 I/O。T-009 段 6 "跨 goalSpace" 显式断言:另一 goalSpace 的 initiator 即便 role=initiator 也得靠 member / assignedTo 间接通过(否则 false),验证冗余字段起效。
+
+### 8. `assert.ts` 不 re-export `AccessResult` type,仅消费
+
+`AccessResult` 是 type-only 别名(`type AccessResult = boolean`),从 `./types` import,在 `assertAccess` 形参位置使用。`index.ts` 单独 re-export 一次供 S3 用,assert.ts 自身不再 export,避免散点。
+
+## 实施期注意点
+
+- **Test fixture 第一次跨 goalSpace 失败**:node-board / card / execute / goal-space 4 个测试文件的 "跨 goalSpace" 案例最初用同一 OWNER 既当 actor 又当 ctx.goalSpaceInitiatorId,导致 equality 检查通过 → true。修复:每文件新增 `OTHER_OWNER` 常量作为"另一 goalSpace 发起人",actor 用 OWNER / ctx.goalSpaceInitiatorId 用 OTHER_OWNER(或反向),使 equality 检查正确失败。
+- **lint warning — `GOAL_B` 未引用**:F-003 删 `goalSpaceId: GOAL_B` 覆盖后,`card.test.ts` 和 `execute.test.ts` 留 `const GOAL_B = "g-bbb"` 成为 dead var。`@typescript-eslint/no-unused-vars` 规则要求未用 var 加 `_` 前缀;两条修都删 GOAL_B 常量即可。
+- **prettier 8 源文件 + 5 测试文件需 `--write`**:同 F-002,Prettier 100 列 + 中文方框注释间距,首次 format:check 失败,`pnpm --filter web format` 一次性修复
+- **vitest 不需要新依赖**:F-003 T-007..T-012 纯函数 + 字符串 / 对象字面量比对,F-001/F-002 已就位的 `vitest` 即可
+
+## 验证矩阵(F-003 verification)
+
+| 项 | 命令 | 结果 |
+|---|---|---|
+| typecheck | `pnpm --filter web typecheck` | ✅ 0 errors |
+| lint | `pnpm --filter web lint` | ✅ 0 errors, 0 warnings(2 unused-var 已修) |
+| format:check | `pnpm --filter web format:check` | ✅ All matched files use Prettier code style |
+| unit | `pnpm --filter web test` | ✅ 214/214 (S1 26 + F-001 30 + F-002 117 + F-003 41) |
+| integration | (optional) | ⏭️ not run;F-003 是纯函数,无 DB / API 集成 |
+| api_contract | n/a | n/a(S2 不含 API) |
+| migration | n/a | n/a(F-003 不动 schema) |
+| smoke | (optional) | ⏭️ 不强制(无 dev server) |
+| e2e | n/a | n/a |
+| build | `pnpm --filter web build` | ✅ 4 static pages |
+| 9 can 函数 | 8 源文件 + index.ts re-export | ✅ 全部导出 |
+| ≥ 30 测试 | T-007..T-012 | ✅ 41 case(超 AC 下界 11) |
+| 跨 goalSpace | T-008 段 1 + T-009 段 1 + T-011 段 5 | ✅ 4 case 全 false |
+| ForbiddenError 抛/不抛 | T-012 段 1 + 段 2 | ✅ true 不抛 / false 抛 |
+| assertAccess 类型守卫 | T-012 段 2(try/catch 内 TS 编译过) | ✅ |
+
+## 交付清单(此 commit)
+
+- `apps/web/src/lib/authorization/types.ts`(新建,100 行)
+- `apps/web/src/lib/authorization/goal-space.ts`(新建,28 行)
+- `apps/web/src/lib/authorization/node-board.ts`(新建,39 行)
+- `apps/web/src/lib/authorization/card.ts`(新建,34 行)
+- `apps/web/src/lib/authorization/confirmation.ts`(新建,21 行)
+- `apps/web/src/lib/authorization/execute.ts`(新建,28 行)
+- `apps/web/src/lib/authorization/assert.ts`(新建,45 行)
+- `apps/web/src/lib/authorization/index.ts`(新建,35 行)
+- `apps/web/__tests__/authorization/goal-space.test.ts`(新建,T-007,7 case)
+- `apps/web/__tests__/authorization/node-board.test.ts`(新建,T-008,8 case)
+- `apps/web/__tests__/authorization/card.test.ts`(新建,T-009,13 case)
+- `apps/web/__tests__/authorization/confirmation.test.ts`(新建,T-010,4 case)
+- `apps/web/__tests__/authorization/execute.test.ts`(新建,T-011,5 case)
+- `apps/web/__tests__/authorization/assert.test.ts`(新建,T-012,4 case)
+
+## 后续 S2 feature 接入点
+
+- **F-004**(Audit Transaction Wrapper):`canXxx` 返回 boolean 而非 throw,与 `runWithAudit` 事务无冲突;`assertAccess` 用于 S3 handler 在事务前预检,不参与 F-004 事务原子性边界
+- **S3 API handler**:GET / POST / PATCH 入口调 `const allowed = canXxx(actor, ctx); assertAccess(allowed, ...);` + 进 `runWithAudit` 事务;execute 路径先 `assertAccess(canReadCard, msg)` 获 403 保护,再 `if (canExecuteCard === false && canReadCard === true) throw new ConflictError('pending confirmation')` 获 409
+- **S4 UI**:UI 不直接调 `@/lib/authorization` can 函数(per spec § 4 UI 不含权限逻辑);仅展示 server 返回的 403 / 409 / 200
+
+## 风险登记(更新)
+
+- **R-7**(review/findings.md):4 commit 粒度 → F-001 + F-002 + F-003 已落地,各 1 commit;F-004 单独 commit
+- **新增 R-10**:`canManageNodeBoardMembers` 与 `canManageNodeBoard` 当前主体等价(决策 1),若 S3 handler 接入时希望"非 own goalSpace 的 initiator 可管理 members(可治理代理)"语义,需回 F-003 拆出差异逻辑;暂定 S2 现状足够,per spec § 3 只允许 own goalSpace initiator
+- **新增 R-11**:`Actor` 不带 `goalSpaceId` 字段(决策 2),S3 session 注入 actor 时若需要"actor 当前所在 goalSpace"用于 UI context 切换,应单独从 request url / session 解析,不要给 Actor 加字段(否则破坏纯函数 + 跨域隐式防御)
+
