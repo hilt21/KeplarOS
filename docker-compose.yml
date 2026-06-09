@@ -4,9 +4,9 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: keplar
-      POSTGRES_PASSWORD: keplar
-      POSTGRES_DB: keplar
+      POSTGRES_USER: ${POSTGRES_USER:-keplar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-keplar}
     ports:
       - "5432:5432"
     volumes:
