@@ -52,12 +52,14 @@ export interface NodeBoardContext {
 
 /**
  * Card 上下文
- * - cardId:               资源 ID
- * - goalSpaceId:          所属 goal space
- * - nodeBoardId:          所属 node board
- * - goalSpaceInitiatorId: 所属 goal space 的发起人
- * - assignedTo:           cards.assigned_to(可为 null)
- * - nodeBoardMemberIds:   所属 node board 的有效成员(冗余,便于 canReadCard / canMutateCard 单函数决策)
+ * - cardId:                 资源 ID
+ * - goalSpaceId:            所属 goal space
+ * - nodeBoardId:            所属 node board
+ * - goalSpaceInitiatorId:   所属 goal space 的发起人
+ * - assignedTo:             cards.assigned_to(可为 null)
+ * - nodeBoardMemberIds:     所属 node board 的有效成员(冗余,便于 canReadCard / canMutateCard 单函数决策)
+ * - hasPendingConfirmation: 该 card 下是否存在 status='pending' 的 human_confirmation
+ *                           (per spec authorization_matrix.md §5 (unblock + complete gated))
  */
 export interface CardContext {
   readonly cardId: string;
@@ -66,6 +68,7 @@ export interface CardContext {
   readonly goalSpaceInitiatorId: string;
   readonly assignedTo: string | null;
   readonly nodeBoardMemberIds: readonly string[];
+  readonly hasPendingConfirmation: boolean;
 }
 
 /**

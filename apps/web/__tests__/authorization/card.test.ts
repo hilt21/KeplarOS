@@ -5,13 +5,14 @@
  *   - canReadCard: initiator 全可见;chain_user 需 member 或 assignedTo;viewer 同 chain_user(读)
  *   - canMutateCard: viewer 一律 false;chain_user 限本节点/本人;initiator 全 true
  *   - 跨 goalSpace:另一 goalSpace 的 initiator 也只能通过 member / assignedTo 间接访问
+ *   - § 5 强制门禁:unblock / complete 在 hasPendingConfirmation=true 时必须为 false
  *
- * 真相源: docs/specs/authorization_matrix.md § 3 资源归属 + § 4 API 矩阵
+ * 真相源: docs/specs/authorization_matrix.md § 3 资源归属 + § 4 API 矩阵 + § 5 强制门禁
  */
 
 import { describe, expect, it } from "vitest";
 
-import { canMutateCard, canReadCard, type CardContext } from "@/lib/authorization";
+import { canMutateCard, canReadCard, type Actor, type CardContext } from "@/lib/authorization";
 
 // ─── fixtures ────────────────────────────────────────────────────────
 
@@ -28,6 +29,7 @@ function cardCtx(opts: {
   goalSpaceId?: string;
   nodeBoardMemberIds: string[];
   assignedTo: string | null;
+  hasPendingConfirmation?: boolean;
 }): CardContext {
   return {
     cardId: CARD_X,
@@ -36,6 +38,7 @@ function cardCtx(opts: {
     goalSpaceInitiatorId: opts.goalSpaceInitiatorId,
     assignedTo: opts.assignedTo,
     nodeBoardMemberIds: opts.nodeBoardMemberIds,
+    hasPendingConfirmation: opts.hasPendingConfirmation ?? false,
   };
 }
 
@@ -99,30 +102,79 @@ describe("canReadCard", () => {
 
 describe("canMutateCard", () => {
   it("AC-3.7: viewer 一律 false(即便是 member)", () => {
-    expect(canMutateCard({ id: MEMBER, role: "viewer" }, cardMemberNoAssign)).toBe(false);
+    expect(canMutateCard({ id: MEMBER, role: "viewer" }, "update", cardMemberNoAssign)).toBe(false);
   });
 
   it("AC-3.7: viewer 若是 assignedTo 也 false(写不通过分配关系授权 viewer)", () => {
-    expect(canMutateCard({ id: STRANGER, role: "viewer" }, cardAssignedToMe)).toBe(false);
+    expect(canMutateCard({ id: STRANGER, role: "viewer" }, "update", cardAssignedToMe)).toBe(
+      false,
+    );
   });
 
   it("AC-3.7: initiator(goalSpaceInitiatorId)全 mutate → true", () => {
-    expect(canMutateCard({ id: OWNER_A, role: "initiator" }, cardOwned)).toBe(true);
+    expect(canMutateCard({ id: OWNER_A, role: "initiator" }, "update", cardOwned)).toBe(true);
   });
 
   it("AC-3.7: chain_user 是 nodeBoardMember → true", () => {
-    expect(canMutateCard({ id: MEMBER, role: "chain_user" }, cardMemberNoAssign)).toBe(true);
+    expect(canMutateCard({ id: MEMBER, role: "chain_user" }, "update", cardMemberNoAssign)).toBe(
+      true,
+    );
   });
 
   it("AC-3.7: chain_user 是 assignedTo(非 member)→ true", () => {
-    expect(canMutateCard({ id: STRANGER, role: "chain_user" }, cardAssignedToMe)).toBe(true);
+    expect(canMutateCard({ id: STRANGER, role: "chain_user" }, "update", cardAssignedToMe)).toBe(
+      true,
+    );
   });
 
   it("AC-3.7: chain_user 既非 member 也非 assignedTo → false", () => {
-    expect(canMutateCard({ id: STRANGER, role: "chain_user" }, cardEmpty)).toBe(false);
+    expect(canMutateCard({ id: STRANGER, role: "chain_user" }, "update", cardEmpty)).toBe(false);
   });
 
   it("AC-3.9 跨 goalSpace:另一 goalSpace 的 initiator mutate 本 card → false", () => {
-    expect(canMutateCard({ id: OWNER_B, role: "initiator" }, cardCross)).toBe(false);
+    expect(canMutateCard({ id: OWNER_B, role: "initiator" }, "update", cardCross)).toBe(false);
+  });
+});
+
+// ─── 3. canMutateCard — § 5 pending confirmation 强制门禁 ─────────────
+
+describe("canMutateCard — pending confirmation gate (spec §5)", () => {
+  const ctxWithPending: CardContext = {
+    cardId: CARD_X,
+    goalSpaceId: GOAL_A,
+    nodeBoardId: BOARD_A,
+    goalSpaceInitiatorId: OWNER_A,
+    nodeBoardMemberIds: [MEMBER],
+    assignedTo: MEMBER,
+    hasPendingConfirmation: true,
+  };
+  const ctxNoPending: CardContext = {
+    cardId: CARD_X,
+    goalSpaceId: GOAL_A,
+    nodeBoardId: BOARD_A,
+    goalSpaceInitiatorId: OWNER_A,
+    nodeBoardMemberIds: [MEMBER],
+    assignedTo: MEMBER,
+    hasPendingConfirmation: false,
+  };
+
+  it("§5: chain_user unblock 在 hasPendingConfirmation=true → false", () => {
+    const actor: Actor = { id: MEMBER, role: "chain_user" };
+    expect(canMutateCard(actor, "unblock", ctxWithPending)).toBe(false);
+  });
+
+  it("§5: chain_user unblock 在 hasPendingConfirmation=false → true", () => {
+    const actor: Actor = { id: MEMBER, role: "chain_user" };
+    expect(canMutateCard(actor, "unblock", ctxNoPending)).toBe(true);
+  });
+
+  it("§5: chain_user complete 在 hasPendingConfirmation=true → false", () => {
+    const actor: Actor = { id: MEMBER, role: "chain_user" };
+    expect(canMutateCard(actor, "complete", ctxWithPending)).toBe(false);
+  });
+
+  it("§5: update 不在 § 5 门禁列表,hasPendingConfirmation=true 仍 → true", () => {
+    const actor: Actor = { id: MEMBER, role: "chain_user" };
+    expect(canMutateCard(actor, "update", ctxWithPending)).toBe(true);
   });
 });

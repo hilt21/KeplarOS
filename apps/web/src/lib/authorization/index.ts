@@ -25,6 +25,7 @@ export type {
 export { canReadGoalSpace, canManageGoalSpace } from "./goal-space";
 export { canReadNodeBoard, canManageNodeBoard, canManageNodeBoardMembers } from "./node-board";
 export { canReadCard, canMutateCard } from "./card";
+export type { CardMutationAction } from "./card";
 export { canDecideConfirmation } from "./confirmation";
 export { canExecuteCard } from "./execute";
 export { assertAccess, ForbiddenError } from "./assert";

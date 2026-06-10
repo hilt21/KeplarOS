@@ -30,6 +30,7 @@ function cardCtx(opts: {
   goalSpaceId?: string;
   nodeBoardMemberIds: string[];
   assignedTo: string | null;
+  hasPendingConfirmation?: boolean;
 }): CardContext {
   return {
     cardId: CARD_X,
@@ -38,6 +39,7 @@ function cardCtx(opts: {
     goalSpaceInitiatorId: opts.goalSpaceInitiatorId,
     assignedTo: opts.assignedTo,
     nodeBoardMemberIds: opts.nodeBoardMemberIds,
+    hasPendingConfirmation: opts.hasPendingConfirmation ?? false,
   };
 }
 
