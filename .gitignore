@@ -21,6 +21,9 @@ apps/web/db/dev.db-wal
 apps/web/db/dev.db-shm
 apps/web/.drizzle/
 
+# Drizzle-kit generated migration metadata (auto-regenerated on `drizzle-kit generate`)
+apps/web/db/migrations/meta/
+
 # Local env files
 .env
 .env*.local
