@@ -5,7 +5,7 @@ import { buildSecurityHeaders } from "./src/lib/security/headers";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  typedRoutes: false,
+  typedRoutes: true,
   outputFileTracingRoot: path.join(__dirname, "../.."),
   async headers() {
     return [
