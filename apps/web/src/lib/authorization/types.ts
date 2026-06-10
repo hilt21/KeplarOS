@@ -13,7 +13,7 @@
  * initiator 读全可见(per AC-3.2:initiator 全可见),写仅自己 goalSpace(per AC-3.3)。
  */
 
-import type { UserRole } from "@db/schema";
+import type { ConfirmationStatus, UserRole } from "@db/schema";
 
 // ─── 1. Actor 与角色────────────────────────────────────────────
 
@@ -78,6 +78,7 @@ export interface CardContext {
  * - goalSpaceId:           所属 goal space
  * - goalSpaceInitiatorId:  所属 goal space 的发起人
  * - nodeBoardMemberIds:    所属 node board 的有效成员(冗余)
+ * - confirmationStatus:    当前确认状态(per spec interface_spec.md §6.2:仅 'pending' 可决策)
  */
 export interface ConfirmationContext {
   readonly confirmationId: string;
@@ -85,6 +86,7 @@ export interface ConfirmationContext {
   readonly goalSpaceId: string;
   readonly goalSpaceInitiatorId: string;
   readonly nodeBoardMemberIds: readonly string[];
+  readonly confirmationStatus: ConfirmationStatus;
 }
 
 /**
