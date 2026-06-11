@@ -63,8 +63,8 @@ describe("constants & literal unions", () => {
     expect([...TRANSITION_ACTOR_VALUES]).toEqual(["human", "ai_role", "system"]);
   });
 
-  it("CARD_TRANSITIONS 包含 27 条三元组(17 (from,to) 展开为 (from,to,trigger) 三元组)", () => {
-    expect(CARD_TRANSITIONS.length).toBe(27);
+  it("CARD_TRANSITIONS 包含 26 条三元组(17 (from,to) 展开为 (from,to,trigger) 三元组;COR-004 移除 1 条 human_confirm_timeout)", () => {
+    expect(CARD_TRANSITIONS.length).toBe(26);
   });
 });
 
@@ -361,24 +361,32 @@ describe("getRequiredActor 角色分类", () => {
 // ─── 9. trigger 集合完整性(per F-002 AC-2.5)────────────────────
 
 describe("trigger 集合覆盖(per AC-2.5:11 trigger 全部存在)", () => {
-  it("11 trigger 字面量全部出现在 CARD_TRANSITIONS 至少一条规则中", () => {
+  it("10 trigger 字面量出现在 CARD_TRANSITIONS 至少一条规则中(human_confirm_timeout 是 COR-004 显式未使用的 trigger)", () => {
     const allTriggers = new Set<TransitionTrigger>();
     for (const rule of CARD_TRANSITIONS) {
       allTriggers.add(rule.trigger);
     }
-    for (const t of TRANSITION_TRIGGERS) {
-      expect(allTriggers.has(t)).toBe(true);
+    // 10 个在用的 trigger
+    const usedTriggers = [...TRANSITION_TRIGGERS].filter((t) => t !== "human_confirm_timeout");
+    for (const t of usedTriggers) {
+      expect(allTriggers.has(t), `trigger ${t} 应至少出现在 1 条规则`).toBe(true);
     }
   });
 
-  it("每条 TRANSITION_TRIGGERS 都至少有 1 条规则使用", () => {
+  it("每条非 COR-004 排除的 trigger 至少有 1 条规则使用", () => {
     const usage = new Map<TransitionTrigger, number>();
     for (const t of TRANSITION_TRIGGERS) usage.set(t, 0);
     for (const rule of CARD_TRANSITIONS) {
       usage.set(rule.trigger, (usage.get(rule.trigger) ?? 0) + 1);
     }
+    // COR-004 (spec §10) 显式规定 human_confirm_timeout 不应触发任何转移,因此
+    // usage 计数为 0 是正确的不变式;其他 10 个 trigger 必须 >= 1。
     for (const [t, n] of usage) {
-      expect(n, `trigger ${t} 至少出现在 1 条规则`).toBeGreaterThanOrEqual(1);
+      if (t === "human_confirm_timeout") {
+        expect(n, "human_confirm_timeout per COR-004 / spec §10 is intentionally unused").toBe(0);
+      } else {
+        expect(n, `trigger ${t} 至少出现在 1 条规则`).toBeGreaterThanOrEqual(1);
+      }
     }
   });
 });
@@ -425,6 +433,33 @@ describe("actor attribution per ADR-002 (spec §4)", () => {
   it("getRequiredActor 3-arg 签名:无 (from, to, trigger) 三元组时 throw", () => {
     expect(() => getRequiredActor("backlog", "done", "context_complete")).toThrow(
       /No card transition/,
+    );
+  });
+});
+
+// ─── 11. COR-004: human_confirm_timeout from blocked is invalid (spec §10)────
+
+describe("COR-004: human_confirm_timeout from blocked is invalid (spec §10)", () => {
+  it("rejects human_confirm_timeout transition from blocked via canTransition (no rule should match)", () => {
+    expect(canTransition("blocked", "cancelled", "human_confirm_timeout")).toBe(false);
+  });
+
+  it("rejects human_confirm_timeout transition from blocked via assertTransition (throws Illegal)", () => {
+    expect(() => assertTransition("blocked", "cancelled", "human_confirm_timeout")).toThrow(
+      /Illegal/,
+    );
+  });
+
+  it("rejects human_confirm_timeout transition from blocked via getRequiredActor (throws No card transition)", () => {
+    expect(() => getRequiredActor("blocked", "cancelled", "human_confirm_timeout")).toThrow(
+      /No card transition/,
+    );
+  });
+
+  it("keeps task_cancelled as the only valid trigger for blocked → cancelled", () => {
+    expect(canTransition("blocked", "cancelled", "task_cancelled")).toBe(true);
+    expect(getRequiredActor("blocked", "cancelled", "task_cancelled")).toBe<TransitionActor>(
+      "human",
     );
   });
 });

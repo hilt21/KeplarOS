@@ -80,12 +80,15 @@ export const CARD_TRANSITIONS: readonly CardTransitionRule[] = [
   { from: "review", to: "blocked", trigger: "human_reject", actor: "human" },
 
   // § 4 blocked resolution(Blocked → {Backlog/Todo/Dev/Review}/Cancelled)
+  // per spec §10: blocked → cancelled 仅 task_cancelled 一种触发方式。
+  // human_confirm_timeout 不应将卡片移出 blocked(超时后卡片保持或回到 blocked),
+  // 因此这里没有 human_confirm_timeout 触发的 blocked→cancelled 规则。
+  // COR-004 (Task 2.4) 移除了原先的 human_confirm_timeout 三元组。
   { from: "blocked", to: "backlog", trigger: "blocked_resolved", actor: "ai_role" },
   { from: "blocked", to: "todo", trigger: "blocked_resolved", actor: "ai_role" },
   { from: "blocked", to: "dev", trigger: "blocked_resolved", actor: "ai_role" },
   { from: "blocked", to: "review", trigger: "blocked_resolved", actor: "ai_role" },
   { from: "blocked", to: "cancelled", trigger: "task_cancelled", actor: "human" },
-  { from: "blocked", to: "cancelled", trigger: "human_confirm_timeout", actor: "human" },
 
   // § 2 self-loops(4 个非终态的"关注/补充"自环)
   { from: "backlog", to: "backlog", trigger: "context_complete", actor: "human" },
