@@ -63,8 +63,8 @@ describe("constants & literal unions", () => {
     expect([...TRANSITION_ACTOR_VALUES]).toEqual(["human", "ai_role", "system"]);
   });
 
-  it("CARD_TRANSITIONS 包含 17 条规则(13 跨态 + 4 自环)", () => {
-    expect(CARD_TRANSITIONS.length).toBe(17);
+  it("CARD_TRANSITIONS 包含 27 条三元组(17 (from,to) 展开为 (from,to,trigger) 三元组)", () => {
+    expect(CARD_TRANSITIONS.length).toBe(27);
   });
 });
 
@@ -99,61 +99,61 @@ describe("isValidState / isTerminalState", () => {
 describe("canTransition 合法转移(17 条)", () => {
   // ── § 4 normal flow
   it("backlog → todo 允许", () => {
-    expect(canTransition("backlog", "todo")).toBe(true);
+    expect(canTransition("backlog", "todo", "dependencies_ready")).toBe(true);
   });
   it("todo → dev 允许", () => {
-    expect(canTransition("todo", "dev")).toBe(true);
+    expect(canTransition("todo", "dev", "execution_start")).toBe(true);
   });
   it("dev → review 允许", () => {
-    expect(canTransition("dev", "review")).toBe(true);
+    expect(canTransition("dev", "review", "evidence_submitted")).toBe(true);
   });
   it("review → done 允许", () => {
-    expect(canTransition("review", "done")).toBe(true);
+    expect(canTransition("review", "done", "review_passed")).toBe(true);
   });
 
   // ── § 4 blocked flow
   it("backlog → blocked 允许", () => {
-    expect(canTransition("backlog", "blocked")).toBe(true);
+    expect(canTransition("backlog", "blocked", "task_cancelled")).toBe(true);
   });
   it("todo → blocked 允许", () => {
-    expect(canTransition("todo", "blocked")).toBe(true);
+    expect(canTransition("todo", "blocked", "task_cancelled")).toBe(true);
   });
   it("dev → blocked 允许", () => {
-    expect(canTransition("dev", "blocked")).toBe(true);
+    expect(canTransition("dev", "blocked", "task_cancelled")).toBe(true);
   });
   it("review → blocked 允许", () => {
-    expect(canTransition("review", "blocked")).toBe(true);
+    expect(canTransition("review", "blocked", "review_failed")).toBe(true);
   });
 
   // ── § 4 blocked resolution
   it("blocked → backlog 允许", () => {
-    expect(canTransition("blocked", "backlog")).toBe(true);
+    expect(canTransition("blocked", "backlog", "blocked_resolved")).toBe(true);
   });
   it("blocked → todo 允许", () => {
-    expect(canTransition("blocked", "todo")).toBe(true);
+    expect(canTransition("blocked", "todo", "blocked_resolved")).toBe(true);
   });
   it("blocked → dev 允许", () => {
-    expect(canTransition("blocked", "dev")).toBe(true);
+    expect(canTransition("blocked", "dev", "blocked_resolved")).toBe(true);
   });
   it("blocked → review 允许", () => {
-    expect(canTransition("blocked", "review")).toBe(true);
+    expect(canTransition("blocked", "review", "blocked_resolved")).toBe(true);
   });
   it("blocked → cancelled 允许", () => {
-    expect(canTransition("blocked", "cancelled")).toBe(true);
+    expect(canTransition("blocked", "cancelled", "task_cancelled")).toBe(true);
   });
 
   // ── § 2 self-loops
   it("backlog → backlog 自环允许", () => {
-    expect(canTransition("backlog", "backlog")).toBe(true);
+    expect(canTransition("backlog", "backlog", "context_complete")).toBe(true);
   });
   it("todo → todo 自环允许", () => {
-    expect(canTransition("todo", "todo")).toBe(true);
+    expect(canTransition("todo", "todo", "context_complete")).toBe(true);
   });
   it("dev → dev 自环允许", () => {
-    expect(canTransition("dev", "dev")).toBe(true);
+    expect(canTransition("dev", "dev", "evidence_submitted")).toBe(true);
   });
   it("review → review 自环允许", () => {
-    expect(canTransition("review", "review")).toBe(true);
+    expect(canTransition("review", "review", "evidence_submitted")).toBe(true);
   });
 });
 
@@ -162,54 +162,54 @@ describe("canTransition 合法转移(17 条)", () => {
 describe("canTransition 非法转移(≥ 10 条)", () => {
   // 倒退
   it("todo → backlog 拒绝(倒退)", () => {
-    expect(canTransition("todo", "backlog")).toBe(false);
+    expect(canTransition("todo", "backlog", "context_complete")).toBe(false);
   });
   it("dev → todo 拒绝(倒退)", () => {
-    expect(canTransition("dev", "todo")).toBe(false);
+    expect(canTransition("dev", "todo", "context_complete")).toBe(false);
   });
   it("dev → backlog 拒绝(倒退)", () => {
-    expect(canTransition("dev", "backlog")).toBe(false);
+    expect(canTransition("dev", "backlog", "context_complete")).toBe(false);
   });
   it("review → dev 拒绝(倒退)", () => {
-    expect(canTransition("review", "dev")).toBe(false);
+    expect(canTransition("review", "dev", "context_complete")).toBe(false);
   });
   it("review → todo 拒绝(倒退)", () => {
-    expect(canTransition("review", "todo")).toBe(false);
+    expect(canTransition("review", "todo", "context_complete")).toBe(false);
   });
   it("review → backlog 拒绝(倒退)", () => {
-    expect(canTransition("review", "backlog")).toBe(false);
+    expect(canTransition("review", "backlog", "context_complete")).toBe(false);
   });
   // 跳跃
   it("backlog → dev 拒绝(跨级)", () => {
-    expect(canTransition("backlog", "dev")).toBe(false);
+    expect(canTransition("backlog", "dev", "context_complete")).toBe(false);
   });
   it("backlog → review 拒绝(跨级)", () => {
-    expect(canTransition("backlog", "review")).toBe(false);
+    expect(canTransition("backlog", "review", "context_complete")).toBe(false);
   });
   it("backlog → done 拒绝(直接跳终态)", () => {
-    expect(canTransition("backlog", "done")).toBe(false);
+    expect(canTransition("backlog", "done", "context_complete")).toBe(false);
   });
   it("todo → done 拒绝(跨级)", () => {
-    expect(canTransition("todo", "done")).toBe(false);
+    expect(canTransition("todo", "done", "context_complete")).toBe(false);
   });
   it("todo → cancelled 拒绝(无 blocked 中转)", () => {
-    expect(canTransition("todo", "cancelled")).toBe(false);
+    expect(canTransition("todo", "cancelled", "context_complete")).toBe(false);
   });
   it("backlog → cancelled 拒绝(无 blocked 中转)", () => {
-    expect(canTransition("backlog", "cancelled")).toBe(false);
+    expect(canTransition("backlog", "cancelled", "context_complete")).toBe(false);
   });
   it("dev → cancelled 拒绝(无 blocked 中转)", () => {
-    expect(canTransition("dev", "cancelled")).toBe(false);
+    expect(canTransition("dev", "cancelled", "context_complete")).toBe(false);
   });
   it("review → cancelled 拒绝(无 blocked 中转)", () => {
-    expect(canTransition("review", "cancelled")).toBe(false);
+    expect(canTransition("review", "cancelled", "context_complete")).toBe(false);
   });
   // 自环限 4 个非终态
   it("done → done 自环拒绝(终态)", () => {
-    expect(canTransition("done", "done")).toBe(false);
+    expect(canTransition("done", "done", "context_complete")).toBe(false);
   });
   it("cancelled → cancelled 自环拒绝(终态)", () => {
-    expect(canTransition("cancelled", "cancelled")).toBe(false);
+    expect(canTransition("cancelled", "cancelled", "context_complete")).toBe(false);
   });
 });
 
@@ -218,19 +218,19 @@ describe("canTransition 非法转移(≥ 10 条)", () => {
 describe("终态拒绝", () => {
   it("done → 任何状态都拒绝", () => {
     for (const to of CARD_STATES) {
-      expect(canTransition("done", to)).toBe(false);
+      expect(canTransition("done", to, "context_complete")).toBe(false);
     }
   });
 
   it("cancelled → 任何状态都拒绝", () => {
     for (const to of CARD_STATES) {
-      expect(canTransition("cancelled", to)).toBe(false);
+      expect(canTransition("cancelled", to, "context_complete")).toBe(false);
     }
   });
 
   it("assertTransition 从终态抛出", () => {
-    expect(() => assertTransition("done", "backlog")).toThrow(/terminal/);
-    expect(() => assertTransition("cancelled", "backlog")).toThrow(/terminal/);
+    expect(() => assertTransition("done", "backlog", "context_complete")).toThrow(/terminal/);
+    expect(() => assertTransition("cancelled", "backlog", "context_complete")).toThrow(/terminal/);
   });
 });
 
@@ -249,8 +249,8 @@ describe("trigger 过滤", () => {
     expect(canTransition("backlog", "todo", "evidence_submitted")).toBe(false);
   });
 
-  it("未传 trigger 时,只要规则存在即允许", () => {
-    expect(canTransition("dev", "review")).toBe(true);
+  it("dev → review + evidence_submitted 允许(三元组命中)", () => {
+    expect(canTransition("dev", "review", "evidence_submitted")).toBe(true);
   });
 
   it("终态传 trigger 仍拒绝(短路在 trigger 之前)", () => {
@@ -262,20 +262,24 @@ describe("trigger 过滤", () => {
 
 describe("assertTransition 抛错版本", () => {
   it("合法转移不抛", () => {
-    expect(() => assertTransition("backlog", "todo")).not.toThrow();
+    expect(() => assertTransition("backlog", "todo", "dependencies_ready")).not.toThrow();
     expect(() => assertTransition("dev", "review", "evidence_submitted")).not.toThrow();
   });
 
   it("非法 from 抛", () => {
-    expect(() => assertTransition("invalid" as CardState, "todo")).toThrow(/Invalid/);
+    expect(() => assertTransition("invalid" as CardState, "todo", "context_complete")).toThrow(
+      /Invalid/,
+    );
   });
 
   it("非法 to 抛", () => {
-    expect(() => assertTransition("backlog", "invalid" as CardState)).toThrow(/Invalid/);
+    expect(() => assertTransition("backlog", "invalid" as CardState, "context_complete")).toThrow(
+      /Invalid/,
+    );
   });
 
   it("非法转移(无规则)抛", () => {
-    expect(() => assertTransition("todo", "backlog")).toThrow(/Illegal/);
+    expect(() => assertTransition("todo", "backlog", "context_complete")).toThrow(/Illegal/);
   });
 
   it("trigger 不在规则中抛", () => {
@@ -286,53 +290,71 @@ describe("assertTransition 抛错版本", () => {
 // ─── 8. getRequiredActor 角色分类(per F-002 AC-2.4)───────────────
 
 describe("getRequiredActor 角色分类", () => {
-  it("backlog → todo = ai_role(对应 Todo Orchestrator)", () => {
-    expect(getRequiredActor("backlog", "todo")).toBe<TransitionActor>("ai_role");
+  it("backlog → todo (dependencies_ready) = ai_role(对应 Todo Orchestrator)", () => {
+    expect(getRequiredActor("backlog", "todo", "dependencies_ready")).toBe<TransitionActor>(
+      "ai_role",
+    );
   });
 
-  it("todo → dev = ai_role(Dev Crafter)", () => {
-    expect(getRequiredActor("todo", "dev")).toBe<TransitionActor>("ai_role");
+  it("todo → dev (execution_start) = ai_role(Dev Crafter)", () => {
+    expect(getRequiredActor("todo", "dev", "execution_start")).toBe<TransitionActor>("ai_role");
   });
 
-  it("dev → review = ai_role(Dev Crafter)", () => {
-    expect(getRequiredActor("dev", "review")).toBe<TransitionActor>("ai_role");
+  it("dev → review (evidence_submitted) = ai_role(Dev Crafter)", () => {
+    expect(getRequiredActor("dev", "review", "evidence_submitted")).toBe<TransitionActor>(
+      "ai_role",
+    );
   });
 
-  it("review → done = ai_role(Review Guard / 发起人合并取主)", () => {
-    expect(getRequiredActor("review", "done")).toBe<TransitionActor>("ai_role");
+  it("review → done (review_passed) = ai_role(Review Guard / 发起人合并取主)", () => {
+    expect(getRequiredActor("review", "done", "review_passed")).toBe<TransitionActor>("ai_role");
   });
 
-  it("blocked → backlog = ai_role(Blocked Resolver)", () => {
-    expect(getRequiredActor("blocked", "backlog")).toBe<TransitionActor>("ai_role");
+  it("blocked → backlog (blocked_resolved) = ai_role(Blocked Resolver)", () => {
+    expect(getRequiredActor("blocked", "backlog", "blocked_resolved")).toBe<TransitionActor>(
+      "ai_role",
+    );
   });
 
-  it("blocked → todo = ai_role(Blocked Resolver)", () => {
-    expect(getRequiredActor("blocked", "todo")).toBe<TransitionActor>("ai_role");
+  it("blocked → todo (blocked_resolved) = ai_role(Blocked Resolver)", () => {
+    expect(getRequiredActor("blocked", "todo", "blocked_resolved")).toBe<TransitionActor>(
+      "ai_role",
+    );
   });
 
-  it("blocked → dev = ai_role(Blocked Resolver)", () => {
-    expect(getRequiredActor("blocked", "dev")).toBe<TransitionActor>("ai_role");
+  it("blocked → dev (blocked_resolved) = ai_role(Blocked Resolver)", () => {
+    expect(getRequiredActor("blocked", "dev", "blocked_resolved")).toBe<TransitionActor>("ai_role");
   });
 
-  it("blocked → review = ai_role(Blocked Resolver)", () => {
-    expect(getRequiredActor("blocked", "review")).toBe<TransitionActor>("ai_role");
+  it("blocked → review (blocked_resolved) = ai_role(Blocked Resolver)", () => {
+    expect(getRequiredActor("blocked", "review", "blocked_resolved")).toBe<TransitionActor>(
+      "ai_role",
+    );
   });
 
-  it("blocked → cancelled = human(对应 发起人 / 系统,合并取主)", () => {
-    expect(getRequiredActor("blocked", "cancelled")).toBe<TransitionActor>("human");
+  it("blocked → cancelled (task_cancelled) = human(对应 发起人 / 系统,合并取主)", () => {
+    expect(getRequiredActor("blocked", "cancelled", "task_cancelled")).toBe<TransitionActor>(
+      "human",
+    );
   });
 
-  it("backlog → blocked = ai_role(Backlog Refiner)", () => {
-    expect(getRequiredActor("backlog", "blocked")).toBe<TransitionActor>("ai_role");
+  it("backlog → blocked (task_cancelled) = ai_role(Backlog Refiner)", () => {
+    expect(getRequiredActor("backlog", "blocked", "task_cancelled")).toBe<TransitionActor>(
+      "ai_role",
+    );
   });
 
-  it("dev → blocked = ai_role(Dev Crafter)", () => {
-    expect(getRequiredActor("dev", "blocked")).toBe<TransitionActor>("ai_role");
+  it("dev → blocked (task_cancelled) = ai_role(Dev Crafter)", () => {
+    expect(getRequiredActor("dev", "blocked", "task_cancelled")).toBe<TransitionActor>("ai_role");
   });
 
   it("无规则时 getRequiredActor 抛", () => {
-    expect(() => getRequiredActor("backlog", "done")).toThrow(/No card transition/);
-    expect(() => getRequiredActor("done", "backlog")).toThrow(/No card transition/);
+    expect(() => getRequiredActor("backlog", "done", "context_complete")).toThrow(
+      /No card transition/,
+    );
+    expect(() => getRequiredActor("done", "backlog", "context_complete")).toThrow(
+      /No card transition/,
+    );
   });
 });
 
@@ -342,7 +364,7 @@ describe("trigger 集合覆盖(per AC-2.5:11 trigger 全部存在)", () => {
   it("11 trigger 字面量全部出现在 CARD_TRANSITIONS 至少一条规则中", () => {
     const allTriggers = new Set<TransitionTrigger>();
     for (const rule of CARD_TRANSITIONS) {
-      for (const t of rule.triggers) allTriggers.add(t);
+      allTriggers.add(rule.trigger);
     }
     for (const t of TRANSITION_TRIGGERS) {
       expect(allTriggers.has(t)).toBe(true);
@@ -353,12 +375,56 @@ describe("trigger 集合覆盖(per AC-2.5:11 trigger 全部存在)", () => {
     const usage = new Map<TransitionTrigger, number>();
     for (const t of TRANSITION_TRIGGERS) usage.set(t, 0);
     for (const rule of CARD_TRANSITIONS) {
-      for (const t of rule.triggers) {
-        usage.set(t, (usage.get(t) ?? 0) + 1);
-      }
+      usage.set(rule.trigger, (usage.get(rule.trigger) ?? 0) + 1);
     }
     for (const [t, n] of usage) {
       expect(n, `trigger ${t} 至少出现在 1 条规则`).toBeGreaterThanOrEqual(1);
     }
+  });
+});
+
+// ─── 10. actor attribution per ADR-002 (spec §4)─────────────────
+
+describe("actor attribution per ADR-002 (spec §4)", () => {
+  it("human_reject trigger 记录 actor='human'(from=dev → blocked)", () => {
+    expect(getRequiredActor("dev", "blocked", "human_reject")).toBe<TransitionActor>("human");
+  });
+
+  it("human_reject trigger 记录 actor='human'(from=review → blocked)", () => {
+    expect(getRequiredActor("review", "blocked", "human_reject")).toBe<TransitionActor>("human");
+  });
+
+  it("human_reject trigger 记录 actor='human'(from=backlog → blocked)", () => {
+    expect(getRequiredActor("backlog", "blocked", "human_reject")).toBe<TransitionActor>("human");
+  });
+
+  it("human_reject trigger 记录 actor='human'(from=todo → blocked)", () => {
+    expect(getRequiredActor("todo", "blocked", "human_reject")).toBe<TransitionActor>("human");
+  });
+
+  it("human_confirm trigger 记录 actor='human'(from=review → done)", () => {
+    expect(getRequiredActor("review", "done", "human_confirm")).toBe<TransitionActor>("human");
+  });
+
+  it("非 human_ trigger 保持原 actor:dependencies_ready (backlog → todo) 仍为 ai_role", () => {
+    expect(getRequiredActor("backlog", "todo", "dependencies_ready")).toBe<TransitionActor>(
+      "ai_role",
+    );
+  });
+
+  it("非 human_ trigger 保持原 actor:review_passed (review → done) 仍为 ai_role", () => {
+    expect(getRequiredActor("review", "done", "review_passed")).toBe<TransitionActor>("ai_role");
+  });
+
+  it("非 human_ trigger 保持原 actor:code_review_failed (backlog → blocked) 仍为 ai_role", () => {
+    expect(getRequiredActor("backlog", "blocked", "review_failed")).toBe<TransitionActor>(
+      "ai_role",
+    );
+  });
+
+  it("getRequiredActor 3-arg 签名:无 (from, to, trigger) 三元组时 throw", () => {
+    expect(() => getRequiredActor("backlog", "done", "context_complete")).toThrow(
+      /No card transition/,
+    );
   });
 });

@@ -81,9 +81,7 @@ describe("F-002 TRANSITION_TRIGGERS ↔ CARD_TRANSITIONS trigger 集", () => {
   it("CARD_TRANSITIONS 中所有出现的 trigger 都在 TRANSITION_TRIGGERS 集合内", () => {
     const allowed = new Set<TransitionTrigger>(TRANSITION_TRIGGERS);
     for (const rule of CARD_TRANSITIONS) {
-      for (const t of rule.triggers) {
-        expect(allowed.has(t)).toBe(true);
-      }
+      expect(allowed.has(rule.trigger)).toBe(true);
     }
   });
 
