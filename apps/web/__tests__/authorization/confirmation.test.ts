@@ -5,14 +5,13 @@
  *   - initiator == ctx.goalSpaceInitiatorId → true(goalSpace 发起人唯一决策权)
  *   - initiator 跨 goalSpace → false
  *   - chain_user / viewer 一律 false
- *   - spec §6.2: 仅 status='pending' 的 confirmation 可决策(approved/rejected/timed_out 一律 false)
+ *   - spec §6.2: 仅 status='pending' 的 confirmation 可决策(approved/rejected/cancelled 一律 false)
  *
  * 真相源: docs/specs/authorization_matrix.md § 3 资源归属 + § 4 API 矩阵
  *        + docs/specs/interface_spec.md §6.2 (处理确认)
  *
- * NOTE(cancelled 漂移): spec §6.2 列出 "approved / rejected / cancelled";DB schema 当前
- * 使用 "timed_out"。DB-013 (Task 2.7) 将统一 schema。本单测用 schema 现状值覆盖拒绝路径,
- * 并附 pending → true 案例,语义与 spec 完全一致。
+ * DB-013 (Task 2.7): schema 现在使用 'cancelled' (spec §6.2);早先 schema 漂移 'timed_out'
+ * 已被 migration 0003 移除。本单测用 spec 当前值覆盖拒绝路径,并附 pending → true 案例。
  */
 
 import { describe, expect, it } from "vitest";
@@ -78,8 +77,8 @@ describe("canDecideConfirmation — status gate (spec §6.2)", () => {
     expect(canDecideConfirmation({ id: OWNER, role: "initiator" }, ctx)).toBe(false);
   });
 
-  it("denies decide when confirmation is timed_out (DB-013 → 'cancelled')", () => {
-    const ctx = confCtx(OWNER, "timed_out");
+  it("denies decide when confirmation is cancelled (DB-013)", () => {
+    const ctx = confCtx(OWNER, "cancelled");
     expect(canDecideConfirmation({ id: OWNER, role: "initiator" }, ctx)).toBe(false);
   });
 

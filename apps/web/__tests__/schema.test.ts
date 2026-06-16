@@ -69,16 +69,16 @@ describe("T-001: enum literal unions align with truth source docs", () => {
   });
 
   it("confirmationStatus (database_design.md § 3.8) = 4 values", () => {
-    expect(CONFIRMATION_STATUS_VALUES).toEqual(["pending", "approved", "rejected", "timed_out"]);
+    expect(CONFIRMATION_STATUS_VALUES).toEqual(["pending", "approved", "rejected", "cancelled"]);
   });
 
   it("confirmationTriggerType (database_design.md § 3.8) = 5 values", () => {
     expect(CONFIRMATION_TRIGGER_TYPE_VALUES).toEqual([
-      "high_risk_action",
-      "confirmation_timeout",
-      "external_input",
-      "external_result",
-      "system_override",
+      "high_risk",
+      "low_confidence",
+      "external_write",
+      "deployment",
+      "irreversible",
     ]);
   });
 

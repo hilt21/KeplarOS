@@ -51,7 +51,7 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
   it("audit_entries 11 字段全部 round-trip,JSON 字段正确解析", () => {
     // seed: user → goal_space → node_board
     db.insert(users).values({ id: "u1", name: "Alice", email: "alice@example.com" }).run();
-    db.insert(goalSpaces).values({ id: "g1", initiatorId: "u1", title: "Goal 1" }).run();
+    db.insert(goalSpaces).values({ id: "g1", initiatorId: "u1", name: "Goal 1" }).run();
     db.insert(nodeBoards)
       .values({ id: "b-1", goalSpaceId: "g1", key: "main", title: "Main" })
       .run();
@@ -137,8 +137,8 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
       .run();
     db.insert(goalSpaces)
       .values([
-        { id: "g-A", initiatorId: "u1", title: "Goal A" },
-        { id: "g-B", initiatorId: "u2", title: "Goal B" },
+        { id: "g-A", initiatorId: "u1", name: "Goal A" },
+        { id: "g-B", initiatorId: "u2", name: "Goal B" },
       ])
       .run();
     db.insert(nodeBoards)

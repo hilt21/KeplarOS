@@ -37,10 +37,10 @@ function insertBaseFixtures(db: Database.Database): void {
     "INSERT INTO users (id, name, email, role) VALUES ('u2', 'Bob', 'bob@x.com', 'initiator')",
   ).run();
   db.prepare(
-    "INSERT INTO goal_spaces (id, initiator_id, title, status) VALUES ('g1', 'u1', 'Goal 1', 'draft')",
+    "INSERT INTO goal_spaces (id, initiator_id, name, status) VALUES ('g1', 'u1', 'Goal 1', 'draft')",
   ).run();
   db.prepare(
-    "INSERT INTO goal_spaces (id, initiator_id, title, status) VALUES ('g2', 'u2', 'Goal 2', 'draft')",
+    "INSERT INTO goal_spaces (id, initiator_id, name, status) VALUES ('g2', 'u2', 'Goal 2', 'draft')",
   ).run();
   db.prepare(
     "INSERT INTO node_boards (id, goal_space_id, key, title, status) VALUES ('b1', 'g1', 'main', 'Main', 'active')",
@@ -74,7 +74,7 @@ describe("T-100: enum CHECK triggers reject illegal values", () => {
     expect(() =>
       db
         .prepare(
-          "INSERT INTO goal_spaces (id, initiator_id, title, status) VALUES ('g3', 'u1', 'X', 'paused')",
+          "INSERT INTO goal_spaces (id, initiator_id, name, status) VALUES ('g3', 'u1', 'X', 'paused')",
         )
         .run(),
     ).toThrow(/goal_spaces\.status must be one of/i);

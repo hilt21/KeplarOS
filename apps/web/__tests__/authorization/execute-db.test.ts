@@ -63,7 +63,7 @@ function seedBase(db: Db, opts: { withMember: boolean }): void {
       { id: VIEWER, name: "Viewer", email: "viewer@x.com", role: "viewer" },
     ])
     .run();
-  db.insert(goalSpaces).values({ id: GOAL_A, initiatorId: INITIATOR, title: "Goal A" }).run();
+  db.insert(goalSpaces).values({ id: GOAL_A, initiatorId: INITIATOR, name: "Goal A" }).run();
   db.insert(nodeBoards)
     .values({ id: BOARD_A, goalSpaceId: GOAL_A, key: "main", title: "Main" })
     .run();
@@ -122,7 +122,7 @@ describe("canExecuteCardForCardId (DB-aware convenience, SEC-009)", () => {
       .values({
         id: "h-1",
         cardId: CARD_X,
-        triggerType: "high_risk_action",
+        triggerType: "high_risk",
         riskLevel: "high",
         expiresAt: "2030-01-01 00:00:00",
       })
@@ -147,7 +147,7 @@ describe("canExecuteCardForCardId (DB-aware convenience, SEC-009)", () => {
         { id: VIEWER, name: "Viewer", email: "viewer@x.com", role: "viewer" },
       ])
       .run();
-    db.insert(goalSpaces).values({ id: GOAL_A, initiatorId: INITIATOR, title: "Goal A" }).run();
+    db.insert(goalSpaces).values({ id: GOAL_A, initiatorId: INITIATOR, name: "Goal A" }).run();
     db.insert(nodeBoards)
       .values({ id: BOARD_A, goalSpaceId: GOAL_A, key: "main", title: "Main" })
       .run();

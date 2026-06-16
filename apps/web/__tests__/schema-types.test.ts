@@ -95,21 +95,27 @@ describe("T-003: inferred row types compile and have the expected column set", (
     expect(insert.assignedTo).toBeUndefined();
   });
 
-  it("GoalSpace row carries 11 columns from § 3.1", () => {
+  it("GoalSpace row carries 17 columns from § 3.1 (DB-001: name + 6 added columns)", () => {
     const sample: GoalSpace = {
       id: "0".repeat(32),
       initiatorId: "0".repeat(32),
-      title: "x",
+      name: "x",
       description: null,
+      constraints: [],
+      acceptanceCriteria: null,
       status: "draft",
+      progress: 0,
       templateId: null,
       tags: [],
+      startedAt: null,
+      completedAt: null,
+      cancelledAt: null,
+      cancelReason: null,
+      deletedAt: null,
       createdAt: "2026-06-07 00:00:00",
       updatedAt: "2026-06-07 00:00:00",
-      completedAt: null,
-      cancelReason: null,
     };
-    expect(Object.keys(sample)).toHaveLength(11);
+    expect(Object.keys(sample)).toHaveLength(17);
   });
 
   it("aggregated schema export contains all 11 tables (S1 back-compat)", () => {

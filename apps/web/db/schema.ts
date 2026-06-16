@@ -19,7 +19,7 @@
  */
 
 import { sql, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // ════════════════════════════════════════════════════════════════════
 //  1. Enum literal unions (12 spec + 1 helper)
@@ -65,17 +65,17 @@ export type AgentExecutionStatus = (typeof AGENT_EXECUTION_STATUS_VALUES)[number
 export const TRANSITION_ACTOR_VALUES = ["human", "ai_role", "system"] as const;
 export type TransitionActor = (typeof TRANSITION_ACTOR_VALUES)[number];
 
-// § 3.8 human_confirmations.status
-export const CONFIRMATION_STATUS_VALUES = ["pending", "approved", "rejected", "timed_out"] as const;
+// § 3.8 human_confirmations.status (DB-013: 'timed_out' → 'cancelled' per spec)
+export const CONFIRMATION_STATUS_VALUES = ["pending", "approved", "rejected", "cancelled"] as const;
 export type ConfirmationStatus = (typeof CONFIRMATION_STATUS_VALUES)[number];
 
-// § 3.8 human_confirmations.trigger_type
+// § 3.8 human_confirmations.trigger_type (DB-012: spec-aligned 5-value set)
 export const CONFIRMATION_TRIGGER_TYPE_VALUES = [
-  "high_risk_action",
-  "confirmation_timeout",
-  "external_input",
-  "external_result",
-  "system_override",
+  "high_risk",
+  "low_confidence",
+  "external_write",
+  "deployment",
+  "irreversible",
 ] as const;
 export type ConfirmationTriggerType = (typeof CONFIRMATION_TRIGGER_TYPE_VALUES)[number];
 
@@ -120,7 +120,9 @@ export const users = sqliteTable(
       .default(sql`(lower(hex(randomblob(16))))`),
     name: text("name").notNull(),
     email: text("email").notNull(),
-    role: text("role", { enum: USER_ROLE_VALUES }).notNull().default("initiator"),
+    role: text("role", { enum: USER_ROLE_VALUES })
+      .notNull()
+      .default("chain_user"),
     preferences: text("preferences", { mode: "json" })
       .$type<Record<string, unknown>>()
       .notNull()
@@ -136,6 +138,8 @@ export const users = sqliteTable(
 );
 
 // ─── 2.2 goal_spaces (database_design.md § 3.1) ────────────────────
+// DB-001: renamed `title` → `name`; added progress, constraints,
+// acceptance_criteria, started_at, cancelled_at, deleted_at (per spec § 3.1).
 export const goalSpaces = sqliteTable(
   "goal_spaces",
   {
@@ -145,26 +149,37 @@ export const goalSpaces = sqliteTable(
     initiatorId: text("initiator_id")
       .notNull()
       .references(() => users.id),
-    title: text("title").notNull(),
+    name: text("name").notNull(),
     description: text("description"),
+    constraints: text("constraints", { mode: "json" })
+      .$type<Record<string, unknown>[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    acceptanceCriteria: text("acceptance_criteria", { mode: "json" })
+      .$type<Record<string, unknown>[]>(),
     status: text("status", { enum: GOAL_SPACE_STATUS_VALUES }).notNull().default("draft"),
+    progress: real("progress").notNull().default(0),
     templateId: text("template_id"),
     tags: text("tags", { mode: "json" })
       .$type<string[]>()
       .notNull()
       .default(sql`'[]'`),
+    startedAt: text("started_at"),
+    completedAt: text("completed_at"),
+    cancelledAt: text("cancelled_at"),
+    cancelReason: text("cancel_reason"),
+    deletedAt: text("deleted_at"),
     createdAt: text("created_at")
       .notNull()
       .default(sql`(datetime('now'))`),
     updatedAt: text("updated_at")
       .notNull()
       .default(sql`(datetime('now'))`),
-    completedAt: text("completed_at"),
-    cancelReason: text("cancel_reason"),
   },
   (t) => ({
     initiatorIdx: index("idx_goal_spaces_initiator").on(t.initiatorId),
     statusIdx: index("idx_goal_spaces_status").on(t.status),
+    deletedAtIdx: index("idx_goal_spaces_deleted_at").on(t.deletedAt),
   }),
 );
 
@@ -372,12 +387,16 @@ export const agentExecutions = sqliteTable(
 );
 
 // ─── 2.8 state_transitions (database_design.md § 3.7) ──────────────
+// DB-022: added `card_id` (nullable for legacy rows; future rows must set it
+// per the S3 spec § 3.7). No reliable join key from entityType='card' rows in
+// S1/S2 data, so the migration does not backfill — application code enforces.
 export const stateTransitions = sqliteTable(
   "state_transitions",
   {
     id: text("id")
       .primaryKey()
       .default(sql`(lower(hex(randomblob(16))))`),
+    cardId: text("card_id").references(() => cards.id),
     entityType: text("entity_type", { enum: ENTITY_TYPE_VALUES }).notNull(),
     entityId: text("entity_id").notNull(),
     fromState: text("from_state"),
@@ -396,11 +415,17 @@ export const stateTransitions = sqliteTable(
   },
   (t) => ({
     entityIdx: index("idx_state_transitions_entity").on(t.entityType, t.entityId),
+    cardIdIdx: index("idx_state_transitions_card_id").on(t.cardId),
     createdAtIdx: index("idx_state_transitions_created_at").on(t.createdAt),
   }),
 );
 
 // ─── 2.9 human_confirmations (database_design.md § 3.8) ─────────────
+// DB-011: added 10 spec-aligned columns (triggered_by/at, target_state,
+// ai_summary, risk_factors, recommendations, ai_confidence, decision_outcome,
+// decision_comment, resolved_at). DB-012 + DB-013 reflected in the enum
+// literal unions at the top of this file (new trigger_type 5-value set,
+// status 'timed_out' → 'cancelled').
 export const humanConfirmations = sqliteTable(
   "human_confirmations",
   {
@@ -411,15 +436,32 @@ export const humanConfirmations = sqliteTable(
       .notNull()
       .references(() => cards.id),
     triggerType: text("trigger_type", { enum: CONFIRMATION_TRIGGER_TYPE_VALUES }).notNull(),
+    targetState: text("target_state"),
+    triggerReason: text("trigger_reason"),
+    triggeredBy: text("triggered_by").references(() => users.id),
+    triggeredAt: text("triggered_at"),
+    aiSummary: text("ai_summary"),
+    riskFactors: text("risk_factors", { mode: "json" })
+      .$type<Record<string, unknown>[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    recommendations: text("recommendations", { mode: "json" })
+      .$type<Record<string, unknown>[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    aiConfidence: real("ai_confidence"),
     riskLevel: text("risk_level", { enum: RISK_LEVEL_VALUES }).notNull().default("medium"),
     context: text("context", { mode: "json" })
       .$type<Record<string, unknown>>()
       .notNull()
       .default(sql`'{}'`),
     status: text("status", { enum: CONFIRMATION_STATUS_VALUES }).notNull().default("pending"),
+    decisionOutcome: text("decision_outcome"),
     decisionBy: text("decision_by").references(() => users.id),
     decisionReason: text("decision_reason"),
+    decisionComment: text("decision_comment"),
     decidedAt: text("decided_at"),
+    resolvedAt: text("resolved_at"),
     expiresAt: text("expires_at").notNull(),
     createdAt: text("created_at")
       .notNull()
