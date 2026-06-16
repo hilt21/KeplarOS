@@ -28,12 +28,15 @@ export interface Actor {
 
 /**
  * Goal Space 上下文
- * - goalSpaceId:    资源 ID
- * - initiatorId:   goal_spaces.initiator_id(决定 initiator 写权限)
+ * - goalSpaceId:           资源 ID
+ * - initiatorId:           goal_spaces.initiator_id(决定 initiator 写权限)
+ * - nodeBoardMemberIds:    该 goalSpace 下所有 node_board 的有效成员并集
+ *                          (per ADR-001: chain_user/viewer 是成员即可读 goalSpace)
  */
 export interface GoalSpaceContext {
   readonly goalSpaceId: string;
   readonly initiatorId: string;
+  readonly nodeBoardMemberIds: readonly string[];
 }
 
 /**

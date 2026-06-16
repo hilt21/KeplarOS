@@ -180,13 +180,19 @@ describe("T-102: cross-goal-space card blocked by composite FK (PR #1 review P1 
 describe("T-103: cross-owner goal space read is rejected (PR #1 review P1 #1)", () => {
   it("canReadGoalSpace returns false when actor is an initiator of a different goal_space", () => {
     expect(
-      canReadGoalSpace({ id: "u1", role: "initiator" }, { goalSpaceId: "g2", initiatorId: "u2" }),
+      canReadGoalSpace(
+        { id: "u1", role: "initiator" },
+        { goalSpaceId: "g2", initiatorId: "u2", nodeBoardMemberIds: [] },
+      ),
     ).toBe(false);
   });
 
   it("canReadGoalSpace returns true when actor is the owner", () => {
     expect(
-      canReadGoalSpace({ id: "u1", role: "initiator" }, { goalSpaceId: "g1", initiatorId: "u1" }),
+      canReadGoalSpace(
+        { id: "u1", role: "initiator" },
+        { goalSpaceId: "g1", initiatorId: "u1", nodeBoardMemberIds: [] },
+      ),
     ).toBe(true);
   });
 });
