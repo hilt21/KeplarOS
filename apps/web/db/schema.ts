@@ -41,8 +41,8 @@ export const CARD_STATES = [
 ] as const;
 export type CardState = (typeof CARD_STATES)[number];
 
-// § 3.2 node_boards.status
-export const NODE_BOARD_STATUS_VALUES = ["active", "paused", "archived"] as const;
+// § 3.2 node_boards.status (DB-004: 'paused' replaced with 'completed' per spec)
+export const NODE_BOARD_STATUS_VALUES = ["active", "completed", "archived"] as const;
 export type NodeBoardStatus = (typeof NODE_BOARD_STATUS_VALUES)[number];
 
 // § 3.4 sessions.status
@@ -103,8 +103,9 @@ export type ActorType = TransitionActor;
 export const RISK_LEVEL_VALUES = ["low", "medium", "high", "critical"] as const;
 export type RiskLevel = (typeof RISK_LEVEL_VALUES)[number];
 
-// Helper: § 3.3 node_board_members.role (not in 12 spec, but column needs enum)
-export const NODE_BOARD_MEMBER_ROLE_VALUES = ["editor", "viewer", "observer"] as const;
+// Helper: § 3.3 node_board_members.role (DB-005: replaced 'editor'/'observer' with
+// 'owner'/'member' per spec; default is now 'member')
+export const NODE_BOARD_MEMBER_ROLE_VALUES = ["owner", "member", "viewer"] as const;
 export type NodeBoardMemberRole = (typeof NODE_BOARD_MEMBER_ROLE_VALUES)[number];
 
 // ════════════════════════════════════════════════════════════════════
@@ -184,6 +185,8 @@ export const goalSpaces = sqliteTable(
 );
 
 // ─── 2.3 node_boards (database_design.md § 3.2) ────────────────────
+// DB-003: column 'title' → 'name' (spec § 3.2).
+// DB-004: status enum shifted to ('active','completed','archived') via 0004.
 export const nodeBoards = sqliteTable(
   "node_boards",
   {
@@ -194,7 +197,7 @@ export const nodeBoards = sqliteTable(
       .notNull()
       .references(() => goalSpaces.id),
     key: text("key").notNull(),
-    title: text("title").notNull(),
+    name: text("name").notNull(),
     description: text("description"),
     status: text("status", { enum: NODE_BOARD_STATUS_VALUES }).notNull().default("active"),
     displayOrder: integer("display_order").notNull().default(0),
@@ -231,7 +234,7 @@ export const nodeBoardMembers = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id),
-    role: text("role", { enum: NODE_BOARD_MEMBER_ROLE_VALUES }).notNull().default("editor"),
+    role: text("role", { enum: NODE_BOARD_MEMBER_ROLE_VALUES }).notNull().default("member"),
     invitedBy: text("invited_by").references(() => users.id),
     joinedAt: text("joined_at")
       .notNull()

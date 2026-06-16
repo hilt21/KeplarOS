@@ -53,7 +53,7 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
     db.insert(users).values({ id: "u1", name: "Alice", email: "alice@example.com" }).run();
     db.insert(goalSpaces).values({ id: "g1", initiatorId: "u1", name: "Goal 1" }).run();
     db.insert(nodeBoards)
-      .values({ id: "b-1", goalSpaceId: "g1", key: "main", title: "Main" })
+      .values({ id: "b-1", goalSpaceId: "g1", key: "main", name: "Main" })
       .run();
 
     const beforeState = { state: "backlog" };
@@ -146,8 +146,8 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
       .run();
     db.insert(nodeBoards)
       .values([
-        { id: "b-A", goalSpaceId: "g-A", key: "main", title: "Main A" },
-        { id: "b-B", goalSpaceId: "g-B", key: "main", title: "Main B" },
+        { id: "b-A", goalSpaceId: "g-A", key: "main", name: "Main A" },
+        { id: "b-B", goalSpaceId: "g-B", key: "main", name: "Main B" },
       ])
       .run();
 

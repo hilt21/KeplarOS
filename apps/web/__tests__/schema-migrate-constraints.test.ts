@@ -43,10 +43,10 @@ function insertBaseFixtures(db: Database.Database): void {
     "INSERT INTO goal_spaces (id, initiator_id, name, status) VALUES ('g2', 'u2', 'Goal 2', 'draft')",
   ).run();
   db.prepare(
-    "INSERT INTO node_boards (id, goal_space_id, key, title, status) VALUES ('b1', 'g1', 'main', 'Main', 'active')",
+    "INSERT INTO node_boards (id, goal_space_id, key, name, status) VALUES ('b1', 'g1', 'main', 'Main', 'active')",
   ).run();
   db.prepare(
-    "INSERT INTO node_boards (id, goal_space_id, key, title, status) VALUES ('b2', 'g2', 'main', 'Main', 'active')",
+    "INSERT INTO node_boards (id, goal_space_id, key, name, status) VALUES ('b2', 'g2', 'main', 'Main', 'active')",
   ).run();
   db.prepare(
     "INSERT INTO cards (id, goal_space_id, node_board_id, display_id, title, state) VALUES ('c1', 'g1', 'b1', 1, 'C', 'backlog')",

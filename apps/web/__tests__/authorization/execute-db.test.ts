@@ -65,11 +65,11 @@ function seedBase(db: Db, opts: { withMember: boolean }): void {
     .run();
   db.insert(goalSpaces).values({ id: GOAL_A, initiatorId: INITIATOR, name: "Goal A" }).run();
   db.insert(nodeBoards)
-    .values({ id: BOARD_A, goalSpaceId: GOAL_A, key: "main", title: "Main" })
+    .values({ id: BOARD_A, goalSpaceId: GOAL_A, key: "main", name: "Main" })
     .run();
   if (opts.withMember) {
     db.insert(nodeBoardMembers)
-      .values({ id: "m-1", boardId: BOARD_A, userId: MEMBER, role: "editor" })
+      .values({ id: "m-1", boardId: BOARD_A, userId: MEMBER, role: "member" })
       .run();
   }
   db.insert(cards)
@@ -149,10 +149,10 @@ describe("canExecuteCardForCardId (DB-aware convenience, SEC-009)", () => {
       .run();
     db.insert(goalSpaces).values({ id: GOAL_A, initiatorId: INITIATOR, name: "Goal A" }).run();
     db.insert(nodeBoards)
-      .values({ id: BOARD_A, goalSpaceId: GOAL_A, key: "main", title: "Main" })
+      .values({ id: BOARD_A, goalSpaceId: GOAL_A, key: "main", name: "Main" })
       .run();
     db.insert(nodeBoardMembers)
-      .values({ id: "m-viewer", boardId: BOARD_A, userId: VIEWER, role: "editor" })
+      .values({ id: "m-viewer", boardId: BOARD_A, userId: VIEWER, role: "member" })
       .run();
     db.insert(cards)
       .values({

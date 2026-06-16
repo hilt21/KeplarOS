@@ -37,7 +37,7 @@ function loadAllMigrations(sqlite: Database.Database): void {
 function seedFixture(db: BetterSQLite3Database<typeof schema>): void {
   db.insert(users).values({ id: "u1", name: "Alice", email: "alice@example.com" }).run();
   db.insert(goalSpaces).values({ id: "g1", initiatorId: "u1", name: "Goal 1" }).run();
-  db.insert(nodeBoards).values({ id: "b-1", goalSpaceId: "g1", key: "main", title: "Main" }).run();
+  db.insert(nodeBoards).values({ id: "b-1", goalSpaceId: "g1", key: "main", name: "Main" }).run();
 }
 
 describe("T-013: runWithAudit", () => {

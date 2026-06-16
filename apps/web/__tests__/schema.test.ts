@@ -45,7 +45,7 @@ describe("T-001: enum literal unions align with truth source docs", () => {
   });
 
   it("nodeBoardStatus (database_design.md § 3.2) = 3 values", () => {
-    expect(NODE_BOARD_STATUS_VALUES).toEqual(["active", "paused", "archived"]);
+    expect(NODE_BOARD_STATUS_VALUES).toEqual(["active", "completed", "archived"]);
   });
 
   it("sessionStatus (database_design.md § 3.4) = 5 values", () => {
@@ -107,6 +107,6 @@ describe("T-001: enum literal unions align with truth source docs", () => {
   });
 
   it("nodeBoardMemberRole (database_design.md § 3.3, helper enum) = 3 values", () => {
-    expect(NODE_BOARD_MEMBER_ROLE_VALUES).toEqual(["editor", "viewer", "observer"]);
+    expect(NODE_BOARD_MEMBER_ROLE_VALUES).toEqual(["owner", "member", "viewer"]);
   });
 });
