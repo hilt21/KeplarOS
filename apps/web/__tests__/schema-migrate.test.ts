@@ -22,7 +22,11 @@ describe("T-002: 0000 migration applies cleanly + partial unique indexes actuall
   beforeAll(() => {
     const files = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith(".sql"));
     expect(files.length).toBeGreaterThanOrEqual(1);
-    const first = files.sort()[0];
+    const sorted = files.sort();
+    const first = sorted[0];
+    if (first === undefined) {
+      throw new Error("expected at least one migration file");
+    }
     migrationSql = readFileSync(join(MIGRATIONS_DIR, first), "utf8");
     db = new Database(":memory:");
     db.exec(migrationSql);
