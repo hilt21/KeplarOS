@@ -28,11 +28,15 @@ const config = [
   prettier,
   {
     rules: {
-      // S1 scaffold: keep light; S2+ will tighten.
+      // S3-ready: stricter rules for upcoming async route handlers (TS-007).
+      // Type-aware rules (no-floating-promises, no-misused-promises) deferred to
+      // Wave 4 — requires parserOptions.project + tsconfig.eslint.json setup.
       "@typescript-eslint/no-unused-vars": [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/consistent-type-imports": ["error", { prefer: "type-imports" }],
     },
   },
 ];
