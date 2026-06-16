@@ -95,6 +95,7 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
     // 1) audit_entries 全字段 round-trip
     const audits = db.select().from(auditEntries).all();
     expect(audits).toHaveLength(1);
+    expect(audits[0]).toBeDefined();
     const a = audits[0]!;
     expect(a.id).toMatch(/^[0-9a-f]{32}$/);
     expect(a.entityType).toBe("card");
@@ -111,6 +112,7 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
     // 2) realtime_events 全字段 round-trip
     const events = db.select().from(realtimeEvents).all();
     expect(events).toHaveLength(1);
+    expect(events[0]).toBeDefined();
     const e = events[0]!;
     expect(e.id).toMatch(/^[0-9a-f]{32}$/);
     expect(e.goalSpaceId).toBe("g1");
@@ -124,6 +126,7 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
     // 3) cards 业务行存在
     const cardsInDb = db.select().from(cards).all();
     expect(cardsInDb).toHaveLength(1);
+    expect(cardsInDb[0]).toBeDefined();
     expect(cardsInDb[0]!.id).toBe("c-rt");
     expect(cardsInDb[0]!.state).toBe("todo");
   });

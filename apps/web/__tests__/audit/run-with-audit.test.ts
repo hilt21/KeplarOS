@@ -89,10 +89,12 @@ describe("T-013: runWithAudit", () => {
 
     const cardsInDb = db.select().from(cards).all();
     expect(cardsInDb).toHaveLength(1);
+    expect(cardsInDb[0]).toBeDefined();
     expect(cardsInDb[0]!.title).toBe("Card 1");
 
     const audits = db.select().from(auditEntries).all();
     expect(audits).toHaveLength(1);
+    expect(audits[0]).toBeDefined();
     expect(audits[0]!.entityType).toBe("card");
     expect(audits[0]!.entityId).toBe("c-1");
     expect(audits[0]!.action).toBe("create");
@@ -102,6 +104,7 @@ describe("T-013: runWithAudit", () => {
 
     const events = db.select().from(realtimeEvents).all();
     expect(events).toHaveLength(1);
+    expect(events[0]).toBeDefined();
     expect(events[0]!.goalSpaceId).toBe("g1");
     expect(events[0]!.sequence).toBe(1);
     expect(events[0]!.eventType).toBe("card.created");
@@ -212,6 +215,7 @@ describe("T-013: runWithAudit", () => {
 
     const audits = db.select().from(auditEntries).all();
     expect(audits).toHaveLength(1);
+    expect(audits[0]).toBeDefined();
     expect(audits[0]!.action).toBe("internal_heartbeat");
 
     const events = db.select().from(realtimeEvents).all();

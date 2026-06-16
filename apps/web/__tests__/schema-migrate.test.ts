@@ -161,6 +161,8 @@ describe("T-002: 0000 migration applies cleanly + partial unique indexes actuall
       expect(r.id).toMatch(/^[0-9a-f]{32}$/);
     }
     // The two generated ids must differ.
+    expect(rows[0]).toBeDefined();
+    expect(rows[1]).toBeDefined();
     expect(rows[0]!.id).not.toBe(rows[1]!.id);
   });
 
