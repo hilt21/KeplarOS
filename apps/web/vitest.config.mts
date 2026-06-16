@@ -12,6 +12,8 @@ export default defineConfig({
       { glob: "__tests__/schema-migrate.test.ts", environment: "node" },
       { glob: "__tests__/schema-migrate-constraints.test.ts", environment: "node" },
       { glob: "__tests__/audit/**", environment: "node" },
+      // SEC-009: DB-aware canExecuteCardForCardId test needs better-sqlite3
+      { glob: "__tests__/authorization/execute-db.test.ts", environment: "node" },
     ],
     include: [
       "__tests__/**/*.test.ts",
