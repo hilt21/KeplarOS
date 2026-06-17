@@ -46,8 +46,18 @@ export const NODE_BOARD_STATUS_VALUES = ["active", "completed", "archived"] as c
 export type NodeBoardStatus = (typeof NODE_BOARD_STATUS_VALUES)[number];
 
 // § 3.4 sessions.status
-export const SESSION_STATUS_VALUES = ["active", "paused", "expired", "closed", "crashed"] as const;
+export const SESSION_STATUS_VALUES = ["queued", "running", "completed", "failed", "cancelled"] as const;
 export type SessionStatus = (typeof SESSION_STATUS_VALUES)[number];
+
+export const SESSION_TRIGGER_VALUES = [
+  "manual_start",
+  "ai_retry",
+  "system_resume",
+] as const;
+export type SessionTrigger = (typeof SESSION_TRIGGER_VALUES)[number];
+
+export const SESSION_ACTOR_VALUES = ["human", "ai_role", "system"] as const;
+export type SessionActor = (typeof SESSION_ACTOR_VALUES)[number];
 
 // § 3.5 agent_executions.status
 export const AGENT_EXECUTION_STATUS_VALUES = [
@@ -250,6 +260,10 @@ export const nodeBoardMembers = sqliteTable(
 );
 
 // ─── 2.5 sessions (database_design.md § 3.4) ───────────────────────
+// Spec § 3.4: sessions is a *run-session* (trigger/actor/actor_name/started_at/
+// completed_at/context) — not a user-session. userId/role/expiresAt/lastActiveAt/
+// closedAt/closeReason are intentionally absent; auth-style session concerns
+// live elsewhere (e.g. login session) and are out of scope for § 3.4.
 export const sessions = sqliteTable(
   "sessions",
   {
@@ -259,32 +273,29 @@ export const sessions = sqliteTable(
     goalSpaceId: text("goal_space_id")
       .notNull()
       .references(() => goalSpaces.id),
-    userId: text("user_id")
+    status: text("status", { enum: SESSION_STATUS_VALUES })
       .notNull()
-      .references(() => users.id),
-    role: text("role").notNull(),
-    status: text("status", { enum: SESSION_STATUS_VALUES }).notNull().default("active"),
+      .default("queued"),
+    trigger: text("trigger", { enum: SESSION_TRIGGER_VALUES }).notNull(),
+    actor: text("actor", { enum: SESSION_ACTOR_VALUES }).notNull(),
+    actorName: text("actor_name"),
     context: text("context", { mode: "json" })
       .$type<Record<string, unknown>>()
       .notNull()
       .default(sql`'{}'`),
-    lastActiveAt: text("last_active_at")
-      .notNull()
-      .default(sql`(datetime('now'))`),
-    expiresAt: text("expires_at").notNull(),
+    startedAt: text("started_at"),
+    completedAt: text("completed_at"),
     createdAt: text("created_at")
       .notNull()
       .default(sql`(datetime('now'))`),
     updatedAt: text("updated_at")
       .notNull()
       .default(sql`(datetime('now'))`),
-    closedAt: text("closed_at"),
-    closeReason: text("close_reason"),
   },
   (t) => ({
-    userIdx: index("idx_sessions_user").on(t.userId),
     goalSpaceIdx: index("idx_sessions_goal_space").on(t.goalSpaceId),
     statusIdx: index("idx_sessions_status").on(t.status),
+    createdIdx: index("idx_sessions_created").on(t.createdAt),
   }),
 );
 

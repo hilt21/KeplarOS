@@ -134,6 +134,41 @@ describe("T-003: inferred row types compile and have the expected column set", (
     ]);
   });
 
+  it("Session select model carries the § 3.4 column set (status, trigger, actor, actorName, startedAt, completedAt; no userId/role/expiresAt/closedAt/closeReason)", () => {
+    const sample: Session = {
+      id: "0".repeat(32),
+      goalSpaceId: "0".repeat(32),
+      status: "queued",
+      trigger: "manual_start",
+      actor: "human",
+      actorName: null,
+      context: {},
+      startedAt: null,
+      completedAt: null,
+      createdAt: "2026-06-07 00:00:00",
+      updatedAt: "2026-06-07 00:00:00",
+    };
+    expect(Object.keys(sample).sort()).toEqual(
+      [
+        "actor",
+        "actorName",
+        "completedAt",
+        "context",
+        "createdAt",
+        "goalSpaceId",
+        "id",
+        "startedAt",
+        "status",
+        "trigger",
+        "updatedAt",
+      ].sort(),
+    );
+    // Re-model sanity: legacy user-session columns must be gone.
+    for (const k of ["userId", "role", "expiresAt", "lastActiveAt", "closedAt", "closeReason"]) {
+      expect(Object.keys(sample)).not.toContain(k);
+    }
+  });
+
   it("AgentExecution select model carries the § 3.5 column set (goalSpaceId + cardId NOT NULL, attempt + maxAttempts, requested_by_*)", () => {
     const sample: AgentExecution = {
       id: "0".repeat(32),

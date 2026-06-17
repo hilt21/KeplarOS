@@ -49,7 +49,13 @@ describe("T-001: enum literal unions align with truth source docs", () => {
   });
 
   it("sessionStatus (database_design.md § 3.4) = 5 values", () => {
-    expect(SESSION_STATUS_VALUES).toEqual(["active", "paused", "expired", "closed", "crashed"]);
+    expect(SESSION_STATUS_VALUES).toEqual([
+      "queued",
+      "running",
+      "completed",
+      "failed",
+      "cancelled",
+    ]);
   });
 
   it("agentExecutionStatus (database_design.md § 3.5) = 7 values", () => {
