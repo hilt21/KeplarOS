@@ -77,7 +77,7 @@ function seedBase(db: Db, opts: { withMember: boolean }): void {
       id: CARD_X,
       goalSpaceId: GOAL_A,
       nodeBoardId: BOARD_A,
-      displayId: 1,
+      displayId: "CARD-001",
       title: "Card X",
     })
     .run();
@@ -133,9 +133,7 @@ describe("canExecuteCardForCardId (DB-aware convenience, SEC-009)", () => {
 
   it("AC-3.9: card 不存在 → false", async () => {
     seedBase(db, { withMember: true });
-    await expect(
-      canExecuteCardForCardId(db, memberActor, "c-does-not-exist"),
-    ).resolves.toBe(false);
+    await expect(canExecuteCardForCardId(db, memberActor, "c-does-not-exist")).resolves.toBe(false);
   });
 
   it("AC-3.9: viewer(即便是 member)+ 无 pending → false(委托 canExecuteCard 写权限)", async () => {
@@ -159,7 +157,7 @@ describe("canExecuteCardForCardId (DB-aware convenience, SEC-009)", () => {
         id: CARD_X,
         goalSpaceId: GOAL_A,
         nodeBoardId: BOARD_A,
-        displayId: 1,
+        displayId: "CARD-001",
         title: "Card X",
       })
       .run();

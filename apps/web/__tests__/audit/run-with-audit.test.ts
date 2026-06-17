@@ -77,7 +77,7 @@ describe("T-013: runWithAudit", () => {
             id: "c-1",
             goalSpaceId: "g1",
             nodeBoardId: "b-1",
-            displayId: 1,
+            displayId: "CARD-001",
             title: "Card 1",
           })
           .run();
@@ -142,7 +142,7 @@ describe("T-013: runWithAudit", () => {
               id: "c-2",
               goalSpaceId: "g1",
               nodeBoardId: "b-1",
-              displayId: 2,
+              displayId: "CARD-002",
               title: "Card 2",
             })
             .run();
@@ -179,7 +179,7 @@ describe("T-013: runWithAudit", () => {
               id: `c-${i}`,
               goalSpaceId: "g1",
               nodeBoardId: "b-1",
-              displayId: i,
+              displayId: `CARD-${String(i).padStart(3, "0")}`,
               title: `Card ${i}`,
             })
             .run();

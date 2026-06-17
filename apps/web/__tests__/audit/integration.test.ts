@@ -52,9 +52,7 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
     // seed: user → goal_space → node_board
     db.insert(users).values({ id: "u1", name: "Alice", email: "alice@example.com" }).run();
     db.insert(goalSpaces).values({ id: "g1", initiatorId: "u1", name: "Goal 1" }).run();
-    db.insert(nodeBoards)
-      .values({ id: "b-1", goalSpaceId: "g1", key: "main", name: "Main" })
-      .run();
+    db.insert(nodeBoards).values({ id: "b-1", goalSpaceId: "g1", key: "main", name: "Main" }).run();
 
     const beforeState = { state: "backlog" };
     const afterState = { state: "todo" };
@@ -83,7 +81,7 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
             id: "c-rt",
             goalSpaceId: "g1",
             nodeBoardId: "b-1",
-            displayId: 1,
+            displayId: "CARD-001",
             title: "Round-trip card",
             state: "todo",
           })
@@ -172,7 +170,7 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
               id: `cA-${i}`,
               goalSpaceId: "g-A",
               nodeBoardId: "b-A",
-              displayId: i,
+              displayId: `CARD-A${String(i).padStart(2, "0")}`,
               title: `Card A ${i}`,
             })
             .run();
@@ -200,7 +198,7 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
               id: `cB-${i}`,
               goalSpaceId: "g-B",
               nodeBoardId: "b-B",
-              displayId: i,
+              displayId: `CARD-B${String(i).padStart(2, "0")}`,
               title: `Card B ${i}`,
             })
             .run();

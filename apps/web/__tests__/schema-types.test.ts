@@ -58,17 +58,21 @@ describe("T-003: inferred row types compile and have the expected column set", (
     expect(insert.id).toBeUndefined();
   });
 
-  it("Card select model carries all 18 § 3.6 columns", () => {
+  it("Card select model carries all 22 § 3.6 columns (DB-014/015/023)", () => {
     const sample: Card = {
       id: "0".repeat(32),
       goalSpaceId: "0".repeat(32),
       nodeBoardId: "0".repeat(32),
-      displayId: 1,
+      displayId: "CARD-001",
       title: "x",
       description: null,
       state: "backlog",
       assignedTo: null,
-      priority: "medium",
+      priority: 0,
+      riskLevel: "medium",
+      evidence: [],
+      confidence: null,
+      dependencies: [],
       tags: [],
       context: {},
       blockedReason: null,
@@ -79,20 +83,24 @@ describe("T-003: inferred row types compile and have the expected column set", (
       updatedAt: "2026-06-07 00:00:00",
       deletedAt: null,
     };
-    expect(Object.keys(sample)).toHaveLength(18);
+    expect(Object.keys(sample)).toHaveLength(22);
   });
 
   it("NewCard insert model makes nullable fields optional", () => {
     const insert: NewCard = {
       goalSpaceId: "0".repeat(32),
       nodeBoardId: "0".repeat(32),
-      displayId: 1,
+      displayId: "CARD-001",
       title: "x",
     };
     expect(insert.state).toBeUndefined();
     expect(insert.priority).toBeUndefined();
     expect(insert.description).toBeUndefined();
     expect(insert.assignedTo).toBeUndefined();
+    expect(insert.riskLevel).toBeUndefined();
+    expect(insert.evidence).toBeUndefined();
+    expect(insert.confidence).toBeUndefined();
+    expect(insert.dependencies).toBeUndefined();
   });
 
   it("GoalSpace row carries 17 columns from § 3.1 (DB-001: name + 6 added columns)", () => {

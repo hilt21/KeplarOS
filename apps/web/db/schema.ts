@@ -46,14 +46,16 @@ export const NODE_BOARD_STATUS_VALUES = ["active", "completed", "archived"] as c
 export type NodeBoardStatus = (typeof NODE_BOARD_STATUS_VALUES)[number];
 
 // § 3.4 sessions.status
-export const SESSION_STATUS_VALUES = ["queued", "running", "completed", "failed", "cancelled"] as const;
+export const SESSION_STATUS_VALUES = [
+  "queued",
+  "running",
+  "completed",
+  "failed",
+  "cancelled",
+] as const;
 export type SessionStatus = (typeof SESSION_STATUS_VALUES)[number];
 
-export const SESSION_TRIGGER_VALUES = [
-  "manual_start",
-  "ai_retry",
-  "system_resume",
-] as const;
+export const SESSION_TRIGGER_VALUES = ["manual_start", "ai_retry", "system_resume"] as const;
 export type SessionTrigger = (typeof SESSION_TRIGGER_VALUES)[number];
 
 export const SESSION_ACTOR_VALUES = ["human", "ai_role", "system"] as const;
@@ -131,9 +133,7 @@ export const users = sqliteTable(
       .default(sql`(lower(hex(randomblob(16))))`),
     name: text("name").notNull(),
     email: text("email").notNull(),
-    role: text("role", { enum: USER_ROLE_VALUES })
-      .notNull()
-      .default("chain_user"),
+    role: text("role", { enum: USER_ROLE_VALUES }).notNull().default("chain_user"),
     preferences: text("preferences", { mode: "json" })
       .$type<Record<string, unknown>>()
       .notNull()
@@ -166,8 +166,9 @@ export const goalSpaces = sqliteTable(
       .$type<Record<string, unknown>[]>()
       .notNull()
       .default(sql`'[]'`),
-    acceptanceCriteria: text("acceptance_criteria", { mode: "json" })
-      .$type<Record<string, unknown>[]>(),
+    acceptanceCriteria: text("acceptance_criteria", { mode: "json" }).$type<
+      Record<string, unknown>[]
+    >(),
     status: text("status", { enum: GOAL_SPACE_STATUS_VALUES }).notNull().default("draft"),
     progress: real("progress").notNull().default(0),
     templateId: text("template_id"),
@@ -273,9 +274,7 @@ export const sessions = sqliteTable(
     goalSpaceId: text("goal_space_id")
       .notNull()
       .references(() => goalSpaces.id),
-    status: text("status", { enum: SESSION_STATUS_VALUES })
-      .notNull()
-      .default("queued"),
+    status: text("status", { enum: SESSION_STATUS_VALUES }).notNull().default("queued"),
     trigger: text("trigger", { enum: SESSION_TRIGGER_VALUES }).notNull(),
     actor: text("actor", { enum: SESSION_ACTOR_VALUES }).notNull(),
     actorName: text("actor_name"),
@@ -312,12 +311,22 @@ export const cards = sqliteTable(
     nodeBoardId: text("node_board_id")
       .notNull()
       .references(() => nodeBoards.id),
-    displayId: integer("display_id").notNull(),
+    displayId: text("display_id").notNull(),
     title: text("title").notNull(),
     description: text("description"),
     state: text("state", { enum: CARD_STATES }).notNull().default("backlog"),
     assignedTo: text("assigned_to").references(() => users.id),
-    priority: text("priority").notNull().default("medium"),
+    priority: integer("priority").notNull().default(0),
+    riskLevel: text("risk_level", { enum: RISK_LEVEL_VALUES }).notNull().default("medium"),
+    evidence: text("evidence", { mode: "json" })
+      .$type<Record<string, unknown>[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    confidence: real("confidence"),
+    dependencies: text("dependencies", { mode: "json" })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
     tags: text("tags", { mode: "json" })
       .$type<string[]>()
       .notNull()
@@ -346,6 +355,10 @@ export const cards = sqliteTable(
     nodeBoardIdx: index("idx_cards_node_board").on(t.nodeBoardId),
     stateIdx: index("idx_cards_state").on(t.state),
     assignedToIdx: index("idx_cards_assigned_to").on(t.assignedTo),
+    displayIdIdx: index("idx_cards_display_id").on(t.displayId),
+    priorityIdx: index("idx_cards_priority").on(sql`${t.priority} DESC`),
+    riskLevelIdx: index("idx_cards_risk_level").on(t.riskLevel),
+    createdIdx: index("idx_cards_created").on(sql`${t.createdAt} DESC`),
   }),
 );
 
