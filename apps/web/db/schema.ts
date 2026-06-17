@@ -373,11 +373,11 @@ export const agentExecutions = sqliteTable(
       .default("human"),
     requestedById: text("requested_by_id"),
     requestedByName: text("requested_by_name"),
-    input: text("input", { mode: "json" })
+    inputContext: text("input_context", { mode: "json" })
       .$type<Record<string, unknown>>()
       .notNull()
       .default(sql`'{}'`),
-    output: text("output", { mode: "json" }).$type<Record<string, unknown>>(),
+    result: text("result", { mode: "json" }).$type<Record<string, unknown>>(),
     errorCode: text("error_code"),
     errorMessage: text("error_message"),
     durationMs: integer("duration_ms"),
@@ -397,6 +397,8 @@ export const agentExecutions = sqliteTable(
     cardIdx: index("idx_agent_executions_card").on(t.cardId),
     sessionIdx: index("idx_agent_executions_session").on(t.sessionId),
     statusIdx: index("idx_agent_executions_status").on(t.status),
+    roleIdx: index("idx_agent_executions_role").on(t.agentRole),
+    createdIdx: index("idx_agent_executions_created").on(sql`${t.createdAt} DESC`),
   }),
 );
 
