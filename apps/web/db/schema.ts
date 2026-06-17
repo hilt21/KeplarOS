@@ -416,9 +416,14 @@ export const agentExecutions = sqliteTable(
 );
 
 // ─── 2.8 state_transitions (database_design.md § 3.7) ──────────────
-// DB-022: added `card_id` (nullable for legacy rows; future rows must set it
-// per the S3 spec § 3.7). No reliable join key from entityType='card' rows in
-// S1/S2 data, so the migration does not backfill — application code enforces.
+// DB-022 (Wave 1): added `card_id` (nullable for legacy rows; future rows
+// must set it per the S3 spec § 3.7). No reliable join key from
+// entityType='card' rows in S1/S2 data, so the migration does not backfill
+// — application code enforces.
+// DB-010 / DB-020 / DB-040 (Wave 2 sub-group E): added `session_id` (FK),
+// renamed `created_at` → `timestamp` and `actor_type` → `actor`, added
+// `actor_name`, and added the three spec § 3.7 indexes on
+// (card_id, timestamp), (session_id), and (actor).
 export const stateTransitions = sqliteTable(
   "state_transitions",
   {
@@ -426,26 +431,30 @@ export const stateTransitions = sqliteTable(
       .primaryKey()
       .default(sql`(lower(hex(randomblob(16))))`),
     cardId: text("card_id").references(() => cards.id),
+    sessionId: text("session_id").references(() => sessions.id),
     entityType: text("entity_type", { enum: ENTITY_TYPE_VALUES }).notNull(),
     entityId: text("entity_id").notNull(),
     fromState: text("from_state"),
     toState: text("to_state").notNull(),
     trigger: text("trigger").notNull(),
-    actorType: text("actor_type", { enum: TRANSITION_ACTOR_VALUES }).notNull(),
+    actor: text("actor", { enum: TRANSITION_ACTOR_VALUES }).notNull(),
+    actorName: text("actor_name"),
     actorId: text("actor_id"),
     reason: text("reason"),
     metadata: text("metadata", { mode: "json" })
       .$type<Record<string, unknown>>()
       .notNull()
       .default(sql`'{}'`),
-    createdAt: text("created_at")
+    timestamp: text("timestamp")
       .notNull()
       .default(sql`(datetime('now'))`),
   },
   (t) => ({
     entityIdx: index("idx_state_transitions_entity").on(t.entityType, t.entityId),
     cardIdIdx: index("idx_state_transitions_card_id").on(t.cardId),
-    createdAtIdx: index("idx_state_transitions_created_at").on(t.createdAt),
+    cardTimestampIdx: index("idx_state_transitions_card_timestamp").on(t.cardId, t.timestamp),
+    sessionIdIdx: index("idx_state_transitions_session_id").on(t.sessionId),
+    actorIdx: index("idx_state_transitions_actor").on(t.actor),
   }),
 );
 
