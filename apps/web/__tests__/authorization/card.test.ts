@@ -178,3 +178,47 @@ describe("canMutateCard — pending confirmation gate (spec §5)", () => {
     expect(canMutateCard(actor, "update", ctxWithPending)).toBe(true);
   });
 });
+
+// ─── 4. COR-009: viewer 读路径 pinned behavior ───────────────────
+// spec §4 / authorization_matrix.md §3 允许 viewer 通过 assignedTo OR
+// node_board 成员关系读 card;写权限(viewer 一律 false)由 canMutateCard
+// 守护(见 § 2 顶部测试)。本块锁定"viewer 读"的现状,防止未来重构意外
+// 把 viewer 从 node-board 成员路径排除。
+
+describe("COR-009: viewer read path pinned", () => {
+  const cardMemberOnly = cardCtx({
+    goalSpaceInitiatorId: OWNER_A,
+    nodeBoardMemberIds: [MEMBER],
+    assignedTo: null,
+  });
+  const cardAssignedToViewer = cardCtx({
+    goalSpaceInitiatorId: OWNER_A,
+    nodeBoardMemberIds: [],
+    assignedTo: MEMBER,
+  });
+
+  it("viewer 是 nodeBoardMember → 可读(spec §3 通过成员关系获得读权限)", () => {
+    expect(canReadCard({ id: MEMBER, role: "viewer" }, cardMemberOnly)).toBe(true);
+  });
+
+  it("viewer 是 assignedTo(非 member)→ 可读(spec §4 API 矩阵 GET cards/:id)", () => {
+    expect(canReadCard({ id: MEMBER, role: "viewer" }, cardAssignedToViewer)).toBe(true);
+  });
+
+  it("viewer 既非 member 也非 assignedTo → 不可读(隐式跨域保护)", () => {
+    const cardEmpty2 = cardCtx({
+      goalSpaceInitiatorId: OWNER_A,
+      nodeBoardMemberIds: [],
+      assignedTo: null,
+    });
+    expect(canReadCard({ id: "u-stranger", role: "viewer" }, cardEmpty2)).toBe(false);
+  });
+
+  it("correlative invariant: viewer 通过任一读路径可读,但 mutate 一律 false", () => {
+    // 同一 actor 同一 ctx:读 true / mutate false(§ 3 + § 5 不变式)
+    expect(canReadCard({ id: MEMBER, role: "viewer" }, cardMemberOnly)).toBe(true);
+    expect(canMutateCard({ id: MEMBER, role: "viewer" }, "update", cardMemberOnly)).toBe(false);
+    expect(canMutateCard({ id: MEMBER, role: "viewer" }, "unblock", cardMemberOnly)).toBe(false);
+    expect(canMutateCard({ id: MEMBER, role: "viewer" }, "complete", cardMemberOnly)).toBe(false);
+  });
+});

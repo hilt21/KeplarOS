@@ -15,6 +15,16 @@ import type { Actor, CardContext } from "./types";
  * - chain_user / viewer: 需为 nodeBoardMemberIds 一员 OR assignedTo == actor.id
  *   (viewer 读限制与 chain_user 同 — § 4 API 矩阵 GET cards/:id 允许 viewer,前提是
  *   "需卡片访问权" 通过 node_board 成员 / 分配关系间接获得)
+ *
+ * COR-009 pinned behavior (spec §4 / authorization_matrix.md §3):
+ *   - viewer 经 `assignedTo === actor.id` 路径读 card 是 SPEC-ALLOWED 的(读权限
+ *     间接通过分配关系获得;per § 4 API 矩阵 GET cards/:id)。
+ *   - 写路径(canMutateCard)对 viewer 一律 false — 即便 viewer 是 assignedTo 也
+ *     不能 mutate,这条不变式由 canMutateCard 第一行 `if role === viewer` 守护。
+ *   - 测试见 `__tests__/authorization/card.test.ts` "COR-009 viewer read pin" 块。
+ *
+ * spec ambiguous point: 是否允许 viewer 通过 node-board 成员路径(非 assignedTo)读 card
+ * 已在 COR-009 期间确认 — 与 chain_user 同,因此本函数两条路径同权处理。
  */
 export function canReadCard(actor: Actor, ctx: CardContext): boolean {
   if (actor.role === "initiator" && actor.id === ctx.goalSpaceInitiatorId) return true;
