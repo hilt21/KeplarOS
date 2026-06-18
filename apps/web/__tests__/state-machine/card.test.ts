@@ -499,7 +499,7 @@ describe("COR-010: self-loop idempotency contract", () => {
     expect(() => assertTransition("review", "review", "evidence_submitted")).not.toThrow();
   });
 
-  it("canTransition 对自环返回 true,不区分"字段是否实际变化"", () => {
+  it("canTransition 对自环返回 true,不区分字段是否实际变化", () => {
     // 这条测试是 COR-010 契约的核心:状态机层只回答 (from,to,trigger) 是否为
     // 已知合法规则,不回答"这次自环是否产生了实际变更"。caller 必须自行比较。
     expect(canTransition("backlog", "backlog", "context_complete")).toBe(true);
