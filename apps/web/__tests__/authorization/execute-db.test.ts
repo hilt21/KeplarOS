@@ -1,24 +1,22 @@
 /**
  * F-003 T-014 + SEC-009: canExecuteCardForCardId(DB-aware convenience)单测
  *
- * 覆盖范围(per F-003 AC-3.9 + § 5 强制门禁 + SEC-009):
+ * 覆盖范围(per F-003 AC-3.9 + § 5 强制门禁 + SEC-009 + COR-006):
  *   - 无 pending confirmation 时,允许已授权的 actor(可读卡 + 非 viewer)
  *   - 有 pending confirmation 时,一律 false(§ 5 强制门禁)— 即使 actor 是 member
  *   - card 不存在 → false
  *   - viewer 一律 false(委托 canExecuteCard,即便成员关系存在)
+ *   - COR-006: 终态(done / cancelled)→ false,即便 actor 全权
  *
  * 真相源: docs/specs/authorization_matrix.md § 5 强制门禁
- *         docs/review/2026-06-08-full-repo-review/REVIEW.md SEC-009
+ *         docs/review/2026-06-08-full-repo-review/REVIEW.md SEC-009, COR-006
  *
  * 此测试运行在 node 环境(vitest.config.mts environmentMatchGlobs 配置),以加载
  * better-sqlite3 native module。R-2 风险。
  */
 
-import { readFileSync, readdirSync } from "node:fs";
-import { join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import Database from "better-sqlite3";
-import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import type Database from "better-sqlite3";
 import { eq } from "drizzle-orm";
 import {
   cards,
@@ -28,23 +26,11 @@ import {
   nodeBoards,
   users,
 } from "@db/schema";
-import * as schema from "@db/schema";
 import { canExecuteCardForCardId } from "@/lib/authorization/execute-db";
 import type { Actor } from "@/lib/authorization";
+import { makeTestDb, type TestDb } from "../__helpers__/sqlite";
 
-const MIGRATIONS_DIR = resolve(__dirname, "../../db/migrations");
-
-function loadAllMigrations(sqlite: Database.Database): void {
-  const files = readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
-  expect(files.length).toBeGreaterThanOrEqual(1);
-  for (const f of files) {
-    sqlite.exec(readFileSync(join(MIGRATIONS_DIR, f), "utf8"));
-  }
-}
-
-type Db = BetterSQLite3Database<typeof schema>;
+type Db = TestDb;
 
 // ─── fixture seeds ────────────────────────────────────────────────
 
@@ -93,10 +79,7 @@ describe("canExecuteCardForCardId (DB-aware convenience, SEC-009)", () => {
   let db: Db;
 
   beforeEach(() => {
-    sqlite = new Database(":memory:");
-    sqlite.pragma("foreign_keys = ON");
-    loadAllMigrations(sqlite);
-    db = drizzle(sqlite, { schema });
+    ({ sqlite, db } = makeTestDb());
   });
 
   afterEach(() => {
@@ -163,5 +146,27 @@ describe("canExecuteCardForCardId (DB-aware convenience, SEC-009)", () => {
       .run();
 
     await expect(canExecuteCardForCardId(db, viewerActor, CARD_X)).resolves.toBe(false);
+  });
+
+  // ── COR-006: currentState gate (done / cancelled 终态拒绝执行) ────────
+  it("COR-006: initiator + card.state=done + 无 pending → false(终态拒绝)", async () => {
+    seedBase(db, { withMember: true });
+    db.update(cards).set({ state: "done" }).where(eq(cards.id, CARD_X)).run();
+    await expect(
+      canExecuteCardForCardId(db, { id: INITIATOR, role: "initiator" }, CARD_X),
+    ).resolves.toBe(false);
+  });
+
+  it("COR-006: member + card.state=cancelled + 无 pending → false(终态拒绝)", async () => {
+    seedBase(db, { withMember: true });
+    db.update(cards).set({ state: "cancelled" }).where(eq(cards.id, CARD_X)).run();
+    await expect(canExecuteCardForCardId(db, memberActor, CARD_X)).resolves.toBe(false);
+  });
+
+  it("COR-006: member + card.state=dev(非终态)+ 无 pending → true(行为不变)", async () => {
+    seedBase(db, { withMember: true });
+    // cards.state 默认 backlog,显式覆盖为 dev 以验证非终态路径未被锁死
+    db.update(cards).set({ state: "dev" }).where(eq(cards.id, CARD_X)).run();
+    await expect(canExecuteCardForCardId(db, memberActor, CARD_X)).resolves.toBe(true);
   });
 });

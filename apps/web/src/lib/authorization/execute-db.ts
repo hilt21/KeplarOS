@@ -4,11 +4,12 @@
  * 真相源:
  *   - docs/specs/authorization_matrix.md § 5 (强制门禁 pending confirmation)
  *   - docs/review/2026-06-08-full-repo-review/REVIEW.md SEC-009
+ *   - docs/review/2026-06-08-full-repo-review/REVIEW.md COR-006 (currentState gate)
  *
  * 目的:消除 "caller must precompute hasPendingConfirmation" 的脆弱性。
  * 对于最常见的 "按 cardId 决策是否可执行" 路径,直接调用本函数即可,
- * pending confirmation 检查由本函数集中处理,避免 S3 handler 各自重复 +
- * 漏检查。纯 canExecuteCard 仍然可用,供已自行组装 ctx 的高级调用方。
+ * pending confirmation 检查 + 当前 state 检查由本函数集中处理,避免 S3 handler
+ * 各自重复 + 漏检查。纯 canExecuteCard 仍然可用,供已自行组装 ctx 的高级调用方。
  *
  * 设计原则:本函数只负责"查 DB + 组装 ctx",决策逻辑完全委托给纯 canExecuteCard。
  * 同步函数 vs async:本函数读取多张表,用 async + Promise<boolean> 暴露。
@@ -27,7 +28,7 @@ import type { Actor, CardContext, ExecuteCardContext } from "./types";
  *   1. 读 cards + 关联 goalSpaces(取 initiatorId)+ 关联 nodeBoards(校验)
  *   2. 查 node_board_members 取该 card 所属 node board 的有效成员并集
  *   3. 查 human_confirmations 中是否存在 status='pending' 的确认
- *   4. 组装 CardContext + hasPendingConfirmation,委托 canExecuteCard
+ *   4. 组装 CardContext + hasPendingConfirmation + currentState,委托 canExecuteCard
  *
  * 返回 false 的场景:
  *   - card 不存在
@@ -35,6 +36,7 @@ import type { Actor, CardContext, ExecuteCardContext } from "./types";
  *   - 存在 pending confirmation(§ 5 强制门禁)
  *   - canReadCard 不通过(actor 无卡片访问权)
  *   - actor 是 viewer(canExecuteCard 一律 false)
+ *   - 当前 state ∈ {done, cancelled} 终态(COR-006 state gate)
  */
 export async function canExecuteCardForCardId(
   db: DrizzleDb,
@@ -48,6 +50,7 @@ export async function canExecuteCardForCardId(
       goalSpaceId: cards.goalSpaceId,
       nodeBoardId: cards.nodeBoardId,
       assignedTo: cards.assignedTo,
+      state: cards.state,
       goalSpaceInitiatorId: goalSpaces.initiatorId,
     })
     .from(cards)
@@ -87,7 +90,13 @@ export async function canExecuteCardForCardId(
     nodeBoardMemberIds: memberIds,
     hasPendingConfirmation,
   };
-  const execCtx: ExecuteCardContext = { card: cardCtx, hasPendingConfirmation };
+  // COR-006: pass currentState (DB-sourced) into ExecuteCardContext so canExecuteCard
+  // can gate on the state-machine "executable" set. Avoids re-reading cards.state.
+  const execCtx: ExecuteCardContext = {
+    card: cardCtx,
+    hasPendingConfirmation,
+    currentState: row.state,
+  };
 
   return canExecuteCard(actor, execCtx);
 }

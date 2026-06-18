@@ -13,7 +13,7 @@
  * initiator 读全可见(per AC-3.2:initiator 全可见),写仅自己 goalSpace(per AC-3.3)。
  */
 
-import type { ConfirmationStatus, UserRole } from "@db/schema";
+import type { CardState, ConfirmationStatus, UserRole } from "@db/schema";
 
 // ─── 1. Actor 与角色────────────────────────────────────────────
 
@@ -93,13 +93,17 @@ export interface ConfirmationContext {
 }
 
 /**
- * Execute Card 上下文(组合 canReadCard + hasPendingConfirmation 检查)
+ * Execute Card 上下文(组合 canReadCard + hasPendingConfirmation + 当前状态检查)
  * - card:                  卡片上下文
  * - hasPendingConfirmation: 该 card 下是否存在 status='pending' 的 human_confirmation
+ * - currentState:          卡片当前 state(per COR-006:仅非终态的 active 状态
+ *                          {backlog, todo, dev, review, blocked} 可执行;
+ *                          done / cancelled 一律拒绝执行)
  */
 export interface ExecuteCardContext {
   readonly card: CardContext;
   readonly hasPendingConfirmation: boolean;
+  readonly currentState: CardState;
 }
 
 // ─── 3. AccessResult 类型──────────────────────────────────────

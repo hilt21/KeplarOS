@@ -1,19 +1,27 @@
 /**
  * F-003 T-011: Execute Card 权限单测
  *
- * 覆盖范围(per F-003 AC-3.9 + § 5 强制门禁 pending confirmation):
+ * 覆盖范围(per F-003 AC-3.9 + § 5 强制门禁 pending confirmation + COR-006 state gate):
  *   - viewer 一律 false(即便是 member)
  *   - 可访问(chain_user 是 member) + 无 pending → true
  *   - 可访问 + 有 pending → false(§ 5 强制门禁)
  *   - 不可访问(非 member) + 无 pending → false
  *   - initiator 跨 goalSpace → false
+ *   - COR-006: currentState ∈ {backlog, todo, dev, review, blocked} → 允许执行;
+ *     done / cancelled 终态一律拒绝
  *
  * 真相源: docs/specs/authorization_matrix.md § 5 强制门禁 + § 4 execute 行
  */
 
 import { describe, expect, it } from "vitest";
 
-import { canExecuteCard, type CardContext, type ExecuteCardContext } from "@/lib/authorization";
+import {
+  EXECUTABLE_CARD_STATES,
+  canExecuteCard,
+  type CardContext,
+  type CardState,
+  type ExecuteCardContext,
+} from "@/lib/authorization";
 
 // ─── fixtures ────────────────────────────────────────────────────────
 
@@ -43,8 +51,12 @@ function cardCtx(opts: {
   };
 }
 
-function execCtx(card: CardContext, hasPendingConfirmation: boolean): ExecuteCardContext {
-  return { card, hasPendingConfirmation };
+function execCtx(
+  card: CardContext,
+  hasPendingConfirmation: boolean,
+  currentState: CardState = "todo",
+): ExecuteCardContext {
+  return { card, hasPendingConfirmation, currentState };
 }
 
 const cardAccessible = cardCtx({
@@ -96,5 +108,48 @@ describe("canExecuteCard", () => {
     expect(canExecuteCard({ id: OTHER_OWNER, role: "initiator" }, execCtx(cardCross, false))).toBe(
       false,
     );
+  });
+
+  // ── COR-006: currentState gate ───────────────────────────────────
+  it("COR-006: chain_user + currentState=todo + 可访问 → true", () => {
+    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "todo"))).toBe(true);
+  });
+
+  it("COR-006: chain_user + currentState=backlog + 可访问 → true", () => {
+    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "backlog"))).toBe(true);
+  });
+
+  it("COR-006: chain_user + currentState=dev + 可访问 → true", () => {
+    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "dev"))).toBe(true);
+  });
+
+  it("COR-006: chain_user + currentState=review + 可访问 → true", () => {
+    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "review"))).toBe(true);
+  });
+
+  it("COR-006: chain_user + currentState=blocked + 可访问 → true", () => {
+    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "blocked"))).toBe(true);
+  });
+
+  it("COR-006: chain_user + currentState=done + 可访问 → false(终态拒绝)", () => {
+    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "done"))).toBe(false);
+  });
+
+  it("COR-006: chain_user + currentState=cancelled + 可访问 → false(终态拒绝)", () => {
+    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "cancelled"))).toBe(false);
+  });
+
+  it("COR-006: initiator(本 goalSpace 发起人)+ currentState=done → false(终态拒绝,即便 initiator)", () => {
+    expect(canExecuteCard({ id: OWNER, role: "initiator" }, execCtx(cardAccessible, false, "done"))).toBe(false);
+  });
+
+  it("COR-006: EXECUTABLE_CARD_STATES 暴露 5 个非终态(backlog/todo/dev/review/blocked)", () => {
+    expect([...EXECUTABLE_CARD_STATES]).toEqual([
+      "backlog",
+      "todo",
+      "dev",
+      "review",
+      "blocked",
+    ]);
   });
 });
