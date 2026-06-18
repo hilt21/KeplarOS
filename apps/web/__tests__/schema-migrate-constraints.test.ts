@@ -253,3 +253,111 @@ describe("T-105: DB-041 idx_human_confirmations_decided_by index exists (spec §
     expect(idx!.sql).toMatch(/decision_by/i);
   });
 });
+
+/**
+ * T-106: Wave 4 Sub-group A — migration safety retro (DB-026/027/032/033)
+ *
+ *   DB-026 (0001: goal_space_id NOT NULL with no DEFAULT)
+ *     Verified by T-101: the agent_executions row with NULL goal_space_id
+ *     is rejected by NOT NULL. No retro migration is needed.
+ *
+ *   DB-027 (0001: 'error' column dropped without backfill)
+ *     Verified by inspecting PRAGMA table_info('agent_executions'):
+ *     error_code and error_message are present; 'error' is absent. No
+ *     data was preserved — documented in 0012's migration header.
+ *
+ *   DB-032 (0001: PRAGMA foreign_keys=OFF window during ALTER TABLE)
+ *     Verified by T-101/T-102/T-104: after PRAGMA foreign_keys=ON, the FK
+ *     constraints 0001 added (goal_space_id → goal_spaces.id) are
+ *     actively enforced by the test fixtures. No retro migration needed.
+ *
+ *   DB-033 (0002: synthetic node_board id collision risk)
+ *     Defensive guard installed in 0012 — verified below.
+ */
+describe("T-106: Wave 4 Sub-group A migration safety retro (DB-026/027/032/033)", () => {
+  let db: Database.Database;
+  beforeAll(() => {
+    db = new Database(":memory:");
+    loadMigrations(db);
+    insertBaseFixtures(db);
+  });
+  afterAll(() => db?.close());
+
+  it("DB-026: agent_executions.goal_space_id is NOT NULL after the migration set runs", () => {
+    const col = db
+      .prepare("PRAGMA table_info('agent_executions')")
+      .all()
+      .find((c) => (c as { name: string }).name === "goal_space_id") as
+      | { name: string; notnull: number }
+      | undefined;
+    expect(col).toBeDefined();
+    expect(col!.notnull).toBe(1);
+  });
+
+  it("DB-027: error_code and error_message columns exist on agent_executions; 'error' does not", () => {
+    const cols = db.prepare("PRAGMA table_info('agent_executions')").all() as Array<{
+      name: string;
+    }>;
+    const names = new Set(cols.map((c) => c.name));
+    expect(names.has("error_code")).toBe(true);
+    expect(names.has("error_message")).toBe(true);
+    expect(names.has("error")).toBe(false);
+  });
+
+  it("DB-032: FK from agent_executions.goal_space_id -> goal_spaces.id is enforced with PRAGMA foreign_keys=ON", () => {
+    // The fact that T-101's "insert with non-existent goal_space_id fails on FK"
+    // passes already proves this; assert it here too for self-contained coverage.
+    expect(() =>
+      db
+        .prepare(
+          "INSERT INTO agent_executions (id, goal_space_id, card_id, agent_role, trigger, status) VALUES ('e-t106', 'g-bogus', 'c1', 'Dev', 'manual', 'queued')",
+        )
+        .run(),
+    ).toThrow(/FOREIGN KEY constraint failed/i);
+  });
+
+  it("DB-033: 0012 installs trg_node_boards_synthetic_id_format (insert) and _u (update) defensive triggers", () => {
+    const triggers = db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='trigger' AND name LIKE '%synthetic_id_format%'",
+      )
+      .all() as Array<{ name: string }>;
+    const names = triggers.map((t) => t.name);
+    expect(names).toContain("trg_node_boards_synthetic_id_format");
+    expect(names).toContain("trg_node_boards_synthetic_id_format_u");
+  });
+
+  it("DB-033: synthetic node_board with the canonical id ('_synthetic_' || goal_space_id) is accepted", () => {
+    expect(() =>
+      db
+        .prepare(
+          "INSERT INTO node_boards (id, goal_space_id, key, name, status) VALUES ('_synthetic_g1', 'g1', 'synthetic', 'Synthetic', 'archived')",
+        )
+        .run(),
+    ).not.toThrow();
+  });
+
+  it("DB-033: synthetic node_board with a mismatched id is rejected by the defensive trigger", () => {
+    expect(() =>
+      db
+        .prepare(
+          "INSERT INTO node_boards (id, goal_space_id, key, name, status) VALUES ('wrong_id', 'g1', 'synthetic', 'Bad Synthetic', 'archived')",
+        )
+        .run(),
+    ).toThrow(/synthetic node_board\.id must equal/i);
+  });
+
+  it("DB-033: non-synthetic node_boards are unaffected by the trigger", () => {
+    // The base fixtures insert 'b1' and 'b2' as non-synthetic rows; this
+    // assertion re-asserts that the trigger's WHEN clause excludes them.
+    // If the trigger fired for any insert, the fixture setup itself would
+    // have thrown. Verify with a fresh insert here as a positive control.
+    expect(() =>
+      db
+        .prepare(
+          "INSERT INTO node_boards (id, goal_space_id, key, name, status) VALUES ('b-extra', 'g1', 'extra', 'Extra', 'active')",
+        )
+        .run(),
+    ).not.toThrow();
+  });
+});
