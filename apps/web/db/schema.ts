@@ -18,7 +18,7 @@
  * partial unique index: Drizzle 0.36 用 .where(sql`...`) 表达;R-1 风险由 db:check + 人工校对 enforce。
  */
 
-import { sql, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
+import { relations, sql, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
 import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // ════════════════════════════════════════════════════════════════════
@@ -650,3 +650,141 @@ export const schema = {
 } as const;
 
 export type Schema = typeof schema;
+
+// ════════════════════════════════════════════════════════════════════
+//  5. Drizzle relations (DB-025)
+//  Enables `db.query.X.findFirst({ with: { ... } })` for S3 handlers.
+//  Field names use the Drizzle camelCase identifiers (not the SQL
+//  snake_case column names). Nullable FKs (cardId/sessionId on
+//  stateTransitions; sessionId on agentExecutions) are declared with
+//  one() — Drizzle's relational query API works for both nullable
+//  and non-nullable FKs.
+// ════════════════════════════════════════════════════════════════════
+
+export const usersRelations = relations(users, ({ many }) => ({
+  initiatedGoalSpaces: many(goalSpaces),
+  memberships: many(nodeBoardMembers),
+  assignedCards: many(cards),
+  triggeredConfirmations: many(humanConfirmations, { relationName: "humanConfirmations_triggeredBy" }),
+  decidedConfirmations: many(humanConfirmations, { relationName: "humanConfirmations_decisionBy" }),
+  invitedMemberships: many(nodeBoardMembers, { relationName: "nodeBoardMembers_invitedBy" }),
+}));
+
+export const goalSpacesRelations = relations(goalSpaces, ({ one, many }) => ({
+  initiator: one(users, {
+    fields: [goalSpaces.initiatorId],
+    references: [users.id],
+  }),
+  nodeBoards: many(nodeBoards),
+  sessions: many(sessions),
+  cards: many(cards),
+  agentExecutions: many(agentExecutions),
+  realtimeEvents: many(realtimeEvents),
+}));
+
+export const nodeBoardsRelations = relations(nodeBoards, ({ one, many }) => ({
+  goalSpace: one(goalSpaces, {
+    fields: [nodeBoards.goalSpaceId],
+    references: [goalSpaces.id],
+  }),
+  members: many(nodeBoardMembers),
+  cards: many(cards),
+}));
+
+export const nodeBoardMembersRelations = relations(nodeBoardMembers, ({ one }) => ({
+  board: one(nodeBoards, {
+    fields: [nodeBoardMembers.boardId],
+    references: [nodeBoards.id],
+  }),
+  user: one(users, {
+    fields: [nodeBoardMembers.userId],
+    references: [users.id],
+    relationName: "nodeBoardMembers_user",
+  }),
+  invitedByUser: one(users, {
+    fields: [nodeBoardMembers.invitedBy],
+    references: [users.id],
+    relationName: "nodeBoardMembers_invitedBy",
+  }),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one, many }) => ({
+  goalSpace: one(goalSpaces, {
+    fields: [sessions.goalSpaceId],
+    references: [goalSpaces.id],
+  }),
+  agentExecutions: many(agentExecutions),
+  stateTransitions: many(stateTransitions),
+}));
+
+export const cardsRelations = relations(cards, ({ one, many }) => ({
+  goalSpace: one(goalSpaces, {
+    fields: [cards.goalSpaceId],
+    references: [goalSpaces.id],
+  }),
+  nodeBoard: one(nodeBoards, {
+    fields: [cards.nodeBoardId],
+    references: [nodeBoards.id],
+  }),
+  assignee: one(users, {
+    fields: [cards.assignedTo],
+    references: [users.id],
+  }),
+  agentExecutions: many(agentExecutions),
+  stateTransitions: many(stateTransitions),
+  confirmations: many(humanConfirmations),
+}));
+
+export const agentExecutionsRelations = relations(agentExecutions, ({ one }) => ({
+  goalSpace: one(goalSpaces, {
+    fields: [agentExecutions.goalSpaceId],
+    references: [goalSpaces.id],
+  }),
+  card: one(cards, {
+    fields: [agentExecutions.cardId],
+    references: [cards.id],
+  }),
+  session: one(sessions, {
+    fields: [agentExecutions.sessionId],
+    references: [sessions.id],
+  }),
+}));
+
+export const stateTransitionsRelations = relations(stateTransitions, ({ one }) => ({
+  card: one(cards, {
+    fields: [stateTransitions.cardId],
+    references: [cards.id],
+  }),
+  session: one(sessions, {
+    fields: [stateTransitions.sessionId],
+    references: [sessions.id],
+  }),
+}));
+
+export const humanConfirmationsRelations = relations(humanConfirmations, ({ one }) => ({
+  card: one(cards, {
+    fields: [humanConfirmations.cardId],
+    references: [cards.id],
+  }),
+  triggeredByUser: one(users, {
+    fields: [humanConfirmations.triggeredBy],
+    references: [users.id],
+    relationName: "humanConfirmations_triggeredBy",
+  }),
+  decidedByUser: one(users, {
+    fields: [humanConfirmations.decisionBy],
+    references: [users.id],
+    relationName: "humanConfirmations_decisionBy",
+  }),
+}));
+
+// auditEntries is intentionally minimal: it uses (entityType, entityId)
+// as a polymorphic reference rather than a real FK, so no direct relations.
+export const auditEntriesRelations = relations(auditEntries, () => ({}));
+
+export const realtimeEventsRelations = relations(realtimeEvents, ({ one }) => ({
+  goalSpace: one(goalSpaces, {
+    fields: [realtimeEvents.goalSpaceId],
+    references: [goalSpaces.id],
+  }),
+}));

@@ -12,6 +12,8 @@ export default defineConfig({
       { glob: "__tests__/schema-migrate.test.ts", environment: "node" },
       { glob: "__tests__/schema-migrate-constraints.test.ts", environment: "node" },
       { glob: "__tests__/audit/**", environment: "node" },
+      // DB-025: relations smoke test needs better-sqlite3 for db.query API
+      { glob: "__tests__/db/**", environment: "node" },
       // SEC-009: DB-aware canExecuteCardForCardId test needs better-sqlite3
       { glob: "__tests__/authorization/execute-db.test.ts", environment: "node" },
     ],
