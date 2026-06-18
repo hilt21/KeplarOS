@@ -90,11 +90,40 @@ function findGoalSpaceRule(
  * 是否允许从 `from` 转移到 `to`。
  * - 起始态为终态(completed / cancelled)→ 永远 false
  * - 找不到 (from, to) 规则 → false
- * - 否则 true(complete / cancel 前置由 assertGoalSpaceTransition 单独校验)
+ * - 找到规则 + 未传 opts → 仅检查静态规则,返回 true
+ * - 找到规则 + 传 opts(COR-007):针对 active → completed / 任一非终态 → cancelled
+ *   校验前置(cancel reason 非空 / complete 的 3 条前置),任一不满足 → false
+ *
+ * 注:per COR-007 修订,"can" 含义从"仅静态规则"扩展为"规则 + 可校验的前置"。
+ * 当 opts 缺省时,语义退化为纯静态检查,call-site 不需要前置信息时仍可用。
+ * assertGoalSpaceTransition 仍是 source of truth(抛错 + 返回缺失 keys),本函数
+ * 用于"can I do this in one boolean"轻量判定。
  */
-export function canGoalSpaceTransition(from: GoalSpaceStatus, to: GoalSpaceStatus): boolean {
+export function canGoalSpaceTransition(
+  from: GoalSpaceStatus,
+  to: GoalSpaceStatus,
+  opts?: GoalSpaceAssertOpts,
+): boolean {
   if (isGoalSpaceTerminal(from)) return false;
-  return findGoalSpaceRule(from, to) !== undefined;
+  if (!findGoalSpaceRule(from, to)) return false;
+
+  // 无 opts:仅静态规则已通过,返回 true。
+  if (!opts) return true;
+
+  // active → completed:三前置任一不满足 → false
+  if (from === "active" && to === "completed") {
+    if (!isCompleteOpts(opts)) return false;
+    return !opts.hasPendingConfirmation && !opts.hasBlockedCard && opts.allCardsDoneOrCancelled;
+  }
+
+  // 任一非终态 → cancelled:opts.cancelReason 非空才 true
+  if (to === "cancelled") {
+    if (!isCancelOpts(opts)) return false;
+    return opts.cancelReason.trim().length > 0;
+  }
+
+  // 其他合法转移(draft → active)不带前置检查,opts 被忽略 → true
+  return true;
 }
 
 /**

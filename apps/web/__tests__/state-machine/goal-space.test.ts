@@ -270,3 +270,109 @@ describe("assertGoalSpaceTransition 抛错版本", () => {
     expect(missing).toEqual([]);
   });
 });
+
+// ─── 9. COR-007: canGoalSpaceTransition 接受 opts 校验前置 ─────────
+
+describe("COR-007: canGoalSpaceTransition with opts precondition inspection", () => {
+  it("active → completed + 全满足前置 → true", () => {
+    expect(
+      canGoalSpaceTransition("active", "completed", {
+        hasPendingConfirmation: false,
+        hasBlockedCard: false,
+        allCardsDoneOrCancelled: true,
+      }),
+    ).toBe(true);
+  });
+
+  it("active → completed + hasPendingConfirmation=true → false(前置缺失)", () => {
+    expect(
+      canGoalSpaceTransition("active", "completed", {
+        hasPendingConfirmation: true,
+        hasBlockedCard: false,
+        allCardsDoneOrCancelled: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("active → completed + hasBlockedCard=true → false(前置缺失)", () => {
+    expect(
+      canGoalSpaceTransition("active", "completed", {
+        hasPendingConfirmation: false,
+        hasBlockedCard: true,
+        allCardsDoneOrCancelled: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("active → completed + allCardsDoneOrCancelled=false → false(前置缺失)", () => {
+    expect(
+      canGoalSpaceTransition("active", "completed", {
+        hasPendingConfirmation: false,
+        hasBlockedCard: false,
+        allCardsDoneOrCancelled: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("active → completed + 全缺前置 → false(三前置都不满足)", () => {
+    expect(
+      canGoalSpaceTransition("active", "completed", {
+        hasPendingConfirmation: true,
+        hasBlockedCard: true,
+        allCardsDoneOrCancelled: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("active → cancelled + 非空 cancelReason → true", () => {
+    expect(canGoalSpaceTransition("active", "cancelled", { cancelReason: "目标放弃" })).toBe(
+      true,
+    );
+  });
+
+  it("active → cancelled + 空 cancelReason → false", () => {
+    expect(canGoalSpaceTransition("active", "cancelled", { cancelReason: "" })).toBe(false);
+  });
+
+  it("active → cancelled + 纯空白 cancelReason → false", () => {
+    expect(canGoalSpaceTransition("active", "cancelled", { cancelReason: "   " })).toBe(false);
+  });
+
+  it("active → cancelled + opts 形状错(CompleteOpts)→ false(类型守卫拦截)", () => {
+    expect(
+      canGoalSpaceTransition("active", "cancelled", {
+        hasPendingConfirmation: false,
+        hasBlockedCard: false,
+        allCardsDoneOrCancelled: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("draft → cancelled + 非空 cancelReason → true(前置满足)", () => {
+    expect(canGoalSpaceTransition("draft", "cancelled", { cancelReason: "需求变更" })).toBe(
+      true,
+    );
+  });
+
+  it("active → completed + 错形状 opts(传 cancelReason)→ false", () => {
+    expect(canGoalSpaceTransition("active", "completed", { cancelReason: "ok" })).toBe(false);
+  });
+
+  it("向后兼容:active → completed 不传 opts 仍按纯静态规则 → true", () => {
+    expect(canGoalSpaceTransition("active", "completed")).toBe(true);
+  });
+
+  it("向后兼容:draft → active 不传 opts → true", () => {
+    expect(canGoalSpaceTransition("draft", "active")).toBe(true);
+  });
+
+  it("终态 completed → active + opts 满足 → 仍 false(短路在前置之前)", () => {
+    expect(
+      canGoalSpaceTransition("completed", "active", {
+        hasPendingConfirmation: false,
+        hasBlockedCard: false,
+        allCardsDoneOrCancelled: true,
+      }),
+    ).toBe(false);
+  });
+});
