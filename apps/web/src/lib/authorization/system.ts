@@ -15,20 +15,20 @@
  *     3. 现有 canXxx(actor, ctx) 函数对 system actor 行为可控(默认拒绝写,
  *        仅特定白名单放行)。
  *
- *   本文件提供 forward-looking scaffolding:`withInternalActor` 是一个 async-local
- *   风格的上下文包装,S3 handler 调用 `withInternalActor(async (internalActor) => {...})`,
- *   内部逻辑即可拿到 `{ id: 'system', role: 'system' }` 形式的 actor 用于 audit
- *   写入。当前 canXxx 函数对 role='system' 一律返回 false;若 S3 引入 system-driven
- *   写入,需在对应 canXxx 中显式放行并以 `actor.role === 'system'` 分支处理。
- *
- *   实现选择:用 AsyncLocalStorage 维护当前执行上下文,避免污染函数签名;fallback
- *   在 Node 不可用时返回 undefined(测试环境用),不破坏其他模块的 import。
+ *   本文件提供 forward-looking scaffolding:`withInternalActor` 是一个基于
+ *   AsyncLocalStorage 的上下文包装,S3 handler 调用
+ *   `await withInternalActor(async (internalActor) => {...})`,内部逻辑即可拿到
+ *   `{ id: 'system', role: 'system' }` 形式的 actor 用于 audit 写入。当前 canXxx
+ *   函数对 role='system' 一律返回 false;若 S3 引入 system-driven 写入,需在对应
+ *   canXxx 中显式放行并以 `actor.role === 'system'` 分支处理。
  *
  * 真实身份语义:
  *   `SYSTEM_ACTOR` 是恒定的 placeholder:`{ id: 'system', role: 'system' }`,
  *   audit_entries 写入时由 F-004 audit wrapper 识别 "actor.role === 'system'" 路径
  *   并把 actor_id 列存为 NULL(S2 DB schema 不存在 'system' user 行)。
  */
+
+import { AsyncLocalStorage } from "node:async_hooks";
 
 import type { Actor, ActorRole } from "./types";
 
@@ -44,47 +44,7 @@ export const SYSTEM_ACTOR: Actor = Object.freeze({
   role: "system" as ActorRole,
 });
 
-// ─── AsyncLocalStorage:极简 polyfill + 真实现 ──────────────────────
-
-/**
- * Node AsyncLocalStorage 的最小接口,避免在 Node-only 环境之外的测试 runner 触发
- * import 失败。检测不到全局 AsyncLocalStorage 时 fallback 为 no-op holder。
- */
-interface ALSLike {
-  readonly getStore: () => Actor | undefined;
-  readonly run: <T>(store: Actor, fn: () => Promise<T> | T) => Promise<T> | T;
-}
-
-interface AsyncLocalStorageCtor {
-  new <T>(): {
-    getStore: () => T | undefined;
-    run: <R>(store: T, fn: () => R) => R;
-  };
-}
-
-function makeALS(): ALSLike {
-  // Use globalThis lookup so this file does not pull in node:async_hooks at the
-  // top level (some vitest environments don't expose it via type-only import).
-  const ctor = (globalThis as { AsyncLocalStorage?: AsyncLocalStorageCtor }).AsyncLocalStorage;
-  if (!ctor) {
-    // Fallback:no isolation;getStore() returns undefined, run() just invokes fn.
-    return {
-      getStore: () => undefined,
-      run: async <T>(_store: Actor, fn: () => Promise<T> | T): Promise<T> | T => fn(),
-    };
-  }
-  const als = new ctor<Actor>();
-  return {
-    getStore: () => als.getStore(),
-    // AsyncLocalStorage.run is sync in signature; wrap to accept async fn.
-    run: <T>(store: Actor, fn: () => Promise<T> | T): Promise<T> | T => {
-      const wrapped = (): Promise<T> | T => fn();
-      return als.run(store, wrapped);
-    },
-  };
-}
-
-const _als = makeALS();
+const _als = new AsyncLocalStorage<Actor>();
 
 /**
  * 在 callback 期间以 SYSTEM_ACTOR 身份执行。返回 callback 的结果。
@@ -97,10 +57,13 @@ const _als = makeALS();
  * });
  * ```
  */
-export async function withInternalActor<T>(
+export function withInternalActor<T>(
   fn: (internalActor: Actor) => Promise<T> | T,
 ): Promise<T> {
-  return _als.run(SYSTEM_ACTOR, () => fn(SYSTEM_ACTOR)) as Promise<T>;
+  // AsyncLocalStorage.run is sync in signature; the returned fn may be async
+  // (returning Promise<T>) or sync (returning T). Promise.resolve collapses
+  // both into Promise<T> for a uniform public contract.
+  return Promise.resolve(_als.run(SYSTEM_ACTOR, () => fn(SYSTEM_ACTOR)));
 }
 
 /**
