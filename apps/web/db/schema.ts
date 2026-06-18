@@ -514,6 +514,8 @@ export const humanConfirmations = sqliteTable(
       .where(sql`status = 'pending'`),
     statusIdx: index("idx_human_confirmations_status").on(t.status),
     expiresAtIdx: index("idx_human_confirmations_expires_at").on(t.expiresAt),
+    // DB-041: spec § 3.8 — idx_confirm_decided_by ON human_confirmations(decided_by)
+    decidedByIdx: index("idx_human_confirmations_decided_by").on(t.decisionBy),
   }),
 );
 

@@ -232,3 +232,24 @@ describe("T-104: agent_executions row is always bound to a card and goal_space (
     expect(row.nb_goal_space_id).toBe("g1");
   });
 });
+
+describe("T-105: DB-041 idx_human_confirmations_decided_by index exists (spec § 3.8)", () => {
+  let db: Database.Database;
+  beforeAll(() => {
+    db = new Database(":memory:");
+    loadMigrations(db);
+    insertBaseFixtures(db);
+  });
+  afterAll(() => db?.close());
+
+  it("idx_human_confirmations_decided_by is created on the decision_by column", () => {
+    const idx = db
+      .prepare(
+        "SELECT name, sql FROM sqlite_master WHERE type='index' AND name='idx_human_confirmations_decided_by'",
+      )
+      .get() as { name: string; sql: string } | undefined;
+    expect(idx).toBeDefined();
+    expect(idx!.sql).toMatch(/human_confirmations/i);
+    expect(idx!.sql).toMatch(/decision_by/i);
+  });
+});
