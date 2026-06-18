@@ -25,6 +25,11 @@ import {
   type TransitionActor,
 } from "@db/schema";
 
+import { IllegalTransitionError } from "./errors";
+
+// Re-export shared error class for back-compat with existing imports
+export { IllegalTransitionError };
+
 // ─── 1. TransitionTrigger 11 值(per state_transition.md § 6)────────
 
 export const TRANSITION_TRIGGERS = [
@@ -129,17 +134,39 @@ export function canTransition(from: CardState, to: CardState, trigger: Transitio
 }
 
 /**
- * 强校验:非法转移 / 终态 → throw Error,合法 → void。
- * 给 S3 API handler 在业务变更前统一把关。
+ * 强校验:非法转移 / 终态 → throw `IllegalTransitionError`,合法 → void。
+ * 给 S3 API handler 在业务变更前统一把关,可 `instanceof IllegalTransitionError` 区分。
  */
 export function assertTransition(from: CardState, to: CardState, trigger: TransitionTrigger): void {
-  if (!isValidState(from)) throw new Error(`Invalid card from state: ${from}`);
-  if (!isValidState(to)) throw new Error(`Invalid card to state: ${to}`);
+  if (!isValidState(from)) {
+    throw new IllegalTransitionError(
+      from,
+      to,
+      trigger,
+      [],
+      `Invalid card from state: ${from}`,
+    );
+  }
+  if (!isValidState(to)) {
+    throw new IllegalTransitionError(
+      from,
+      to,
+      trigger,
+      [],
+      `Invalid card to state: ${to}`,
+    );
+  }
   if (isTerminalState(from)) {
-    throw new Error(`Cannot transition from terminal card state: ${from}`);
+    throw new IllegalTransitionError(
+      from,
+      to,
+      trigger,
+      [],
+      `Cannot transition from terminal card state: ${from}`,
+    );
   }
   if (!canTransition(from, to, trigger)) {
-    throw new Error(`Illegal card state transition: ${from} -> ${to} (trigger=${trigger})`);
+    throw new IllegalTransitionError(from, to, trigger);
   }
 }
 

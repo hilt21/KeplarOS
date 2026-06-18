@@ -20,6 +20,8 @@
 
 import { GOAL_SPACE_STATUS_VALUES, type GoalSpaceStatus } from "@db/schema";
 
+import { IllegalTransitionError } from "./errors";
+
 // Re-export schema 常量
 export { GOAL_SPACE_STATUS_VALUES };
 export type { GoalSpaceStatus };
@@ -119,22 +121,44 @@ export function assertGoalSpaceTransition(
   opts?: GoalSpaceAssertOpts,
 ): string[] {
   if (!isValidGoalSpaceState(from)) {
-    throw new Error(`Invalid goal space from state: ${from}`);
+    throw new IllegalTransitionError(
+      from,
+      to,
+      undefined,
+      [],
+      `Invalid goal space from state: ${from}`,
+    );
   }
   if (!isValidGoalSpaceState(to)) {
-    throw new Error(`Invalid goal space to state: ${to}`);
+    throw new IllegalTransitionError(
+      from,
+      to,
+      undefined,
+      [],
+      `Invalid goal space to state: ${to}`,
+    );
   }
   if (isGoalSpaceTerminal(from)) {
-    throw new Error(`Cannot transition from terminal goal space state: ${from}`);
+    throw new IllegalTransitionError(
+      from,
+      to,
+      undefined,
+      [],
+      `Cannot transition from terminal goal space state: ${from}`,
+    );
   }
   if (!canGoalSpaceTransition(from, to)) {
-    throw new Error(`Illegal goal space state transition: ${from} -> ${to}`);
+    throw new IllegalTransitionError(from, to, undefined, [], `Illegal goal space state transition: ${from} -> ${to}`);
   }
 
   // active → completed:返回缺失前置 keys
   if (from === "active" && to === "completed") {
     if (!opts || !isCompleteOpts(opts)) {
-      throw new Error(
+      throw new IllegalTransitionError(
+        from,
+        to,
+        undefined,
+        [],
         "assertGoalSpaceTransition(active, completed) requires opts with " +
           "{ hasPendingConfirmation, hasBlockedCard, allCardsDoneOrCancelled }",
       );
@@ -149,7 +173,13 @@ export function assertGoalSpaceTransition(
   // 任意非终态 → cancelled:校验 cancelReason 非空
   if (to === "cancelled") {
     if (!opts || !isCancelOpts(opts) || opts.cancelReason.trim().length === 0) {
-      throw new Error("assertGoalSpaceTransition(*, cancelled) requires non-empty cancelReason");
+      throw new IllegalTransitionError(
+        from,
+        to,
+        undefined,
+        ["cancelReason"],
+        "assertGoalSpaceTransition(*, cancelled) requires non-empty cancelReason",
+      );
     }
   }
 
