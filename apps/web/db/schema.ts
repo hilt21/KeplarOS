@@ -519,6 +519,8 @@ export const humanConfirmations = sqliteTable(
 
 // ─── 2.10 audit_entries (database_design.md § 3.9) ─────────────────
 //      append-only: no update/delete/truncate API (enforced in F-004)
+//      DB-019 + DB-042: rename actor_type → actor, occurred_at → timestamp,
+//                      add actor_name; rename index to idx_audit_entries_timestamp
 export const auditEntries = sqliteTable(
   "audit_entries",
   {
@@ -528,7 +530,8 @@ export const auditEntries = sqliteTable(
     entityType: text("entity_type", { enum: ENTITY_TYPE_VALUES }).notNull(),
     entityId: text("entity_id").notNull(),
     action: text("action").notNull(),
-    actorType: text("actor_type", { enum: ACTOR_TYPE_VALUES }).notNull(),
+    actor: text("actor", { enum: ACTOR_TYPE_VALUES }).notNull(),
+    actorName: text("actor_name"),
     actorId: text("actor_id"),
     beforeState: text("before_state", { mode: "json" }).$type<Record<string, unknown> | null>(),
     afterState: text("after_state", { mode: "json" }).$type<Record<string, unknown> | null>(),
@@ -536,7 +539,7 @@ export const auditEntries = sqliteTable(
       .$type<Record<string, unknown>>()
       .notNull()
       .default(sql`'{}'`),
-    occurredAt: text("occurred_at")
+    timestamp: text("timestamp")
       .notNull()
       .default(sql`(datetime('now'))`),
     createdAt: text("created_at")
@@ -545,7 +548,7 @@ export const auditEntries = sqliteTable(
   },
   (t) => ({
     entityIdx: index("idx_audit_entries_entity").on(t.entityType, t.entityId),
-    occurredAtIdx: index("idx_audit_entries_occurred_at").on(t.occurredAt),
+    timestampIdx: index("idx_audit_entries_timestamp").on(t.timestamp),
   }),
 );
 
@@ -553,6 +556,12 @@ export const auditEntries = sqliteTable(
 //      resource_type 与 audit entity_type 在值集上略有差异(此为 "confirmation", 彼为 "confirm"),
 //      见 implementation/notes.md F-001 § 不一致项。resource_type 不加 enum 约束以避免 type 漂移;
 //      后续若需类型安全,可另开 realtimeResourceType 单独定义。
+//      DB-016 + DB-017 + DB-031 + DB-043: rename event_type → type, payload → data,
+//                                        published_at → occurred_at;
+//                                        replace publishedAtIdx with
+//                                        idx_realtime_events_occurred_at;
+//                                        idx_realtime_events_goal_space_sequence
+//                                        (per spec §3.10) is preserved.
 export const realtimeEvents = sqliteTable(
   "realtime_events",
   {
@@ -563,14 +572,14 @@ export const realtimeEvents = sqliteTable(
       .notNull()
       .references(() => goalSpaces.id),
     sequence: integer("sequence").notNull(),
-    eventType: text("event_type").notNull(),
+    type: text("type").notNull(),
     resourceType: text("resource_type").notNull(),
     resourceId: text("resource_id").notNull(),
-    payload: text("payload", { mode: "json" })
+    data: text("data", { mode: "json" })
       .$type<Record<string, unknown>>()
       .notNull()
       .default(sql`'{}'`),
-    publishedAt: text("published_at")
+    occurredAt: text("occurred_at")
       .notNull()
       .default(sql`(datetime('now'))`),
   },
@@ -579,7 +588,7 @@ export const realtimeEvents = sqliteTable(
       t.goalSpaceId,
       t.sequence,
     ),
-    publishedAtIdx: index("idx_realtime_events_published_at").on(t.publishedAt),
+    occurredAtIdx: index("idx_realtime_events_occurred_at").on(t.occurredAt),
   }),
 );
 

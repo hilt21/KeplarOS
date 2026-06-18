@@ -48,7 +48,7 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
     sqlite.close();
   });
 
-  it("audit_entries 11 字段全部 round-trip,JSON 字段正确解析", () => {
+  it("audit_entries 12 字段全部 round-trip,JSON 字段正确解析 (DB-019: 含新增 actor_name)", () => {
     // seed: user → goal_space → node_board
     db.insert(users).values({ id: "u1", name: "Alice", email: "alice@example.com" }).run();
     db.insert(goalSpaces).values({ id: "g1", initiatorId: "u1", name: "Goal 1" }).run();
@@ -63,17 +63,17 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
       {
         entityType: "card",
         entityId: "c-rt",
-        actorType: "human",
+        actor: "human",
         actorId: "u1",
         action: "transition",
         beforeState,
         afterState,
         details,
         goalSpaceId: "g1",
-        eventType: "card.transitioned",
+        type: "card.transitioned",
         resourceType: "card",
         resourceId: "c-rt",
-        payload: { from: "backlog", to: "todo" },
+        data: { from: "backlog", to: "todo" },
       },
       (tx) => {
         tx.insert(cards)
@@ -99,12 +99,12 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
     expect(a.entityType).toBe("card");
     expect(a.entityId).toBe("c-rt");
     expect(a.action).toBe("transition");
-    expect(a.actorType).toBe("human");
+    expect(a.actor).toBe("human");
     expect(a.actorId).toBe("u1");
     expect(a.beforeState).toEqual(beforeState);
     expect(a.afterState).toEqual(afterState);
     expect(a.details).toEqual(details);
-    expect(a.occurredAt).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+    expect(a.timestamp).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
     expect(a.createdAt).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
 
     // 2) realtime_events 全字段 round-trip
@@ -115,11 +115,11 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
     expect(e.id).toMatch(/^[0-9a-f]{32}$/);
     expect(e.goalSpaceId).toBe("g1");
     expect(e.sequence).toBe(1);
-    expect(e.eventType).toBe("card.transitioned");
+    expect(e.type).toBe("card.transitioned");
     expect(e.resourceType).toBe("card");
     expect(e.resourceId).toBe("c-rt");
-    expect(e.payload).toEqual({ from: "backlog", to: "todo" });
-    expect(e.publishedAt).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+    expect(e.data).toEqual({ from: "backlog", to: "todo" });
+    expect(e.occurredAt).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
 
     // 3) cards 业务行存在
     const cardsInDb = db.select().from(cards).all();
@@ -156,11 +156,11 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
         {
           entityType: "card",
           entityId: `cA-${i}`,
-          actorType: "human",
+          actor: "human",
           actorId: "u1",
           action: "create",
           goalSpaceId: "g-A",
-          eventType: "card.created",
+          type: "card.created",
           resourceType: "card",
           resourceId: `cA-${i}`,
         },
@@ -184,11 +184,11 @@ describe("T-015: runWithAudit 真实 DB 端到端 round-trip", () => {
         {
           entityType: "card",
           entityId: `cB-${i}`,
-          actorType: "human",
+          actor: "human",
           actorId: "u2",
           action: "create",
           goalSpaceId: "g-B",
-          eventType: "card.created",
+          type: "card.created",
           resourceType: "card",
           resourceId: `cB-${i}`,
         },

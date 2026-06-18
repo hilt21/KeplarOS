@@ -30,8 +30,8 @@ export interface AuditContext {
   readonly entityType: EntityType;
   /** audit_entries.entity_id */
   readonly entityId: string;
-  /** audit_entries.actor_type — 3-value enum(human / ai_role / system) */
-  readonly actorType: ActorType;
+  /** audit_entries.actor — 3-value enum(human / ai_role / system) */
+  readonly actor: ActorType;
   /** audit_entries.actor_id — 匿名操作可传 null */
   readonly actorId: string | null;
   /** audit_entries.action — 自由文本,如 "create" / "transition" / "complete" / "cancel" */
@@ -44,14 +44,14 @@ export interface AuditContext {
   readonly details?: Record<string, unknown>;
   /** realtime_events.goal_space_id — 必填,即使 skipRealtime 也需提供以保 type-check 完整 */
   readonly goalSpaceId: string;
-  /** realtime_events.event_type — 自由文本,如 "card.transitioned" / "goal_space.completed" */
-  readonly eventType: string;
+  /** realtime_events.type — 自由文本,如 "card.transitioned" / "goal_space.completed" */
+  readonly type: string;
   /** realtime_events.resource_type — 自由文本,与 audit entityType 可同可不同(realtime 允许 "confirmation") */
   readonly resourceType: string;
   /** realtime_events.resource_id — 触发本次事件的资源 id(可为 card / goal_space / etc.) */
   readonly resourceId: string;
-  /** realtime_events.payload — JSON,默认 `{}` */
-  readonly payload?: Record<string, unknown>;
+  /** realtime_events.data — JSON,默认 `{}` */
+  readonly data?: Record<string, unknown>;
   /** 跳过 realtime 写(纯审计场景,如内部一致性写) */
   readonly skipRealtime?: boolean;
 }
@@ -78,7 +78,7 @@ export function runWithAudit<T>(db: DrizzleDb, ctx: AuditContext, fn: (tx: Audit
         entityType: ctx.entityType,
         entityId: ctx.entityId,
         action: ctx.action,
-        actorType: ctx.actorType,
+        actor: ctx.actor,
         actorId: ctx.actorId,
         beforeState: ctx.beforeState ?? null,
         afterState: ctx.afterState ?? null,
@@ -93,10 +93,10 @@ export function runWithAudit<T>(db: DrizzleDb, ctx: AuditContext, fn: (tx: Audit
           goalSpaceId: ctx.goalSpaceId,
           // 单 SQL 子查询读 max+1;并发事务由 better-sqlite3 串行化保证
           sequence: sql`(SELECT COALESCE(MAX(sequence), 0) + 1 FROM realtime_events WHERE goal_space_id = ${ctx.goalSpaceId})`,
-          eventType: ctx.eventType,
+          type: ctx.type,
           resourceType: ctx.resourceType,
           resourceId: ctx.resourceId,
-          payload: ctx.payload ?? {},
+          data: ctx.data ?? {},
         })
         .run();
     }

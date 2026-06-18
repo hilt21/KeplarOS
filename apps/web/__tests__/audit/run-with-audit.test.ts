@@ -62,14 +62,14 @@ describe("T-013: runWithAudit", () => {
       {
         entityType: "card",
         entityId: "c-1",
-        actorType: "human",
+        actor: "human",
         actorId: "u1",
         action: "create",
         goalSpaceId: "g1",
-        eventType: "card.created",
+        type: "card.created",
         resourceType: "card",
         resourceId: "c-1",
-        payload: { reason: "first card" },
+        data: { reason: "first card" },
       },
       (tx) => {
         tx.insert(cards)
@@ -98,7 +98,7 @@ describe("T-013: runWithAudit", () => {
     expect(audits[0]!.entityType).toBe("card");
     expect(audits[0]!.entityId).toBe("c-1");
     expect(audits[0]!.action).toBe("create");
-    expect(audits[0]!.actorType).toBe("human");
+    expect(audits[0]!.actor).toBe("human");
     expect(audits[0]!.actorId).toBe("u1");
     expect(audits[0]!.details).toEqual({});
 
@@ -107,10 +107,10 @@ describe("T-013: runWithAudit", () => {
     expect(events[0]).toBeDefined();
     expect(events[0]!.goalSpaceId).toBe("g1");
     expect(events[0]!.sequence).toBe(1);
-    expect(events[0]!.eventType).toBe("card.created");
+    expect(events[0]!.type).toBe("card.created");
     expect(events[0]!.resourceType).toBe("card");
     expect(events[0]!.resourceId).toBe("c-1");
-    expect(events[0]!.payload).toEqual({ reason: "first card" });
+    expect(events[0]!.data).toEqual({ reason: "first card" });
   });
 
   it("AC-4.3: audit 写失败 → 业务回滚(SELECT 验证),realtime 也不写", () => {
@@ -128,11 +128,11 @@ describe("T-013: runWithAudit", () => {
         {
           entityType: "card",
           entityId: "c-2",
-          actorType: "human",
+          actor: "human",
           actorId: "u1",
           action: "BLOCK",
           goalSpaceId: "g1",
-          eventType: "card.created",
+          type: "card.created",
           resourceType: "card",
           resourceId: "c-2",
         },
@@ -165,11 +165,11 @@ describe("T-013: runWithAudit", () => {
         {
           entityType: "card",
           entityId: `c-${i}`,
-          actorType: "system",
+          actor: "system",
           actorId: null,
           action: "create",
           goalSpaceId: "g1",
-          eventType: "card.created",
+          type: "card.created",
           resourceType: "card",
           resourceId: `c-${i}`,
         },
@@ -201,11 +201,11 @@ describe("T-013: runWithAudit", () => {
       {
         entityType: "session",
         entityId: "s-1",
-        actorType: "system",
+        actor: "system",
         actorId: null,
         action: "internal_heartbeat",
         goalSpaceId: "g1",
-        eventType: "session.heartbeat",
+        type: "session.heartbeat",
         resourceType: "session",
         resourceId: "s-1",
         skipRealtime: true,
