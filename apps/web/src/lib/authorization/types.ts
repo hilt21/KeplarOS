@@ -15,6 +15,11 @@
 
 import type { CardState, ConfirmationStatus, UserRole } from "@db/schema";
 
+// Re-export CardState + ConfirmationStatus so S3 handler / F-004 audit wrapper
+// can name the field type when constructing ExecuteCardContext without reaching
+// into @db/schema. (per COR-006 + status context plumbing)
+export type { CardState, ConfirmationStatus };
+
 // ─── 1. Actor 与角色────────────────────────────────────────────
 
 export type ActorRole = UserRole;
