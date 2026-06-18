@@ -148,6 +148,22 @@ export const users = sqliteTable(
   }),
 );
 
+// ─── 2.1.1 auth_credentials (NFR §4.2 — Wave 3 SEC-006) ────────────
+// 1:1 with users; holds the password hash, failed-login counter, and lockout.
+// Kept separate from `users` so credential rotation and failed-login bookkeeping
+// can be updated independently of profile data.
+export const authCredentials = sqliteTable("auth_credentials", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id),
+  passwordHash: text("password_hash").notNull(),
+  failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
+  lockedUntil: text("locked_until"),
+  lastRotatedAt: text("last_rotated_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
 // ─── 2.2 goal_spaces (database_design.md § 3.1) ────────────────────
 // DB-001: renamed `title` → `name`; added progress, constraints,
 // acceptance_criteria, started_at, cancelled_at, deleted_at (per spec § 3.1).
@@ -637,6 +653,7 @@ export type NewRealtimeEvent = InferInsertModel<typeof realtimeEvents>;
 
 export const schema = {
   users,
+  authCredentials,
   goalSpaces,
   nodeBoards,
   nodeBoardMembers,

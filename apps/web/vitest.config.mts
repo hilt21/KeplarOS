@@ -16,6 +16,8 @@ export default defineConfig({
       { glob: "__tests__/db/**", environment: "node" },
       // SEC-009: DB-aware canExecuteCardForCardId test needs better-sqlite3
       { glob: "__tests__/authorization/execute-db.test.ts", environment: "node" },
+      // SEC-006: password hashing test uses node:crypto (no jsdom)
+      { glob: "__tests__/auth/**", environment: "node" },
     ],
     include: [
       "__tests__/**/*.test.ts",

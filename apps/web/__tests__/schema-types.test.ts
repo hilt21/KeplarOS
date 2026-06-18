@@ -126,10 +126,11 @@ describe("T-003: inferred row types compile and have the expected column set", (
     expect(Object.keys(sample)).toHaveLength(17);
   });
 
-  it("aggregated schema export contains all 11 tables (S1 back-compat)", () => {
+  it("aggregated schema export contains all 12 tables (S1 back-compat + Wave 3 SEC-006)", () => {
     expect(Object.keys(schema).sort()).toEqual([
       "agentExecutions",
       "auditEntries",
+      "authCredentials",
       "cards",
       "goalSpaces",
       "humanConfirmations",
