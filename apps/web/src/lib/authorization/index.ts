@@ -11,9 +11,12 @@
  *   card:          canReadCard, canMutateCard
  *   confirmation:  canDecideConfirmation
  *   execute:       canExecuteCard
+ *
+ * COR-011 (system actor):withInternalActor / currentInternalActor / SYSTEM_ACTOR
+ *   供 S3+ handler 在 audit_entries.actorType='system' 写入时使用。
  */
 
-export type { Actor, ActorRole, AccessResult } from "./types";
+export type { Actor, ActorRole, AccessResult, CardState } from "./types";
 export type {
   GoalSpaceContext,
   NodeBoardContext,
@@ -27,5 +30,6 @@ export { canReadNodeBoard, canManageNodeBoard, canManageNodeBoardMembers } from 
 export { canReadCard, canMutateCard } from "./card";
 export type { CardMutationAction } from "./card";
 export { canDecideConfirmation } from "./confirmation";
-export { canExecuteCard } from "./execute";
+export { canExecuteCard, EXECUTABLE_CARD_STATES } from "./execute";
 export { assertAccess, ForbiddenError } from "./assert";
+export { SYSTEM_ACTOR, withInternalActor, currentInternalActor } from "./system";
