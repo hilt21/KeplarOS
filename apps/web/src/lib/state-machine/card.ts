@@ -136,6 +136,22 @@ export function canTransition(from: CardState, to: CardState, trigger: Transitio
 /**
  * 强校验:非法转移 / 终态 → throw `IllegalTransitionError`,合法 → void。
  * 给 S3 API handler 在业务变更前统一把关,可 `instanceof IllegalTransitionError` 区分。
+ *
+ * COR-010 — Self-loop idempotency contract:
+ *   自环转移(backlog→backlog via context_complete / todo→todo / dev→dev / review→review
+ *   via evidence_submitted)在 (from, to, trigger) 三元组合法的情况下,本函数**不会**
+ *   主动校验"自环字段是否实际发生了变化"。这意味着:
+ *     - 同一 actor / actorType 可以对同一 card 反复触发同一自环 trigger,
+ *       本函数每次都返回 void(合法),由 S3 handler 自行决定是否需要在 audit log
+ *       上记录多次"无变更"事件。
+ *     - 由 caller(典型为 S3 handler + F-004 audit wrapper)负责在调用
+ *       assertTransition 之前,先比较"即将写入的字段 vs 卡片当前值";若相等则
+ *       短路返回(200 No-Op / 304 Not Modified),不写 state_transitions / audit_entries。
+ *     - 这样做的好处:状态机本身保持纯函数无副作用;幂等性是**业务语义**而非
+ *       状态机契约的一部分,由 handler 决策。
+ *   相关 audit 路径:`run-with-audit` 应在自环变更未发生时跳过写 audit_entries。
+ *
+ * 真相源: docs/architecture/state_transition.md § 2 self-loops;COR-010 决策记录。
  */
 export function assertTransition(from: CardState, to: CardState, trigger: TransitionTrigger): void {
   if (!isValidState(from)) {

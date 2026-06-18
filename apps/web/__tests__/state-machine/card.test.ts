@@ -28,6 +28,17 @@ import {
   type TransitionTrigger,
 } from "@/lib/state-machine";
 
+// ─── 0. helpers(per TS-010)────────────────────────────────────
+
+/**
+ * 把任意字符串"伪装"成 CardState,以测试 assertTransition / isValidState 在收到
+ * 非法输入时的行为。比直接 `as CardState` 内联 cast 更可读,也避免 ts-prune / lint
+ * 误报"unused expression"。
+ */
+function invalidState(s: string): CardState {
+  return s as unknown as CardState;
+}
+
 // ─── 1. 常量与字面量集合一致性────────────────────────────────────
 
 describe("constants & literal unions", () => {
@@ -267,13 +278,13 @@ describe("assertTransition 抛错版本", () => {
   });
 
   it("非法 from 抛", () => {
-    expect(() => assertTransition("invalid" as CardState, "todo", "context_complete")).toThrow(
+    expect(() => assertTransition(invalidState("invalid"), "todo", "context_complete")).toThrow(
       /Invalid/,
     );
   });
 
   it("非法 to 抛", () => {
-    expect(() => assertTransition("backlog", "invalid" as CardState, "context_complete")).toThrow(
+    expect(() => assertTransition("backlog", invalidState("invalid"), "context_complete")).toThrow(
       /Invalid/,
     );
   });
@@ -461,5 +472,37 @@ describe("COR-004: human_confirm_timeout from blocked is invalid (spec §10)", (
     expect(getRequiredActor("blocked", "cancelled", "task_cancelled")).toBe<TransitionActor>(
       "human",
     );
+  });
+});
+
+// ─── 12. COR-010: 自环幂等性契约(per state_transition.md § 2)───────────
+// assertTransition 对合法自环三元组**不会**主动校验"自环字段是否发生了变化"。
+// 本块锁定这一契约:同一自环三元组反复调用 assertTransition 永远合法,
+// 由 caller(handler + audit wrapper)负责"未变更则短路"的幂等决策。
+
+describe("COR-010: self-loop idempotency contract", () => {
+  it("backlog → backlog via context_complete 多次调用 assertTransition 全部合法(状态机不校验字段差异)", () => {
+    expect(() => assertTransition("backlog", "backlog", "context_complete")).not.toThrow();
+    expect(() => assertTransition("backlog", "backlog", "context_complete")).not.toThrow();
+    expect(() => assertTransition("backlog", "backlog", "context_complete")).not.toThrow();
+  });
+
+  it("dev → dev via evidence_submitted 多次调用全部合法", () => {
+    expect(() => assertTransition("dev", "dev", "evidence_submitted")).not.toThrow();
+    expect(() => assertTransition("dev", "dev", "evidence_submitted")).not.toThrow();
+  });
+
+  it("4 个合法自环全部可被 assertTransition 接受(from === to)", () => {
+    expect(() => assertTransition("backlog", "backlog", "context_complete")).not.toThrow();
+    expect(() => assertTransition("todo", "todo", "context_complete")).not.toThrow();
+    expect(() => assertTransition("dev", "dev", "evidence_submitted")).not.toThrow();
+    expect(() => assertTransition("review", "review", "evidence_submitted")).not.toThrow();
+  });
+
+  it("canTransition 对自环返回 true,不区分"字段是否实际变化"", () => {
+    // 这条测试是 COR-010 契约的核心:状态机层只回答 (from,to,trigger) 是否为
+    // 已知合法规则,不回答"这次自环是否产生了实际变更"。caller 必须自行比较。
+    expect(canTransition("backlog", "backlog", "context_complete")).toBe(true);
+    expect(canTransition("backlog", "backlog", "context_complete")).toBe(true);
   });
 });
