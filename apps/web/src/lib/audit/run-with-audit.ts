@@ -21,6 +21,7 @@
 import { sql } from "drizzle-orm";
 import { auditEntries, realtimeEvents, type ActorType, type EntityType } from "@db/schema";
 import type { DrizzleDb } from "@/lib/db/client";
+import { redactAuditDetails } from "@/lib/audit/redact";
 
 /**
  * 审计上下文 — 由 S3+ 调用方填;fn 写业务后,runWithAudit 自动写 audit + 可选 realtime。
@@ -72,6 +73,21 @@ export function runWithAudit<T>(db: DrizzleDb, ctx: AuditContext, fn: (tx: Audit
   return db.transaction((tx) => {
     const result = fn(tx);
 
+    // SEC-005: scrub sensitive keys from JSON blobs before INSERT.
+    // Per NFR §5.2/§5.5: audit logs must not contain plaintext credentials.
+    // redactAuditDetails throws if serialized payload exceeds 32 KB; the
+    // thrown error propagates so better-sqlite3 rolls back the transaction.
+    const redactedDetails = redactAuditDetails(ctx.details ?? {}) as Record<string, unknown>;
+    const redactedBeforeState = ctx.beforeState
+      ? (redactAuditDetails(ctx.beforeState) as Record<string, unknown>)
+      : null;
+    const redactedAfterState = ctx.afterState
+      ? (redactAuditDetails(ctx.afterState) as Record<string, unknown>)
+      : null;
+    const redactedRealtimeData = ctx.data
+      ? (redactAuditDetails(ctx.data) as Record<string, unknown>)
+      : {};
+
     // 1) audit_entries 强制写(S2 AC-4.2:fn 成功 + audit 写失败 → 整事务回滚)
     tx.insert(auditEntries)
       .values({
@@ -80,9 +96,9 @@ export function runWithAudit<T>(db: DrizzleDb, ctx: AuditContext, fn: (tx: Audit
         action: ctx.action,
         actor: ctx.actor,
         actorId: ctx.actorId,
-        beforeState: ctx.beforeState ?? null,
-        afterState: ctx.afterState ?? null,
-        details: ctx.details ?? {},
+        beforeState: redactedBeforeState,
+        afterState: redactedAfterState,
+        details: redactedDetails,
       })
       .run();
 
@@ -96,7 +112,7 @@ export function runWithAudit<T>(db: DrizzleDb, ctx: AuditContext, fn: (tx: Audit
           type: ctx.type,
           resourceType: ctx.resourceType,
           resourceId: ctx.resourceId,
-          data: ctx.data ?? {},
+          data: redactedRealtimeData,
         })
         .run();
     }
