@@ -80,7 +80,13 @@ export interface CardContext {
  * - cardId:                所属 card
  * - goalSpaceId:           所属 goal space
  * - goalSpaceInitiatorId:  所属 goal space 的发起人
- * - nodeBoardMemberIds:    所属 node board 的有效成员(冗余)
+ * - nodeBoardMemberIds:    所属 node board 的有效成员
+ *                          当前 S2 由 canDecideConfirmation 一律不读(决策权归 initiator 单点);
+ *                          COR-012 决定保留该字段,作为 S4+ per-member node-board check 的
+ *                          forward-looking 槽位(per spec §3 资源归属预留节点成员关系,
+ *                          供未来 S4 引入"非发起人亦可表达意见 / 联署决策"功能时复用,
+ *                          避免 S4 改动 ConfirmationContext 接口签名导致 audit log schema
+ *                          breaking change)。
  * - confirmationStatus:    当前确认状态(per spec interface_spec.md §6.2:仅 'pending' 可决策)
  */
 export interface ConfirmationContext {
