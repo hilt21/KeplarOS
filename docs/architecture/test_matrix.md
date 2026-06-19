@@ -225,7 +225,18 @@ title: KEPLAR 测试矩阵
 
 ## 5. 测试执行计划
 
-当前仓库尚未具备可执行测试入口：`package.json` 没有 scripts 或测试依赖，Rust crate 也仍是占位源码。因此第一阶段测试门禁应先从规范一致性和领域核心开始，不应直接加入会使现有空实现失败的 CI 门禁。
+Phase 2 **Web Collaboration Beta** 从已完成的 Web-first baseline 开始，当前根目录可执行验证命令为：
+
+```bash
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm build
+pnpm format:check
+pnpm check
+```
+
+Phase 2 文档和实现应继续以这些命令作为基础门禁，并按功能增量补充 API contract、SSE contract、smoke 和 Playwright happy-path E2E。Tauri、Rust Axum、生产 Kubernetes、企业 SSO 和真实 MCP/ACP/A2A 外部写仍保持延期范围。
 
 ### 5.1 测试环境
 

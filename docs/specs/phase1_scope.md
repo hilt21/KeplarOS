@@ -4,7 +4,7 @@
 
 Phase 1 冻结为 **Web-first Board demo slice**。
 
-冻结状态：**可以开始 Phase 1 开发**。冻结边界只覆盖本文第 2 节列出的本地 Web demo 能力；第 3 节能力不得作为首轮开发验收条件。
+完成状态：**Phase 1 已完成**。完成边界覆盖本文第 2 节列出的本地 Web demo 能力；第 3 节能力仍不得作为 Phase 2 Web Collaboration Beta 的验收条件。
 
 目标不是实现全部未来架构，而是交付一个可现场演示、可追踪、可人工治理的最小完整闭环：
 
@@ -62,3 +62,9 @@ Natural goal
 2. 先实现领域 schema、状态机、权限矩阵、审计事务和测试门禁。
 3. 再实现 REST API、SSE realtime events、stub/fixture AI executor。
 4. 最后接 Dashboard UI 和端到端 demo 路径。
+
+## 6. Phase 1 Completion
+
+Phase 1 is complete. The completed baseline is a local Web-first Board demo with Next.js, TypeScript, Drizzle, SQLite, domain schema, state machines, authorization helpers, audit transaction helpers, realtime event persistence, and executable verification scripts.
+
+Phase 2 starts from this completed Web-first baseline as **Web Collaboration Beta**. It focuses on turning the demo into a collaboration beta through authenticated APIs, deterministic AI-lane execution, SSE, UI workflows, and E2E verification, while keeping Tauri, Rust Axum, production Kubernetes, enterprise SSO, and real MCP/ACP/A2A external writes deferred.

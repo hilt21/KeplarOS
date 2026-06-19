@@ -1,0 +1,71 @@
+{
+  "change_id": "20260619-baseline-health-repair",
+  "title": "Baseline health repair",
+  "status": "request_analysis",
+  "execution_model": {
+    "mode": "subagent_driven",
+    "tdd_required": true,
+    "selected_feature": "F2-00B"
+  },
+  "features": [
+    {
+      "id": "F2-00B",
+      "title": "Baseline Health Repair",
+      "description": "Repair the minimal repo-scoped baseline blockers by fixing the middleware lint issue and refreshing stale global unified spec statements, while treating Node 20 as a local execution precondition rather than a repo defect.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "Under Node 20.10.0, pnpm lint no longer fails on apps/web/src/middleware.ts.",
+        "docs/specs/global_unified_spec.md accurately reflects the current baseline for ESLint/Prettier, app CI/test gate, workspace app dependencies, and Vitest integration.",
+        "docs/specs/global_unified_spec.md does not overclaim Playwright integration if Playwright is still absent.",
+        "No edits are made to docs/README.md, docs/architecture/test_matrix.md, docs/specs/interface_spec.md, or docs/specs/phase1_scope.md in this change.",
+        "Verification records distinguish repo-fixable issues from the local-only Node version requirement.",
+        "The standard startup/verification path is rerun under Node 20.10.0 and the result is recorded."
+      ],
+      "affected_areas": [
+        "tooling_baseline",
+        "docs",
+        "lint_health"
+      ],
+      "dependencies": [
+        ".nvmrc",
+        "package.json",
+        "apps/web/package.json",
+        "apps/web/src/middleware.ts",
+        "docs/specs/global_unified_spec.md",
+        ".harness/skills/init.sh"
+      ],
+      "test_needs": [
+        "Reproduce the existing lint failure",
+        "Re-run lint under Node 20.10.0 after the fix",
+        "Re-run startup/verification path under Node 20.10.0",
+        "Run git diff --check"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required verification items pass or have documented exceptions",
+        "No unrelated F2-00 docs are modified in this change",
+        "No unresolved blocking review findings remain",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required_if_init_runs_check",
+        "unit": "not_applicable",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable",
+        "diff_check": "required",
+        "startup_path": "required"
+      },
+      "implementation_status": "not_started",
+      "test_status": "not_started",
+      "done_status": "not_started"
+    }
+  ]
+}

@@ -11,6 +11,8 @@
 | 内容类型 | `application/json` |
 | 字符编码 | UTF-8 |
 
+The Phase 2 **Web Collaboration Beta** API target is to implement the `/api/v1` Web beta API through Next.js route handlers. Route handlers must use the shared response envelope, session actor extraction, authorization matrix, state machines, audit transaction boundary, and realtime event contract.
+
 ### 1.2 规范口径
 
 | 项目 | 统一口径 |

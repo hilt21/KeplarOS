@@ -1,8 +1,8 @@
 # KEPLAR Documentation
 
-## Phase 1 Freeze
+## Phase 2 Baseline
 
-Phase 1 is frozen as the **Web-first Board demo slice**. Start development from [Phase 1 Scope](specs/phase1_scope.md); Future/Production items such as Tauri, Rust Axum, real MCP/ACP/A2A writes, Kubernetes, OpenTelemetry, and production HA are explicitly out of the first development gate.
+Phase 1 is complete as the **Web-first Board demo slice**. Phase 2 is **Web Collaboration Beta** and starts from the completed Web-first baseline described in [Phase 1 Scope](specs/phase1_scope.md). Future/Production items such as Tauri, Rust Axum, real MCP/ACP/A2A writes, Kubernetes, enterprise SSO, OpenTelemetry, and production HA remain deferred.
 
 ## Development Guide
 **Phase 1: Early Business & Requirements (Do First)**  
@@ -47,7 +47,7 @@ Phase 1 is frozen as the **Web-first Board demo slice**. Start development from 
 ## Specification
 
 - [Non-Functional Requirements](specs/non_functional_requirements.md) — Performance, Scalability, Security, Observability
-- [Phase 1 Scope](specs/phase1_scope.md) — Web-first Board demo slice, explicit in-scope and out-of-scope boundaries
+- [Phase 1 Scope](specs/phase1_scope.md) — Completed Web-first Board demo baseline and Phase 2 Web Collaboration Beta starting point
 - [Authorization Matrix](specs/authorization_matrix.md) — Role, ownership, confirmation gate, and audit requirements
 - [AI Agent Contracts](specs/ai_agent_contracts.md) — Executor contract, role outputs, validation, retry, blocked routing
 - [Realtime Events](specs/realtime_events.md) — SSE event envelope, replay cursor, reconnect, and multi-tab behavior
