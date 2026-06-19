@@ -1,0 +1,112 @@
+[
+  {
+    "id": "SEC-001",
+    "severity": "MEDIUM (downgraded from HIGH after manual verify — see note)",
+    "title": "canReadGoalSpace blocks all node-board-member access at single-layer check",
+    "file": "apps/web/src/lib/authorization/goal-space.ts",
+    "line": 19,
+    "category": "authz",
+    "description": "canReadGoalSpace returns false for any chain_user/viewer unconditionally, even when they are valid members of a node_board within that goal_space. The in-file comment acknowledges the gap and defers unioning to S3 handlers.",
+    "evidence": "export function canReadGoalSpace(actor: Actor, ctx: GoalSpaceContext): boolean {\n  if (actor.role === 'initiator') return actor.id === ctx.initiatorId;\n  return false;\n}",
+    "spec_violation": "docs/specs/authorization_matrix.md §3 (资源归属) and §4",
+    "note_after_verify": "Code comment explicitly documents this as S2 scope boundary. Not a hidden bug. Recommend tracking as known scope debt.",
+    "recommendation": "Pass optional nodeBoardMemberContexts into GoalSpaceContext, or wrap canReadGoalSpace at S3 handler layer with explicit union of nodeBoard membership."
+  },
+  {
+    "id": "SEC-002",
+    "severity": "HIGH",
+    "title": "Docker compose hardcodes weak default database credentials",
+    "file": "docker-compose.yml",
+    "line": 8,
+    "category": "secrets",
+    "description": "POSTGRES_USER and POSTGRES_PASSWORD are both 'keplar' (a public, guessable credential) and committed to the repository.",
+    "evidence": "POSTGRES_USER: keplar\nPOSTGRES_PASSWORD: keplar\nPOSTGRES_DB: keplar",
+    "spec_violation": "docs/specs/non_functional_requirements.md §4.1, §4.4",
+    "note_after_verify": "Verified — file content is exactly as described.",
+    "recommendation": "Replace with ${POSTGRES_PASSWORD} / ${POSTGRES_USER} env interpolation, add .env.example (gitignored), and add a gitleaks/trufflehog CI step."
+  },
+  {
+    "id": "SEC-003",
+    "severity": "HIGH",
+    "title": "next.config.ts has no security response headers (CSP/HSTS/X-Frame-Options/X-Content-Type-Options/Referrer-Policy)",
+    "file": "apps/web/next.config.ts",
+    "line": 1,
+    "category": "other",
+    "description": "The Next.js config is minimal. There is no headers() async function exporting CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, or Permissions-Policy.",
+    "evidence": "const nextConfig: NextConfig = {\n  reactStrictMode: true,\n  typedRoutes: false,\n  outputFileTracingRoot: path.join(__dirname, '../..'),\n};",
+    "spec_violation": "docs/specs/non_functional_requirements.md §4.1, §4.2",
+    "recommendation": "Add an async headers() export with CSP (nonce-based), HSTS preload, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy."
+  },
+  {
+    "id": "SEC-004",
+    "severity": "MEDIUM",
+    "title": "No CSRF protection present in S1/S2 codebase or middleware.ts",
+    "file": "apps/web",
+    "line": 0,
+    "category": "csrf",
+    "description": "There is no middleware.ts in apps/web/src and no CSRF token validation, no SameSite cookie configuration, and no Origin/Referer check.",
+    "evidence": "(no middleware.ts, no csrf helper, no cookie config found)",
+    "spec_violation": "docs/specs/non_functional_requirements.md §4.1, §4.2",
+    "recommendation": "Create apps/web/src/middleware.ts that validates Origin header on POST/PATCH/DELETE state-changing requests and enforces SameSite=Strict on cookies."
+  },
+  {
+    "id": "SEC-005",
+    "severity": "MEDIUM",
+    "title": "Audit details / actorId / payload accept unredacted user input with no allowlist or sanitization",
+    "file": "apps/web/src/lib/audit/run-with-audit.ts",
+    "line": 36,
+    "category": "input_validation",
+    "description": "The AuditContext interface accepts actorId, details, and payload with no size limit, no schema validation, and no PII redaction.",
+    "evidence": "readonly details?: Record<string, unknown>;\nreadonly actorId: string | null;\nreadonly payload?: Record<string, unknown>;",
+    "spec_violation": "docs/specs/non_functional_requirements.md §5.2, §5.5",
+    "recommendation": "Add a redactAuditDetails() helper that scrubs sensitive keys recursively. Add a max size cap (e.g. 32KB)."
+  },
+  {
+    "id": "SEC-006",
+    "severity": "MEDIUM",
+    "title": "users table has no password hash, no auth credential column, and no failed-login tracking",
+    "file": "apps/web/db/schema.ts",
+    "line": 115,
+    "category": "authn",
+    "description": "The users table has id/name/email/role/preferences/createdAt/lastLoginAt but no password_hash, no api_token_hash, no failed_login_count, no locked_until.",
+    "evidence": "export const users = sqliteTable(\n  'users', { id, name, email, role, preferences, createdAt, lastLoginAt }",
+    "spec_violation": "docs/specs/non_functional_requirements.md §4.2 (implied auth requirements)",
+    "recommendation": "Add a separate auth_credentials table keyed by user_id with password_hash (argon2id), failed_login_attempts, and locked_until."
+  },
+  {
+    "id": "SEC-007",
+    "severity": "MEDIUM",
+    "title": "actor.role: 'viewer' leaks via canReadGoalSpace early-return path on member-check",
+    "file": "apps/web/src/lib/authorization/goal-space.ts",
+    "line": 19,
+    "category": "authz",
+    "description": "Same root cause as SEC-001. Viewers are unconditionally denied even with valid node_board membership.",
+    "evidence": "canReadGoalSpace — see SEC-001",
+    "spec_violation": "docs/specs/authorization_matrix.md §4 GET /api/v1/goal-spaces/:id",
+    "recommendation": "Extend GoalSpaceContext to carry the actor's node_board_membership set; allow viewer/chained when member."
+  },
+  {
+    "id": "SEC-008",
+    "severity": "LOW",
+    "title": "No CI secret-leak scanner (gitleaks/trufflehog) in web-ci.yml",
+    "file": ".github/workflows/web-ci.yml",
+    "line": 1,
+    "category": "secrets",
+    "description": "CI runs typecheck + lint + test + build + format:check but has no secret scanning step.",
+    "evidence": "- name: Verify (typecheck + lint + test + build + format:check)\n  run: pnpm check",
+    "spec_violation": "docs/specs/non_functional_requirements.md §4.1 (implied CI gate)",
+    "recommendation": "Add a gitleaks-action step to web-ci.yml that fails on any finding (postgres_password, jwt_secret, anthropic_api_key, openai_api_key)."
+  },
+  {
+    "id": "SEC-009",
+    "severity": "HIGH",
+    "title": "canExecuteCard has no central enforcement of hasPendingConfirmation — caller-must-pass",
+    "file": "apps/web/src/lib/authorization/execute.ts",
+    "line": 18,
+    "category": "authz",
+    "description": "canExecuteCard takes ExecuteCardContext.hasPendingConfirmation as a precomputed boolean the caller supplies. No db-aware convenience centralizes the pending check.",
+    "evidence": "export function canExecuteCard(actor: Actor, ctx: ExecuteCardContext): boolean {\n  if (actor.role === 'viewer') return false;\n  if (!canReadCard(actor, ctx.card)) return false;\n  if (ctx.hasPendingConfirmation) return false;\n  return true;\n}",
+    "spec_violation": "docs/specs/authorization_matrix.md §5",
+    "recommendation": "Provide a db-aware convenience: canExecuteCardForCardId(db, actor, cardId) that performs the SELECT for pending confirmations internally."
+  }
+]
