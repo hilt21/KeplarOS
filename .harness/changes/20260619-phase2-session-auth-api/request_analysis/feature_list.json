@@ -1,0 +1,82 @@
+{
+  "change_id": "20260619-phase2-session-auth-api",
+  "title": "Phase 2 session auth API",
+  "status": "implementation",
+  "execution_model": {
+    "mode": "subagent_driven",
+    "tdd_required": true,
+    "superpowers_plan": "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+    "selected_plan_feature": "F2-02"
+  },
+  "features": [
+    {
+      "id": "F2-02",
+      "title": "Session Auth API",
+      "description": "Implement login, logout, and current-user API endpoints for the Web Collaboration Beta using existing password/auth credential infrastructure and an explicit session strategy.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "POST /api/v1/auth/login returns 200 and sets an HttpOnly session cookie for valid credentials.",
+        "POST /api/v1/auth/login returns 401 for invalid credentials.",
+        "GET /api/v1/auth/me returns the current user when a valid session cookie is present.",
+        "POST /api/v1/auth/logout clears the session cookie.",
+        "Protected /api/v1 routes return 401 without a valid authenticated session using the chosen current-actor resolution path.",
+        "POST /api/v1/auth/login includes expires_at and the auth session cookie uses the documented 30-minute expiry.",
+        "apps/web/src/lib/auth/session.ts provides createSession, getSessionActor, and clearSessionCookie.",
+        "apps/web/src/lib/api/request.ts resolves current actor from the authenticated session path and keeps the test header path only as a test-only fallback.",
+        "Auth behavior uses auth_credentials and does not silently repurpose run-session sessions rows as login sessions.",
+        "pnpm --filter @keplar/web test -- __tests__/api/auth.test.ts __tests__/middleware.test.ts __tests__/auth/password.test.ts passes.",
+        "pnpm check passes or environment-only warnings are explicitly recorded.",
+        "No unrelated files from prior changes are modified."
+      ],
+      "affected_areas": [
+        "auth_api",
+        "session_helpers",
+        "middleware",
+        "web_tests"
+      ],
+      "dependencies": [
+        "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+        "docs/specs/interface_spec.md",
+        "apps/web/src/lib/auth/password.ts",
+        "apps/web/src/lib/api/request.ts",
+        "apps/web/src/lib/api/response.ts",
+        "apps/web/src/lib/authorization/types.ts",
+        "apps/web/db/schema.ts",
+        "apps/web/db/migrations/0011_auth_credentials.sql",
+        "apps/web/src/middleware.ts"
+      ],
+      "test_needs": [
+        "Write failing auth API tests first",
+        "Run targeted auth + middleware + password tests",
+        "Cover negative stateless-session cases",
+        "Run pnpm check",
+        "Run git diff --check"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required verification items pass or have documented exceptions",
+        "No unresolved blocking review findings remain",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "required",
+        "api_contract": "required",
+        "migration": "not_applicable_unless_scope_amended",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable",
+        "diff_check": "required",
+        "startup_path": "required_if_needed_by_full_check"
+      },
+      "implementation_status": "in_progress",
+      "test_status": "not_started",
+      "done_status": "not_started"
+    }
+  ]
+}

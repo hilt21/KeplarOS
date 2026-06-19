@@ -1,0 +1,74 @@
+{
+  "change_id": "20260619-phase2-api-foundation",
+  "title": "Phase 2 API foundation",
+  "status": "delivered",
+  "execution_model": {
+    "mode": "subagent_driven",
+    "tdd_required": true,
+    "superpowers_plan": "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+    "selected_plan_feature": "F2-01"
+  },
+  "features": [
+    {
+      "id": "F2-01",
+      "title": "API Foundation And Route Test Harness",
+      "description": "Establish the shared API helper surface and test harness for Phase 2 Web routes without prematurely implementing auth or business endpoints.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "delivered",
+      "acceptance_criteria": [
+        "apps/web/src/lib/api/response.ts provides shared success and error response helpers.",
+        "apps/web/src/lib/api/errors.ts provides a typed API error-code surface.",
+        "apps/web/src/lib/api/request.ts provides readJsonBody, requireString, optionalString, and parseCurrentActor.",
+        "apps/web/src/lib/api/pagination.ts provides reusable pagination parsing helpers as needed by the implementation.",
+        "apps/web/__tests__/api/response.test.ts and request.test.ts are written test-first and pass.",
+        "apps/web/__tests__/api/route-test-harness.ts provides reusable request/response helper utilities.",
+        "pnpm --filter @keplar/web test -- __tests__/api/response.test.ts __tests__/api/request.test.ts passes.",
+        "pnpm check passes or any environment-only exception is explicitly recorded.",
+        "No unrelated files from prior changes are modified."
+      ],
+      "affected_areas": [
+        "api_helpers",
+        "route_test_harness",
+        "web_tests"
+      ],
+      "dependencies": [
+        "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+        "docs/specs/interface_spec.md",
+        "apps/web/src/lib/authorization/types.ts",
+        "apps/web/package.json",
+        ".harness/skills/init.sh"
+      ],
+      "test_needs": [
+        "Write failing response-helper tests first",
+        "Write failing request-helper tests first",
+        "Run targeted API helper tests",
+        "Run pnpm check",
+        "Run git diff --check"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required verification items pass or have documented exceptions",
+        "No unresolved blocking review findings remain",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "not_applicable",
+        "api_contract": "required",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable",
+        "diff_check": "required",
+        "startup_path": "required_if_needed_by_full_check"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}

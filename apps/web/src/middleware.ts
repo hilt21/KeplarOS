@@ -16,6 +16,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 const STATE_CHANGING_METHODS: ReadonlySet<string> = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const AUTH_SESSION_COOKIE_NAME = "keplar_session";
 
 /**
  * Extracts the host (with port) from an Origin header URL.
@@ -67,6 +68,8 @@ function enforceSameSiteStrict(res: NextResponse): NextResponse {
   for (const cookie of cookies) {
     if (/samesite=/i.test(cookie)) {
       res.headers.append("Set-Cookie", cookie);
+    } else if (new RegExp(`^${AUTH_SESSION_COOKIE_NAME}=`, "i").test(cookie)) {
+      res.headers.append("Set-Cookie", `${cookie}; SameSite=Lax`);
     } else {
       res.headers.append("Set-Cookie", `${cookie}; SameSite=Strict`);
     }

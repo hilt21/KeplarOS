@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { middleware, config } from "../src/middleware";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -90,6 +90,27 @@ describe("middleware (SEC-004)", () => {
       const setCookies = res.headers.getSetCookie?.() ?? [];
       for (const cookie of setCookies) {
         expect(cookie.toLowerCase()).toContain("samesite=strict");
+      }
+    });
+
+    it("preserves SameSite=Lax for the auth session cookie", async () => {
+      const authResponse = NextResponse.next();
+      authResponse.headers.append(
+        "Set-Cookie",
+        "keplar_session=abc123; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600",
+      );
+
+      const nextSpy = vi.spyOn(NextResponse, "next").mockReturnValue(authResponse);
+
+      try {
+        const req = makeReq("GET", "http://localhost:3000");
+        const res = await middleware(req);
+        const setCookies = res.headers.getSetCookie?.() ?? [];
+        expect(setCookies).toContain(
+          "keplar_session=abc123; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600",
+        );
+      } finally {
+        nextSpy.mockRestore();
       }
     });
   });
