@@ -92,7 +92,12 @@ function readCookieValue(request: Request, name: string): string | null {
 }
 
 function verifySessionValue(value: string): { userId: string } | null {
-  const [version, encodedPayload, signature] = value.split(".");
+  const parts = value.split(".");
+  if (parts.length !== 3) {
+    return null;
+  }
+
+  const [version, encodedPayload, signature] = parts;
 
   if (version !== SESSION_VERSION || !encodedPayload || !signature) {
     return null;

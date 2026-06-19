@@ -239,10 +239,42 @@ describe("auth API (F2-02)", () => {
     await expectApiError(response, "UNAUTHORIZED", 401);
   });
 
+  it("GET /api/v1/auth/me returns 401 for an expired session cookie", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+
+    try {
+      queueSelectResults({
+        id: "user-1",
+        role: "chain_user",
+      });
+
+      const { createSession } = await import("@/lib/auth/session");
+      const session = await createSession("user-1");
+      const { GET } = await import("@/app/api/v1/auth/me/route");
+
+      vi.setSystemTime(new Date("2026-01-01T00:31:00.000Z"));
+
+      const response = await GET(
+        createJsonRequest("/api/v1/auth/me", "GET", undefined, {
+          headers: {
+            cookie: `${session.name}=${session.value}`,
+          },
+        }),
+      );
+
+      await expectApiError(response, "UNAUTHORIZED", 401);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("session cookie uses Secure in production", async () => {
-    const previousNodeEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "production";
-    process.env.KEPLAR_SESSION_SECRET = "test-session-secret";
+    const env = process.env as Record<string, string | undefined>;
+    const previousNodeEnv = env.NODE_ENV;
+    const previousSessionSecret = env.KEPLAR_SESSION_SECRET;
+    env.NODE_ENV = "production";
+    env.KEPLAR_SESSION_SECRET = "test-session-secret";
 
     try {
       const { createSession } = await import("@/lib/auth/session");
@@ -250,7 +282,8 @@ describe("auth API (F2-02)", () => {
       expect(session.header).toContain("Secure");
       expect(session.header).toContain("SameSite=Lax");
     } finally {
-      process.env.NODE_ENV = previousNodeEnv;
+      env.NODE_ENV = previousNodeEnv;
+      env.KEPLAR_SESSION_SECRET = previousSessionSecret;
     }
   });
 

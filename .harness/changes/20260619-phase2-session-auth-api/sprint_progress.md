@@ -3,7 +3,7 @@
 Purpose: living progress board for the current change. Update it during each phase. Keep detailed verification evidence in phase artifacts such as `testing/results.md`.
 
 Change ID: `20260619-phase2-session-auth-api`
-Status: implementation
+Status: delivered
 
 ## Phase Status
 
@@ -11,9 +11,9 @@ Status: implementation
 |------|--------|-------|
 | Request Analysis | Complete | F2-02 auth/session scope and decision points defined. |
 | Review | Complete | Recommendation: proceed with stateless signed auth session cookie assumption. |
-| Implementation | In Progress | Worker subagent is implementing auth/session routes with TDD. |
-| Testing | Not Started | Targeted auth API tests and `pnpm check` planned. |
-| Delivery | Not Started | |
+| Implementation | Complete | Auth/session routes and supporting helpers implemented with TDD. |
+| Testing | Complete | Targeted auth/session tests and `pnpm check` passed. |
+| Delivery | Complete | Delivery and handoff artifacts written. |
 
 ## Current Blockers
 
@@ -30,17 +30,22 @@ Status: implementation
 - Resolved the F2-02 implementation assumption to a stateless signed auth session cookie plus a narrow auth-cookie `SameSite=Lax` preservation path.
 - Confirmed current baseline startup path completes before F2-02 work begins.
 - Dispatched worker subagent for F2-02 auth/session implementation.
+- Implemented auth session helpers, auth routes, and shared actor extraction updates within the approved scope.
+- Corrected auth TTL and login response shape to match the documented 30-minute contract.
+- Added negative session coverage and production `Secure` cookie coverage.
+- Wrote implementation, testing, delivery, and handoff artifacts.
 
 ## Current Focus
 
-- F2-02 auth/session implementation.
+- Awaiting the next approved Phase 2 feature.
 
 ## Next Step
 
-- Wait for worker result, then run code review and testing artifact updates.
+- Resume the main Phase 2 line at F2-03 Goal Space API.
 
 ## Change Log
 
 - `2026-06-19`: Sprint progress created for F2-02 request analysis.
 - `2026-06-19`: Human approved request analysis; review completed with no blocking findings.
 - `2026-06-19`: Implementation started after baseline startup verification passed.
+- `2026-06-19`: F2-02 delivered; targeted auth/session tests and `pnpm check` passed with environment warnings only.
