@@ -1,0 +1,95 @@
+{
+  "change_id": "20260619-phase2-node-board-api",
+  "title": "Phase 2 node board and member API",
+  "status": "request_analysis",
+  "execution_model": {
+    "mode": "subagent_driven",
+    "tdd_required": true,
+    "superpowers_plan": "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+    "selected_plan_feature": "F2-04"
+  },
+  "features": [
+    {
+      "id": "F2-04",
+      "title": "Node Board And Member API",
+      "description": "Implement the node board and member REST API for the Web Collaboration Beta (F2-04). Adds the six documented endpoints in docs/specs/interface_spec.md § 3.8: list, create, detail, update, add member, remove member. Reuses the F2-02 actor helper, F2-03 service/repository patterns, the existing canReadNodeBoard / canManageNodeBoard / canManageNodeBoardMembers authorization helpers, and the runWithAudit transaction wrapper. Every lifecycle write produces one audit entry and one realtime event inside a single transaction; failure rolls back the lifecycle write.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "GET /api/v1/goal-spaces/:goalSpaceId/node-boards returns 200 with the documented list shape; initiator sees all boards, members see only their own.",
+        "GET /api/v1/goal-spaces/:goalSpaceId/node-boards returns 401 without a session and 403 when the actor has no access to the goal space.",
+        "POST /api/v1/goal-spaces/:goalSpaceId/node-boards returns 201 with NodeBoardResponse for the initiator, 403 for a non-initiator, 400 when key or name is missing or non-string, and 409 STATE_CONFLICT when the key already exists in the goal space.",
+        "GET /api/v1/node-boards/:id returns 200 with NodeBoardResponse for a readable board, 404 for a missing board, and 403 for a non-member non-initiator.",
+        "PATCH /api/v1/node-boards/:id returns 200 with the updated NodeBoardResponse for the initiator, 403 for non-initiator, 404 for missing, and 422 VALIDATION_ERROR for an invalid status value.",
+        "POST /api/v1/node-boards/:id/members returns 201 with the added NodeBoardMemberResponse, 400 when user_id or role is missing, 403 for non-initiator, 404 for missing board, and 409 STATE_CONFLICT when the user is already an active member.",
+        "DELETE /api/v1/node-boards/:id/members/:userId returns 204 for the initiator (soft remove), 403 for non-initiator, 404 for missing board or user, and is idempotent on a member that is already removed; re-adding a previously removed member returns 201.",
+        "Every lifecycle write persists exactly one audit_entries row and one realtime_events row inside a single transaction; failure rolls back the lifecycle write.",
+        "apps/web/src/lib/api/actor.ts is used by every F2-04 route (no F2-02 / F2-03 helper duplication).",
+        "pnpm --filter @keplar/web test -- __tests__/api/node-boards.test.ts __tests__/authorization/node-board.test.ts passes.",
+        "pnpm check passes or environment-only warnings are explicitly recorded.",
+        "git diff --check passes.",
+        "No files outside the F2-04 file set or unrelated prior changes are modified."
+      ],
+      "affected_areas": [
+        "node_board_api",
+        "node_board_repository",
+        "node_board_service",
+        "node_board_member_api",
+        "web_tests"
+      ],
+      "dependencies": [
+        "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+        "docs/specs/interface_spec.md",
+        "docs/specs/authorization_matrix.md",
+        "apps/web/db/schema.ts",
+        "apps/web/src/lib/authorization/node-board.ts",
+        "apps/web/src/lib/authorization/types.ts",
+        "apps/web/src/lib/audit/run-with-audit.ts",
+        "apps/web/src/lib/api/actor.ts",
+        "apps/web/src/lib/api/response.ts",
+        "apps/web/src/lib/api/request.ts",
+        "apps/web/src/lib/api/errors.ts",
+        "apps/web/src/lib/api/pagination.ts",
+        "apps/web/src/lib/auth/session.ts",
+        "apps/web/src/lib/db/repositories/goal-spaces.ts",
+        "apps/web/src/lib/services/goal-spaces.ts",
+        "apps/web/__tests__/api/route-test-harness.ts",
+        "apps/web/__tests__/__helpers__/sqlite.ts"
+      ],
+      "test_needs": [
+        "Write failing node board API contract tests first",
+        "Cover membership matrix: initiator, member, non-member, cross goal space",
+        "Cover lifecycle write paths: create, update, add member, remove member",
+        "Cover audit_entries and realtime_events write paths per lifecycle call",
+        "Cover soft-delete re-activation path",
+        "Run targeted node board + authorization tests",
+        "Run pnpm check",
+        "Run git diff --check"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required verification items pass or have documented exceptions",
+        "No unresolved blocking review findings remain",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "required",
+        "api_contract": "required",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable",
+        "diff_check": "required",
+        "startup_path": "required_if_needed_by_full_check"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}
