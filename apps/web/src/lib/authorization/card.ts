@@ -49,11 +49,7 @@ export type CardMutationAction = "update" | "unblock" | "complete";
  *   当 ctx.hasPendingConfirmation=true 时,unblock / complete 动作一律 false。
  *   update 不在 § 5 列表,不受此门禁影响。
  */
-export function canMutateCard(
-  actor: Actor,
-  action: CardMutationAction,
-  ctx: CardContext,
-): boolean {
+export function canMutateCard(actor: Actor, action: CardMutationAction, ctx: CardContext): boolean {
   if (actor.role === "viewer") return false;
 
   // § 5 mandatory gate: pending confirmation blocks unblock and complete

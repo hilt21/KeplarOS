@@ -13,11 +13,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import {
-  SYSTEM_ACTOR,
-  currentInternalActor,
-  withInternalActor,
-} from "@/lib/authorization/system";
+import { SYSTEM_ACTOR, currentInternalActor, withInternalActor } from "@/lib/authorization/system";
 
 describe("COR-011: SYSTEM_ACTOR placeholder", () => {
   it("id === 'system'", () => {

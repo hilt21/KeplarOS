@@ -112,44 +112,57 @@ describe("canExecuteCard", () => {
 
   // ── COR-006: currentState gate ───────────────────────────────────
   it("COR-006: chain_user + currentState=todo + 可访问 → true", () => {
-    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "todo"))).toBe(true);
+    expect(
+      canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "todo")),
+    ).toBe(true);
   });
 
   it("COR-006: chain_user + currentState=backlog + 可访问 → true", () => {
-    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "backlog"))).toBe(true);
+    expect(
+      canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "backlog")),
+    ).toBe(true);
   });
 
   it("COR-006: chain_user + currentState=dev + 可访问 → true", () => {
-    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "dev"))).toBe(true);
+    expect(
+      canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "dev")),
+    ).toBe(true);
   });
 
   it("COR-006: chain_user + currentState=review + 可访问 → true", () => {
-    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "review"))).toBe(true);
+    expect(
+      canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "review")),
+    ).toBe(true);
   });
 
   it("COR-006: chain_user + currentState=blocked + 可访问 → true", () => {
-    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "blocked"))).toBe(true);
+    expect(
+      canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "blocked")),
+    ).toBe(true);
   });
 
   it("COR-006: chain_user + currentState=done + 可访问 → false(终态拒绝)", () => {
-    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "done"))).toBe(false);
+    expect(
+      canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "done")),
+    ).toBe(false);
   });
 
   it("COR-006: chain_user + currentState=cancelled + 可访问 → false(终态拒绝)", () => {
-    expect(canExecuteCard({ id: MEMBER, role: "chain_user" }, execCtx(cardAccessible, false, "cancelled"))).toBe(false);
+    expect(
+      canExecuteCard(
+        { id: MEMBER, role: "chain_user" },
+        execCtx(cardAccessible, false, "cancelled"),
+      ),
+    ).toBe(false);
   });
 
   it("COR-006: initiator(本 goalSpace 发起人)+ currentState=done → false(终态拒绝,即便 initiator)", () => {
-    expect(canExecuteCard({ id: OWNER, role: "initiator" }, execCtx(cardAccessible, false, "done"))).toBe(false);
+    expect(
+      canExecuteCard({ id: OWNER, role: "initiator" }, execCtx(cardAccessible, false, "done")),
+    ).toBe(false);
   });
 
   it("COR-006: EXECUTABLE_CARD_STATES 暴露 5 个非终态(backlog/todo/dev/review/blocked)", () => {
-    expect([...EXECUTABLE_CARD_STATES]).toEqual([
-      "backlog",
-      "todo",
-      "dev",
-      "review",
-      "blocked",
-    ]);
+    expect([...EXECUTABLE_CARD_STATES]).toEqual(["backlog", "todo", "dev", "review", "blocked"]);
   });
 });

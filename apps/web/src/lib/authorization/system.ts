@@ -57,9 +57,7 @@ const _als = new AsyncLocalStorage<Actor>();
  * });
  * ```
  */
-export function withInternalActor<T>(
-  fn: (internalActor: Actor) => Promise<T> | T,
-): Promise<T> {
+export function withInternalActor<T>(fn: (internalActor: Actor) => Promise<T> | T): Promise<T> {
   // AsyncLocalStorage.run is sync in signature; the returned fn may be async
   // (returning Promise<T>) or sync (returning T). Promise.resolve collapses
   // both into Promise<T> for a uniform public contract.

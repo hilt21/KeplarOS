@@ -155,22 +155,10 @@ export function canTransition(from: CardState, to: CardState, trigger: Transitio
  */
 export function assertTransition(from: CardState, to: CardState, trigger: TransitionTrigger): void {
   if (!isValidState(from)) {
-    throw new IllegalTransitionError(
-      from,
-      to,
-      trigger,
-      [],
-      `Invalid card from state: ${from}`,
-    );
+    throw new IllegalTransitionError(from, to, trigger, [], `Invalid card from state: ${from}`);
   }
   if (!isValidState(to)) {
-    throw new IllegalTransitionError(
-      from,
-      to,
-      trigger,
-      [],
-      `Invalid card to state: ${to}`,
-    );
+    throw new IllegalTransitionError(from, to, trigger, [], `Invalid card to state: ${to}`);
   }
   if (isTerminalState(from)) {
     throw new IllegalTransitionError(

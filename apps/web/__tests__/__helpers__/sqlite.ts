@@ -11,12 +11,7 @@ import { join, resolve } from "node:path";
 import Database from "better-sqlite3";
 import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { eq } from "drizzle-orm";
-import {
-  goalSpaces,
-  nodeBoards,
-  realtimeEvents,
-  users,
-} from "@db/schema";
+import { goalSpaces, nodeBoards, realtimeEvents, users } from "@db/schema";
 import * as schema from "@db/schema";
 
 const MIGRATIONS_DIR = resolve(__dirname, "../../db/migrations");
@@ -64,9 +59,7 @@ export function seedFixture(
   db: TestDb,
   ids: SeedFixtureIds = { userId: "u1", goalSpaceId: "g1", boardId: "b-1" },
 ): SeedFixtureIds {
-  db.insert(users)
-    .values({ id: ids.userId, name: "Alice", email: "alice@example.com" })
-    .run();
+  db.insert(users).values({ id: ids.userId, name: "Alice", email: "alice@example.com" }).run();
   db.insert(goalSpaces)
     .values({ id: ids.goalSpaceId, initiatorId: ids.userId, name: "Goal 1" })
     .run();

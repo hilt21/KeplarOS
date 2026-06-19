@@ -159,13 +159,7 @@ export function assertGoalSpaceTransition(
     );
   }
   if (!isValidGoalSpaceState(to)) {
-    throw new IllegalTransitionError(
-      from,
-      to,
-      undefined,
-      [],
-      `Invalid goal space to state: ${to}`,
-    );
+    throw new IllegalTransitionError(from, to, undefined, [], `Invalid goal space to state: ${to}`);
   }
   if (isGoalSpaceTerminal(from)) {
     throw new IllegalTransitionError(
@@ -177,7 +171,13 @@ export function assertGoalSpaceTransition(
     );
   }
   if (!canGoalSpaceTransition(from, to)) {
-    throw new IllegalTransitionError(from, to, undefined, [], `Illegal goal space state transition: ${from} -> ${to}`);
+    throw new IllegalTransitionError(
+      from,
+      to,
+      undefined,
+      [],
+      `Illegal goal space state transition: ${from} -> ${to}`,
+    );
   }
 
   // active → completed:返回缺失前置 keys
