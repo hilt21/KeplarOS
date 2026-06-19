@@ -1,0 +1,99 @@
+{
+  "change_id": "20260619-phase2-goal-space-api",
+  "title": "Phase 2 goal space API",
+  "status": "request_analysis",
+  "execution_model": {
+    "mode": "subagent_driven",
+    "tdd_required": true,
+    "superpowers_plan": "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+    "selected_plan_feature": "F2-03"
+  },
+  "features": [
+    {
+      "id": "F2-03",
+      "title": "Goal Space API",
+      "description": "Implement the goal space lifecycle REST API (create, list, detail, update, start, complete, cancel) for the Web Collaboration Beta. Reuse the existing goal space state machine, authorization helpers, audit transaction wrapper, and F2-02 session actor resolution. Every lifecycle write must produce one audit entry and one realtime event inside a single transaction.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "POST /api/v1/goal-spaces returns 201 with the documented GoalSpaceResponse and records the requester as initiator_id.",
+        "POST /api/v1/goal-spaces returns 401 when no authenticated session is present.",
+        "GET /api/v1/goal-spaces returns 200 with the documented GoalSpaceListResponse and respects status/page/limit query parameters.",
+        "GET /api/v1/goal-spaces only returns goal spaces the actor can read.",
+        "GET /api/v1/goal-spaces/:id returns 200 with GoalSpaceDetailResponse for a readable goal space.",
+        "GET /api/v1/goal-spaces/:id returns 404 for a missing goal space and 403 for an unreadable one.",
+        "PATCH /api/v1/goal-spaces/:id returns 200 with the updated GoalSpaceResponse and is restricted to the initiator on a draft goal space.",
+        "PATCH /api/v1/goal-spaces/:id returns 409 when the goal space is not draft.",
+        "POST /api/v1/goal-spaces/:id/start returns 200 with the documented StartGoalSpaceResponse and only succeeds from draft.",
+        "POST /api/v1/goal-spaces/:id/start returns 409 from any other state.",
+        "POST /api/v1/goal-spaces/:id/complete returns 200 with CompleteGoalSpaceResponse and only succeeds from active with all preconditions met.",
+        "POST /api/v1/goal-spaces/:id/complete returns 409 with CONFIRMATION_REQUIRED, 409 with STATE_CONFLICT, or 422 with VALIDATION_ERROR for the documented precondition failures.",
+        "POST /api/v1/goal-spaces/:id/cancel returns 200 with CancelGoalSpaceResponse and only succeeds from draft or active with a non-empty reason.",
+        "POST /api/v1/goal-spaces/:id/cancel returns 400 when reason is missing or empty, 409 from terminal states, and 403 for non-initiator actors.",
+        "Every lifecycle write persists exactly one audit_entries row and one realtime_events row inside a single transaction; failure rolls back the lifecycle write.",
+        "apps/web/src/lib/api/actor.ts exposes requireActor and requireInitiator, and at least one F2-03 route uses each helper.",
+        "pnpm --filter @keplar/web test -- __tests__/api/goal-spaces.test.ts __tests__/state-machine/goal-space.test.ts __tests__/audit/run-with-audit.test.ts passes.",
+        "pnpm check passes or environment-only warnings are explicitly recorded.",
+        "git diff --check passes.",
+        "No files outside the F2-03 file set or unrelated prior changes are modified."
+      ],
+      "affected_areas": [
+        "goal_space_api",
+        "goal_space_repository",
+        "goal_space_service",
+        "shared_actor_helper",
+        "web_tests"
+      ],
+      "dependencies": [
+        "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+        "docs/specs/interface_spec.md",
+        "docs/specs/authorization_matrix.md",
+        "apps/web/src/lib/state-machine/goal-space.ts",
+        "apps/web/src/lib/authorization/goal-space.ts",
+        "apps/web/src/lib/authorization/types.ts",
+        "apps/web/src/lib/audit/run-with-audit.ts",
+        "apps/web/src/lib/api/response.ts",
+        "apps/web/src/lib/api/request.ts",
+        "apps/web/src/lib/api/errors.ts",
+        "apps/web/src/lib/api/pagination.ts",
+        "apps/web/src/lib/auth/session.ts",
+        "apps/web/__tests__/api/route-test-harness.ts",
+        "apps/web/__tests__/__helpers__/sqlite.ts",
+        "apps/web/db/schema.ts"
+      ],
+      "test_needs": [
+        "Write failing goal space API contract tests first",
+        "Cover complete precondition matrix (CONFIRMATION_REQUIRED, STATE_CONFLICT, VALIDATION_ERROR)",
+        "Cover authorization boundaries (initiator, node-board member, non-member)",
+        "Cover audit_entries and realtime_events write paths per lifecycle call",
+        "Run targeted state-machine, audit, and goal space API tests",
+        "Run pnpm check",
+        "Run git diff --check"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required verification items pass or have documented exceptions",
+        "No unresolved blocking review findings remain",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "required",
+        "api_contract": "required",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable",
+        "diff_check": "required",
+        "startup_path": "required_if_needed_by_full_check"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}
