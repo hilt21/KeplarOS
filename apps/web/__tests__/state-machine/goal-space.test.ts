@@ -325,9 +325,7 @@ describe("COR-007: canGoalSpaceTransition with opts precondition inspection", ()
   });
 
   it("active → cancelled + 非空 cancelReason → true", () => {
-    expect(canGoalSpaceTransition("active", "cancelled", { cancelReason: "目标放弃" })).toBe(
-      true,
-    );
+    expect(canGoalSpaceTransition("active", "cancelled", { cancelReason: "目标放弃" })).toBe(true);
   });
 
   it("active → cancelled + 空 cancelReason → false", () => {
@@ -349,9 +347,7 @@ describe("COR-007: canGoalSpaceTransition with opts precondition inspection", ()
   });
 
   it("draft → cancelled + 非空 cancelReason → true(前置满足)", () => {
-    expect(canGoalSpaceTransition("draft", "cancelled", { cancelReason: "需求变更" })).toBe(
-      true,
-    );
+    expect(canGoalSpaceTransition("draft", "cancelled", { cancelReason: "需求变更" })).toBe(true);
   });
 
   it("active → completed + 错形状 opts(传 cancelReason)→ false", () => {

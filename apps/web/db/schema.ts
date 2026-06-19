@@ -682,7 +682,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   initiatedGoalSpaces: many(goalSpaces),
   memberships: many(nodeBoardMembers),
   assignedCards: many(cards),
-  triggeredConfirmations: many(humanConfirmations, { relationName: "humanConfirmations_triggeredBy" }),
+  triggeredConfirmations: many(humanConfirmations, {
+    relationName: "humanConfirmations_triggeredBy",
+  }),
   decidedConfirmations: many(humanConfirmations, { relationName: "humanConfirmations_decisionBy" }),
   invitedMemberships: many(nodeBoardMembers, { relationName: "nodeBoardMembers_invitedBy" }),
 }));

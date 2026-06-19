@@ -10,7 +10,7 @@
  * `ctx.afterState`, and `ctx.data` through this helper before INSERT.
  */
 
-export const REDACTED = '[REDACTED]';
+export const REDACTED = "[REDACTED]";
 
 /**
  * Frozen set of keys (lower-cased) whose values are replaced with `[REDACTED]`.
@@ -18,20 +18,20 @@ export const REDACTED = '[REDACTED]';
  */
 export const REDACT_KEYS: ReadonlySet<string> = Object.freeze(
   new Set<string>([
-    'password',
-    'passwd',
-    'pwd',
-    'token',
-    'access_token',
-    'refresh_token',
-    'api_key',
-    'apikey',
-    'secret',
-    'authorization', // header-style "Authorization: Bearer ..."
-    'auth',
-    'session_id', // identifying credential; redact to avoid plaintext session leak
-    'cookie',
-    'set-cookie',
+    "password",
+    "passwd",
+    "pwd",
+    "token",
+    "access_token",
+    "refresh_token",
+    "api_key",
+    "apikey",
+    "secret",
+    "authorization", // header-style "Authorization: Bearer ..."
+    "auth",
+    "session_id", // identifying credential; redact to avoid plaintext session leak
+    "cookie",
+    "set-cookie",
   ]),
 );
 
@@ -61,11 +61,11 @@ export function redactAuditDetails(input: unknown): unknown {
 }
 
 function redactInternal(input: unknown, depth: number): unknown {
-  if (depth > MAX_DEPTH) return '[truncated: depth]';
+  if (depth > MAX_DEPTH) return "[truncated: depth]";
   if (input === null || input === undefined) return input;
 
   const t = typeof input;
-  if (t !== 'object') return input; // primitives pass through unchanged
+  if (t !== "object") return input; // primitives pass through unchanged
 
   if (Array.isArray(input)) {
     return input.map((v) => redactInternal(v, depth + 1));

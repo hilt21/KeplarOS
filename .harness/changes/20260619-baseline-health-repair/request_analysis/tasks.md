@@ -14,16 +14,25 @@ Status: request_analysis
 - [ ] Preserve truthful wording for Playwright status in `docs/specs/global_unified_spec.md`.
   - Verify: `rg -n "Playwright" docs/specs/global_unified_spec.md`
 
+- [ ] Apply the approved 12-file formatting cleanup required by `pnpm format:check`.
+  - Verify: `pnpm format:check`
+
+- [ ] Update `.harness/skills/init.sh` to skip Rust verification when the workspace still contains placeholder-only Rust sources.
+  - Verify: `.harness/skills/init.sh` no longer exits on missing `cargo` for the current placeholder Rust workspace.
+
 ## Test Tasks
 
 - [ ] RED: reproduce the known baseline failure with the current repo before code edits.
   - Verify: run `.harness/skills/init.sh` or `pnpm lint` and capture the existing `middleware.ts` lint failure.
 
 - [ ] GREEN: rerun lint after fixing `middleware.ts`.
-  - Verify: `pnpm lint` under Node `20.10.0`
+  - Verify: `pnpm lint`
+
+- [ ] GREEN: rerun format check after the approved formatting cleanup.
+  - Verify: `pnpm format:check`
 
 - [ ] Rerun the standard startup/verification path after repo-scoped fixes.
-  - Verify: `.harness/skills/init.sh` under Node `20.10.0`
+  - Verify: `.harness/skills/init.sh`
 
 - [ ] Run diff hygiene checks.
   - Verify: `git diff --check`
@@ -38,17 +47,21 @@ Status: request_analysis
 
 ## Sequencing
 
-1. Step: Confirm execution precondition by using Node `20.10.0`.
-   Verify: `node --version` reports `v20.10.0`.
+1. Step: Confirm whether exact Node `20.10.0` is available locally.
+   Verify: `node --version` reports `v20.10.0`, or record unavailability.
 2. Step: Reproduce the lint failure.
    Verify: `pnpm lint` or `.harness/skills/init.sh` shows the existing `middleware.ts` error.
 3. Step: Write the minimal `middleware.ts` fix.
    Verify: targeted lint rerun passes for that file/repo.
 4. Step: Update `docs/specs/global_unified_spec.md`.
    Verify: stale current-state wording is removed and current repo state is described accurately.
-5. Step: Rerun baseline verification.
-   Verify: `.harness/skills/init.sh` or documented equivalent under Node `20.10.0`.
-6. Step: Record results and any remaining blockers.
+5. Step: Apply the approved formatting cleanup to the 12 files surfaced by `pnpm format:check`.
+   Verify: `pnpm format:check` passes.
+6. Step: Update `.harness/skills/init.sh` for placeholder Rust workspace handling.
+   Verify: current placeholder Rust crates no longer force `cargo`.
+7. Step: Rerun baseline verification.
+   Verify: `.harness/skills/init.sh` or documented equivalent.
+8. Step: Record results and any remaining blockers.
    Verify: testing/results.md and sprint_progress.md are updated during later phases.
 
 ## Dependencies

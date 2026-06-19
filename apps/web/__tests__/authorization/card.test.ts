@@ -106,9 +106,7 @@ describe("canMutateCard", () => {
   });
 
   it("AC-3.7: viewer 若是 assignedTo 也 false(写不通过分配关系授权 viewer)", () => {
-    expect(canMutateCard({ id: STRANGER, role: "viewer" }, "update", cardAssignedToMe)).toBe(
-      false,
-    );
+    expect(canMutateCard({ id: STRANGER, role: "viewer" }, "update", cardAssignedToMe)).toBe(false);
   });
 
   it("AC-3.7: initiator(goalSpaceInitiatorId)全 mutate → true", () => {

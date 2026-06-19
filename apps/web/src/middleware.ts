@@ -13,9 +13,9 @@
  * Per spec: docs/specs/non_functional_requirements.md §4.1, §4.2
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from "next/server";
 
-const STATE_CHANGING_METHODS: ReadonlySet<string> = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const STATE_CHANGING_METHODS: ReadonlySet<string> = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 /**
  * Extracts the host (with port) from an Origin header URL.
@@ -41,9 +41,9 @@ function isValidOrigin(req: NextRequest): boolean {
     // GET/HEAD/OPTIONS pass through
     return true;
   }
-  const origin = req.headers.get('origin');
+  const origin = req.headers.get("origin");
   if (!origin) return false;
-  const reqHost = req.headers.get('host');
+  const reqHost = req.headers.get("host");
   if (!reqHost) return false;
   return originHost(origin) === reqHost;
 }
@@ -56,18 +56,19 @@ function enforceSameSiteStrict(res: NextResponse): NextResponse {
   // `getSetCookie()` returns an array of all Set-Cookie header values.
   // `get('set-cookie')` only returns the joined string in older runtimes.
   const getSetCookie = (res.headers as { getSetCookie?: () => string[] }).getSetCookie;
-  const cookies: readonly string[] = typeof getSetCookie === 'function' ? getSetCookie.call(res.headers) : [];
+  const cookies: readonly string[] =
+    typeof getSetCookie === "function" ? getSetCookie.call(res.headers) : [];
 
   if (cookies.length === 0) return res;
 
   // Delete the existing (possibly combined) Set-Cookie header, then append each
   // cookie with SameSite=Strict enforced. This avoids duplicate cookies.
-  res.headers.delete('Set-Cookie');
+  res.headers.delete("Set-Cookie");
   for (const cookie of cookies) {
     if (/samesite=/i.test(cookie)) {
-      res.headers.append('Set-Cookie', cookie);
+      res.headers.append("Set-Cookie", cookie);
     } else {
-      res.headers.append('Set-Cookie', `${cookie}; SameSite=Strict`);
+      res.headers.append("Set-Cookie", `${cookie}; SameSite=Strict`);
     }
   }
   return res;
@@ -75,7 +76,7 @@ function enforceSameSiteStrict(res: NextResponse): NextResponse {
 
 export function middleware(req: NextRequest): NextResponse {
   if (!isValidOrigin(req)) {
-    return new NextResponse('CSRF: invalid origin', { status: 403 });
+    return new NextResponse("CSRF: invalid origin", { status: 403 });
   }
   const res = NextResponse.next();
   return enforceSameSiteStrict(res);
@@ -83,7 +84,7 @@ export function middleware(req: NextRequest): NextResponse {
 
 export const config = {
   matcher: [
-    '/api/:path*',
+    "/api/:path*",
     // Static assets, _next/*, etc. are excluded by Next.js by default.
   ],
 };

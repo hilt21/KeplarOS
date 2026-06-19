@@ -43,9 +43,7 @@ function fromHex(hex: string): Buffer {
  * Parse `N=32768,r=8,p=1`-style param string. Returns null on any malformed
  * input so callers can treat verification as a boolean.
  */
-function parseParams(
-  paramStr: string,
-): { N: number; r: number; p: number } | null {
+function parseParams(paramStr: string): { N: number; r: number; p: number } | null {
   const out: Record<string, number> = {};
   for (const kv of paramStr.split(",")) {
     const [k, v] = kv.split("=");
@@ -53,11 +51,7 @@ function parseParams(
     if (!k || !Number.isFinite(n) || n <= 0) return null;
     out[k] = n;
   }
-  if (
-    typeof out.N !== "number" ||
-    typeof out.r !== "number" ||
-    typeof out.p !== "number"
-  ) {
+  if (typeof out.N !== "number" || typeof out.r !== "number" || typeof out.p !== "number") {
     return null;
   }
   return { N: out.N, r: out.r, p: out.p };
@@ -86,10 +80,7 @@ export async function hashPassword(plaintext: string): Promise<string> {
  * Returns false (never throws) on malformed input or wrong password so callers
  * can use the result as a plain boolean.
  */
-export async function verifyPassword(
-  encoded: string,
-  plaintext: string,
-): Promise<boolean> {
+export async function verifyPassword(encoded: string, plaintext: string): Promise<boolean> {
   if (typeof encoded !== "string" || typeof plaintext !== "string") {
     return false;
   }

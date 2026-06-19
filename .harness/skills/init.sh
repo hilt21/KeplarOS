@@ -32,6 +32,24 @@ run_package_script() {
   fi
 }
 
+rust_workspace_is_placeholder_only() {
+  local rs_file
+  local found_rs=0
+
+  if [ ! -d crates ]; then
+    return 1
+  fi
+
+  while IFS= read -r rs_file; do
+    found_rs=1
+    if grep -Eqv '^[[:space:]]*(//.*)?$' "$rs_file"; then
+      return 1
+    fi
+  done < <(find crates -type f -name '*.rs' -print)
+
+  [ "$found_rs" -eq 1 ]
+}
+
 if [ -f package.json ]; then
   FOUND_MANIFEST=1
 
@@ -113,9 +131,13 @@ fi
 
 if [ -f Cargo.toml ]; then
   FOUND_MANIFEST=1
-  require_command cargo
-  echo "=== Running Rust verification ==="
-  cargo test
+  if rust_workspace_is_placeholder_only; then
+    echo "=== Skipping Rust verification: crates/ contains only placeholder/comment-only .rs files ==="
+  else
+    require_command cargo
+    echo "=== Running Rust verification ==="
+    cargo test
+  fi
 fi
 
 if [ -f pom.xml ]; then
