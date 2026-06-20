@@ -1,0 +1,108 @@
+{
+  "change_id": "20260619-phase2-execution-api",
+  "title": "Phase 2 deterministic AI lane executor API",
+  "status": "request_analysis",
+  "execution_model": {
+    "mode": "subagent_driven",
+    "tdd_required": true,
+    "superpowers_plan": "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+    "selected_plan_feature": "F2-07"
+  },
+  "features": [
+    {
+      "id": "F2-07",
+      "title": "Deterministic AI Lane Executor API",
+      "description": "Implement the deterministic AI lane executor REST API for the Web Collaboration Beta (F2-07). Adds the two documented endpoints in docs/specs/interface_spec.md § 7: POST /cards/:id/execute (kick off a fixture execution with one of the six documented AI roles) and GET /execute/:taskId (read the status of a previously-queued execution). The fixture executor is pure and synchronous — given the same card and role, returns the same structured result, with no external I/O. Reuses the F2-02 actor helper, the F-003 canExecuteCard authorization helper (with § 5 mandatory gate), the F-002 state-machine module (assertTransition + getRequiredActor), the F2-05 card repository (getCardContext, updateCardState, insertStateTransition), the F2-06 confirmation repository (createHumanConfirmationForExecution), and the F-004 runWithAudit transaction wrapper. Every lifecycle write persists an agent_executions row, an audit_entries row (entity_type 'agent_execution'), and a realtime_events row inside a single transaction; failure rolls back the execution. Backlog Refiner fixture moves backlog cards to todo. Review Guard fixture creates needs_confirmation for high-risk cards.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "POST /api/v1/cards/:id/execute returns 202 with ExecuteCardResponse (task_id, card_id, role, status='queued', estimated_time, polling_url); 401 without session; 422 VALIDATION_ERROR for invalid role; 403 FORBIDDEN for viewer; 404 NOT_FOUND for missing card; 409 CONFIRMATION_REQUIRED when a pending confirmation exists; 409 STATE_CONFLICT when card is in a terminal state.",
+        "GET /api/v1/execute/:taskId returns 200 with ExecuteStatusResponse; 401 without session; 404 NOT_FOUND for missing task; 403 FORBIDDEN for non-readable card.",
+        "Backlog Refiner fixture moves a backlog card toward todo: when card.state==='backlog' and role is Backlog Refiner, fixture returns result.new_state='todo' and service applies the (backlog, todo, dependencies_ready) state transition inside runWithAudit.",
+        "Review Guard fixture creates needs_confirmation for a high-risk card: when card.riskLevel==='high' and role is Review Guard, fixture creates a human_confirmations row with trigger_type='high_risk' and target_state='done' inside runWithAudit.",
+        "Failed execution records error_code + error_message on agent_executions and emits agent_execution.failed realtime event; audit action='execute_failed'.",
+        "Every execution lifecycle write persists exactly one agent_executions row, one audit_entries row (entity_type='agent_execution'), and one realtime_events row inside a single runWithAudit transaction.",
+        "Every state-changing execution persists exactly one state_transitions row inside the same transaction.",
+        "apps/web/src/lib/api/actor.ts is used by every F2-07 route (no F2-02 / F2-03 / F2-04 / F2-05 / F2-06 helper duplication).",
+        "canExecuteCard is used by the create service; the helper already encodes the § 5 mandatory gate (returns false when hasPendingConfirmation=true or currentState is terminal).",
+        "assertTransition is used for state transitions; IllegalTransitionError is mapped to 409 STATE_CONFLICT (consistent with F2-05 / F2-06).",
+        "AGENT_EXECUTION_REALTIME_EVENTS + AGENT_EXECUTION_AUDIT_ENTITY_TYPE are exported from apps/web/src/lib/services/executions.ts as a single source of truth for F2-08 SSE filtering; a snapshot test pins them.",
+        "The fixture executor is deterministic: same card + role → same result. It does not call any external I/O (LLM, MCP, ACP, A2A, GitHub, shell, network, filesystem write).",
+        "pnpm --filter @keplar/web test -- __tests__/api/executions.test.ts passes.",
+        "pnpm --filter @keplar/web test -- __tests__/authorization/execute.test.ts __tests__/authorization/execute-db.test.ts passes (no F-003 regression).",
+        "pnpm --filter @keplar/web test passes (the full web suite stays green; F2-06's 499 tests remain green).",
+        "pnpm check passes (typecheck + lint + test + build + format:check) with environment warnings only.",
+        "git diff --check passes.",
+        "No files outside the F2-07 file set or unrelated prior changes are modified."
+      ],
+      "affected_areas": [
+        "execution_api",
+        "execution_repository",
+        "execution_service",
+        "fixture_executor",
+        "role_registry",
+        "confirmation_creation",
+        "card_state_machine_integration",
+        "web_tests"
+      ],
+      "dependencies": [
+        "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+        "docs/specs/interface_spec.md",
+        "docs/specs/authorization_matrix.md",
+        "docs/architecture/state_transition.md",
+        "apps/web/db/schema.ts",
+        "apps/web/src/lib/state-machine/card.ts",
+        "apps/web/src/lib/authorization/execute.ts",
+        "apps/web/src/lib/authorization/types.ts",
+        "apps/web/src/lib/audit/run-with-audit.ts",
+        "apps/web/src/lib/api/actor.ts",
+        "apps/web/src/lib/api/response.ts",
+        "apps/web/src/lib/api/request.ts",
+        "apps/web/src/lib/api/errors.ts",
+        "apps/web/src/lib/db/repositories/cards.ts",
+        "apps/web/src/lib/db/client.ts",
+        "apps/web/__tests__/api/route-test-harness.ts"
+      ],
+      "test_needs": [
+        "Write failing execution API contract tests first (POST + GET, plus auth matrix, plus fixture executor results)",
+        "Cover fixture executor outputs for all 6 roles plus terminal-state rejection",
+        "Cover audit_entries + realtime_events + state_transitions write paths per execution",
+        "Cover human_confirmations creation when Review Guard on high-risk card",
+        "Cover CONFIRMATION_REQUIRED + STATE_CONFLICT edge cases",
+        "Cover idempotent / non-existent task_id 404",
+        "Cover realtime event constant snapshot for F2-08 handoff",
+        "Run targeted execution API tests",
+        "Run authorization tests for regression",
+        "Run full web suite for regression",
+        "Run pnpm check",
+        "Run git diff --check"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Test status is passed",
+        "Required verification matrix items pass or have documented exceptions",
+        "No unresolved blocking review findings remain",
+        "No unapproved scope deviation remains",
+        "Sprint progress updated",
+        "Handoff document written for F2-08"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "required",
+        "api_contract": "required",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable",
+        "diff_check": "required",
+        "startup_path": "required_if_needed_by_full_check"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}
