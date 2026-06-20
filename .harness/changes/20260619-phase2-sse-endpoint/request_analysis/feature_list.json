@@ -1,0 +1,107 @@
+{
+  "change_id": "20260619-phase2-sse-endpoint",
+  "title": "Phase 2 SSE dashboard endpoint",
+  "status": "request_analysis",
+  "execution_model": {
+    "mode": "subagent_driven",
+    "tdd_required": true,
+    "superpowers_plan": "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+    "selected_plan_feature": "F2-08"
+  },
+  "features": [
+    {
+      "id": "F2-08",
+      "title": "SSE Dashboard Endpoint",
+      "description": "Implement the Server-Sent Events (SSE) dashboard endpoint for the Web Collaboration Beta (F2-08). Adds the GET /api/v1/events?goal_space_id=<id> stream endpoint and the GET /api/v1/goal-spaces/:id/events?after_id=<event_id>&limit=100 replay endpoint per docs/specs/realtime_events.md § 4 + § 5. The SSE endpoint authenticates via HttpOnly session cookie, parses Last-Event-ID, replays events after the cursor, filters events by per-actor accessibility, opens a text/event-stream, sends heartbeat comments every 15 seconds while idle, and closes cleanly on client abort. The wire-format event type names (snake_case without dots, per realtime_events.md § 2) are translated from the storage-format event type names (dotted form, per the existing F2-04 / F2-05 / F2-06 / F2-07 services). The replay endpoint supports startup hydration, failed reconnects, and tests; unknown / expired after_id returns 409 EVENT_CURSOR_EXPIRED. No new auth, authorization, or audit primitives are introduced.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "GET /api/v1/events?goal_space_id=<id> returns 200 with Content-Type text/event-stream; 401 without session; 400 INVALID_FIELD for missing goal_space_id; 403 FORBIDDEN if actor has no access; 404 NOT_FOUND for missing goal space.",
+        "GET /api/v1/events with Last-Event-ID: <event_id> header replays events with id strictly greater than the cursor BEFORE opening the live stream; replay completes synchronously within the same HTTP response.",
+        "GET /api/v1/events live mode opens a ReadableStream that emits new events as they arrive in realtime_events for the goal space; closes cleanly on request.signal.aborted.",
+        "GET /api/v1/events heartbeat: emits :heartbeat SSE comment every 15 seconds while idle (format :heartbeat\\n\\n).",
+        "GET /api/v1/events permission filter: filters events by per-actor accessibility (initiator sees all in their goal spaces; non-initiator sees only events on cards / node boards / confirmations / executions they can read).",
+        "GET /api/v1/goal-spaces/:id/events?after_id=<event_id>&limit=100 returns 200 with {events, next_after_id?, has_more}; 400 INVALID_FIELD for limit > 500; 409 EVENT_CURSOR_EXPIRED for unknown after_id; events ordered by sequence ASC; default limit=100.",
+        "SSE frame format: each event emits id: <id>\\nevent: <wire-type>\\ndata: <json>\\n\\n per realtime_events.md § 4.",
+        "Wire-format event type mapping: storage card.created → wire card_created; storage human_confirmation.approved → wire confirmation_decided; storage agent_execution.queued → wire ai_role_started; etc. Snapshot-tested.",
+        "Event envelope matches RealtimeEvent<T> per realtime_events.md § 2: id, sequence, type, goal_space_id, resource: {type, id}, actor: {type, id?, name?}, data, occurred_at.",
+        "EVENT_CURSOR_EXPIRED added to API_ERROR_CODES with HTTP status 410 Gone.",
+        "STORAGE_TO_WIRE_TYPE_MAP exported from apps/web/src/lib/realtime/events.ts; snapshot test pins the mapping.",
+        "apps/web/src/lib/api/actor.ts is used by both routes (no F2-02 / F2-03 / F2-04 / F2-05 / F2-06 / F2-07 helper duplication).",
+        "Realtime event constants from F2-04 / F2-05 / F2-06 / F2-07 are consumed (no new event types introduced).",
+        "pnpm --filter @keplar/web test -- __tests__/api/realtime.test.ts passes.",
+        "pnpm --filter @keplar/web test passes (the full web suite stays green; F2-07's 511 tests remain green).",
+        "pnpm check passes (typecheck + lint + test + build + format:check) with environment warnings only.",
+        "git diff --check passes.",
+        "No files outside the F2-08 file set or unrelated prior changes are modified (except the documented errors.ts extension)."
+      ],
+      "affected_areas": [
+        "sse_endpoint",
+        "replay_endpoint",
+        "event_serialization",
+        "stream_factory",
+        "realtime_repository",
+        "web_tests"
+      ],
+      "dependencies": [
+        "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+        "docs/specs/realtime_events.md",
+        "docs/specs/interface_spec.md",
+        "docs/specs/authorization_matrix.md",
+        "apps/web/db/schema.ts",
+        "apps/web/src/lib/api/actor.ts",
+        "apps/web/src/lib/api/errors.ts",
+        "apps/web/src/lib/api/response.ts",
+        "apps/web/src/lib/authorization/types.ts",
+        "apps/web/src/lib/db/repositories/goal-spaces.ts",
+        "apps/web/src/lib/db/repositories/node-boards.ts",
+        "apps/web/src/lib/services/goal-spaces.ts",
+        "apps/web/src/lib/services/node-boards.ts",
+        "apps/web/src/lib/services/cards.ts",
+        "apps/web/src/lib/services/confirmations.ts",
+        "apps/web/src/lib/services/executions.ts",
+        "apps/web/src/lib/db/client.ts",
+        "apps/web/__tests__/api/route-test-harness.ts"
+      ],
+      "test_needs": [
+        "Write failing SSE API contract tests first (SSE + replay, plus auth matrix, plus event mapping)",
+        "Cover permission filter for non-member actor",
+        "Cover Last-Event-ID replay cursor",
+        "Cover EVENT_CURSOR_EXPIRED for unknown after_id",
+        "Cover heartbeat emission",
+        "Cover live mode new event emission",
+        "Cover wire-format event type mapping snapshot",
+        "Run targeted realtime API tests",
+        "Run full web suite for regression",
+        "Run pnpm check",
+        "Run git diff --check"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Test status is passed",
+        "Required verification matrix items pass or have documented exceptions",
+        "No unresolved blocking review findings remain",
+        "No unapproved scope deviation remains",
+        "Sprint progress updated",
+        "Handoff document written for F2-09 / F2-10"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "required",
+        "api_contract": "required",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable",
+        "diff_check": "required",
+        "startup_path": "required_if_needed_by_full_check"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}
