@@ -1,0 +1,105 @@
+{
+  "change_id": "20260619-phase2-confirmation-api",
+  "title": "Phase 2 human confirmation API",
+  "status": "request_analysis",
+  "execution_model": {
+    "mode": "subagent_driven",
+    "tdd_required": true,
+    "superpowers_plan": "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+    "selected_plan_feature": "F2-06"
+  },
+  "features": [
+    {
+      "id": "F2-06",
+      "title": "Human Confirmation API",
+      "description": "Implement the human confirmation REST API for the Web Collaboration Beta (F2-06). Adds the two documented endpoints in docs/specs/interface_spec.md § 6: GET /confirmations?status=pending (list accessible confirmations) and POST /confirmations/:id/decide (approve or reject a pending confirmation). Reuses the F2-02 actor helper, the F-003 canDecideConfirmation authorization helper, the F-002 state-machine module (assertTransition + human_confirm / human_reject triggers), the F2-05 card repository (getCardContext, updateCardState, insertStateTransition), and the F-004 runWithAudit transaction wrapper. Every decision write persists one audit_entries row (entity_type 'confirm'), one realtime_events row (resource_type 'confirmation'), one state_transitions row (when the card state changes), and the confirmation status update inside a single transaction; failure rolls back the decision. Pending human confirmations block the documented unblock / complete mutations via the F-003 gate, but this change does not introduce new gating logic.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "GET /api/v1/confirmations?status=pending returns 200 with {items, total}; initiator sees all pending confirmations on cards in their goal spaces; chain_user / viewer see only pending confirmations on cards they can read; defaults to status=pending; accepts status=approved|rejected|cancelled; 400 INVALID_FIELD for out-of-range status; 401 without session.",
+        "POST /api/v1/confirmations/:id/decide returns 200 with DecideConfirmationResponse; initiator only; 403 for non-initiator; 404 for missing confirmation; 409 STATE_CONFLICT for already-decided or cancelled confirmation; 422 VALIDATION_ERROR for invalid outcome or missing reason on reject; 401 without session.",
+        "Approval path: when target_state is present, the card transitions to target_state via 'human_confirm' trigger; state_transitions row written with actor='human'; returns card_state_changed=true, new_card_state=target_state.",
+        "Rejection path: the card transitions to 'blocked' via 'human_reject' trigger; state_transitions row written with actor='human'; decision_reason records the reject reason; returns card_state_changed=true, new_card_state='blocked'.",
+        "Every decision write persists exactly one audit_entries row (entity_type 'confirm') and one realtime_events row (resource_type 'confirmation') inside a single transaction; failure rolls back the decision.",
+        "Every state-changing decision persists exactly one state_transitions row inside the same transaction (F-002 contract).",
+        "apps/web/src/lib/api/actor.ts is used by every F2-06 route (no F2-02 / F2-03 / F2-04 / F2-05 helper duplication).",
+        "canDecideConfirmation is used by the decide service; the helper already encodes the § 5 mandatory gate (returns false when status is not 'pending' or actor is not the goal-space initiator).",
+        "assertTransition is used for both the approve and reject paths; IllegalTransitionError is mapped to 409 STATE_CONFLICT.",
+        "HUMAN_CONFIRMATION_REALTIME_EVENTS + HUMAN_CONFIRMATION_AUDIT_ENTITY_TYPE are exported from apps/web/src/lib/services/confirmations.ts as a single source of truth for F2-08 SSE filtering; a snapshot test pins them.",
+        "pnpm --filter @keplar/web test -- __tests__/api/confirmations.test.ts passes.",
+        "pnpm --filter @keplar/web test -- __tests__/authorization/confirmation.test.ts passes (no F-003 regression).",
+        "pnpm --filter @keplar/web test passes (the full web suite stays green; F2-05's 485 tests remain green).",
+        "pnpm check passes (typecheck + lint + test + build + format:check) with environment warnings only.",
+        "git diff --check passes.",
+        "No files outside the F2-06 file set or unrelated prior changes are modified."
+      ],
+      "affected_areas": [
+        "confirmation_api",
+        "confirmation_repository",
+        "confirmation_service",
+        "card_state_machine_integration",
+        "web_tests"
+      ],
+      "dependencies": [
+        "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+        "docs/specs/interface_spec.md",
+        "docs/specs/authorization_matrix.md",
+        "docs/architecture/state_transition.md",
+        "apps/web/db/schema.ts",
+        "apps/web/src/lib/state-machine/card.ts",
+        "apps/web/src/lib/authorization/confirmation.ts",
+        "apps/web/src/lib/authorization/types.ts",
+        "apps/web/src/lib/audit/run-with-audit.ts",
+        "apps/web/src/lib/api/actor.ts",
+        "apps/web/src/lib/api/response.ts",
+        "apps/web/src/lib/api/request.ts",
+        "apps/web/src/lib/api/errors.ts",
+        "apps/web/src/lib/api/pagination.ts",
+        "apps/web/src/lib/db/repositories/cards.ts",
+        "apps/web/src/lib/db/repositories/goal-spaces.ts",
+        "apps/web/src/lib/db/client.ts",
+        "apps/web/__tests__/api/route-test-harness.ts"
+      ],
+      "test_needs": [
+        "Write failing confirmation API contract tests first (list + decide, plus auth matrix, plus already-decided guard)",
+        "Cover membership matrix: initiator (sees all), chain_user (filtered by card access), viewer (filtered by card access)",
+        "Cover approve + reject paths with target_state validation",
+        "Cover audit_entries + realtime_events + state_transitions write paths per decision",
+        "Cover CONFIRMATION_REQUIRED + STATE_CONFLICT edge cases",
+        "Cover reason-required on reject",
+        "Cover realtime event constant snapshot for F2-08 handoff",
+        "Run targeted confirmation API tests",
+        "Run authorization tests for regression",
+        "Run full web suite for regression",
+        "Run pnpm check",
+        "Run git diff --check"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Test status is passed",
+        "Required verification matrix items pass or have documented exceptions",
+        "No unresolved blocking review findings remain",
+        "No unapproved scope deviation remains",
+        "Sprint progress updated",
+        "Handoff document written for F2-07 / F2-08"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "required",
+        "api_contract": "required",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable",
+        "diff_check": "required",
+        "startup_path": "required_if_needed_by_full_check"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}
