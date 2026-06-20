@@ -1,0 +1,109 @@
+{
+  "change_id": "20260619-phase2-card-api",
+  "title": "Phase 2 card and transition API",
+  "status": "request_analysis",
+  "execution_model": {
+    "mode": "subagent_driven",
+    "tdd_required": true,
+    "superpowers_plan": "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+    "selected_plan_feature": "F2-05"
+  },
+  "features": [
+    {
+      "id": "F2-05",
+      "title": "Card And Transition API",
+      "description": "Implement the card and state-transition REST API for the Web Collaboration Beta (F2-05). Adds the seven documented card endpoints in docs/specs/interface_spec.md § 4 plus the transition history endpoint in § 5.1. Reuses the F2-02 actor helper, the F-003 canReadCard / canMutateCard authorization helpers (with § 5 mandatory gate), the F-002 state-machine module (assertTransition + getRequiredActor + TRANSITION_TRIGGERS), the F2-04 repository read pattern, and the F-004 runWithAudit transaction wrapper. Every lifecycle write produces one audit_entries row, one realtime_events row, and (for state changes) one state_transitions row inside a single transaction; failure rolls back the business write. Pending human confirmations block the documented unblock / complete mutations and return 409 CONFIRMATION_REQUIRED.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "planned",
+      "acceptance_criteria": [
+        "POST /api/v1/goal-spaces/:goalSpaceId/cards returns 201 with the documented CardResponse for initiator and chain_user (with valid node_board_id); 403 for viewer; 404 for missing goal space or node board; 400 when title or node_board_id is missing; writes one audit_entries row and one card.created realtime_events row inside a single transaction.",
+        "GET /api/v1/goal-spaces/:goalSpaceId/cards returns 200 with {items, total}; initiator sees all cards; non-initiator sees only cards in their node boards or assigned to them; supports ?state, ?assigned_to, ?tags (comma-separated) filters; 404 if goal space missing; 403 if no access.",
+        "GET /api/v1/cards/:id returns 200 with CardDetailResponse (CardResponse + transitions, confirmations, audit_trail); 403 for non-readable card; 404 for missing.",
+        "PATCH /api/v1/cards/:id returns 200 with the updated CardResponse for initiator (always) and chain_user (for own node board or own assignment); 403 otherwise; 422 VALIDATION_ERROR for invalid risk_level or out-of-range priority; rejects state field on body.",
+        "POST /api/v1/cards/:id/assign returns 200 with the updated CardResponse; idempotent on the same assigned_to (no-op); writes card.assigned realtime + audit_entries when changed.",
+        "POST /api/v1/cards/:id/block returns 200 with the updated CardResponse; 422 VALIDATION_ERROR when reason is missing or empty; 409 STATE_CONFLICT when card is in a terminal state (done/cancelled); 422 VALIDATION_ERROR when the from-state cannot transition to blocked; writes state_transitions + audit_entries + card.blocked realtime_events.",
+        "POST /api/v1/cards/:id/unblock returns 200 with the updated CardResponse; 422 VALIDATION_ERROR when target_state is missing or not in {backlog, todo, dev, review}; 409 STATE_CONFLICT when current state is not blocked; 409 CONFIRMATION_REQUIRED when a pending human confirmation exists for the card; writes state_transitions + audit_entries + card.unblocked realtime_events.",
+        "GET /api/v1/cards/:id/transitions inherits card read permission; returns 200 with StateTransitionResponse[] ordered by timestamp ASC; 403 for non-readable card; 404 for missing.",
+        "Every lifecycle write persists exactly one audit_entries row and one realtime_events row inside a single transaction; failure rolls back the business write (F-004 runWithAudit contract).",
+        "Every state-changing write persists exactly one state_transitions row inside the same transaction (F-002 contract).",
+        "apps/web/src/lib/api/actor.ts is used by every F2-05 route (no F2-02 / F2-03 / F2-04 helper duplication).",
+        "canReadCard / canMutateCard is used by every F2-05 service that needs authorization; the canMutateCard('unblock') result already encodes the § 5 mandatory gate (returns false when hasPendingConfirmation=true).",
+        "assertTransition / canTransition / getRequiredActor is used by every state-changing service.",
+        "CARD_REALTIME_EVENTS + CARD_AUDIT_ENTITY_TYPE are exported from apps/web/src/lib/services/cards.ts as a single source of truth for F2-08 SSE filtering; a snapshot test pins them.",
+        "pnpm --filter @keplar/web test -- __tests__/api/cards.test.ts passes.",
+        "pnpm --filter @keplar/web test -- __tests__/state-machine/card.test.ts __tests__/authorization/card.test.ts passes (no F-002 / F-003 regression).",
+        "pnpm --filter @keplar/web test passes (the full web suite stays green; F2-04's 451 tests remain green).",
+        "pnpm check passes (typecheck + lint + test + build + format:check) with environment warnings only.",
+        "git diff --check passes.",
+        "No files outside the F2-05 file set or unrelated prior changes are modified."
+      ],
+      "affected_areas": [
+        "card_api",
+        "card_repository",
+        "card_service",
+        "card_transition_api",
+        "web_tests"
+      ],
+      "dependencies": [
+        "docs/superpowers/plans/2026-06-19-phase2-web-collaboration-beta.md",
+        "docs/specs/interface_spec.md",
+        "docs/specs/authorization_matrix.md",
+        "docs/architecture/state_transition.md",
+        "apps/web/db/schema.ts",
+        "apps/web/src/lib/state-machine/card.ts",
+        "apps/web/src/lib/authorization/card.ts",
+        "apps/web/src/lib/authorization/types.ts",
+        "apps/web/src/lib/audit/run-with-audit.ts",
+        "apps/web/src/lib/api/actor.ts",
+        "apps/web/src/lib/api/response.ts",
+        "apps/web/src/lib/api/request.ts",
+        "apps/web/src/lib/api/errors.ts",
+        "apps/web/src/lib/db/repositories/node-boards.ts",
+        "apps/web/src/lib/db/repositories/goal-spaces.ts",
+        "apps/web/src/lib/db/client.ts",
+        "apps/web/__tests__/api/route-test-harness.ts"
+      ],
+      "test_needs": [
+        "Write failing card API contract tests first (one per endpoint, plus auth matrix, plus state-machine + pending-confirmation gates)",
+        "Cover membership matrix: initiator, chain_user (member), chain_user (non-member), viewer, cross-goal-space",
+        "Cover lifecycle write paths: create, update, assign, block, unblock",
+        "Cover audit_entries + realtime_events + state_transitions write paths per lifecycle call",
+        "Cover idempotent assign on same assigned_to",
+        "Cover CONFIRMATION_REQUIRED gate on unblock",
+        "Cover STATE_CONFLICT on terminal-card block and wrong-state unblock",
+        "Cover realtime event constant snapshot for F2-08 handoff",
+        "Run targeted card API tests",
+        "Run state-machine and authorization tests for regression",
+        "Run full web suite for regression",
+        "Run pnpm check",
+        "Run git diff --check"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Test status is passed",
+        "Required verification matrix items pass or have documented exceptions",
+        "No unresolved blocking review findings remain",
+        "No unapproved scope deviation remains",
+        "Sprint progress updated",
+        "Handoff document written for F2-06 / F2-08"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "required",
+        "api_contract": "required",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable",
+        "diff_check": "required",
+        "startup_path": "required_if_needed_by_full_check"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}
