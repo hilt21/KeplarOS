@@ -3,9 +3,13 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
+  esbuild: {
+    jsx: "automatic",
+  },
   test: {
     environment: "jsdom",
     globals: false,
+    setupFiles: ["src/__tests__/setup.ts"],
     environmentMatchGlobs: [
       // F-001 schema-migrate + F-004 audit tests need node env for better-sqlite3 native module
       // (jsdom occasionally fails to load native .node bindings — see review/findings.md R-2)

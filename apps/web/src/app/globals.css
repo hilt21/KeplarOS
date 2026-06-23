@@ -50,3 +50,63 @@ body {
 [data-theme="dark"] {
   color-scheme: dark;
 }
+
+/* ─── F2-09 themes ─────────────────────────────────────────────────────
+ * Each `[data-theme="..."]` block below overrides a subset of --color-*
+ * tokens. Spacing, radius, motion, and font tokens are NOT themed.
+ * The default dark-codex theme is implicit (matches :root in tokens.css).
+ */
+
+[data-theme="dark-solarized"] {
+  --color-bg: #002b36;
+  --color-surface: #073642;
+  --color-surface-elevated: #586e75;
+  --color-border: #586e75;
+  --color-text-primary: #eee8d5;
+  --color-text-secondary: #93a1a1;
+  --color-text-muted: #657b83;
+  --color-primary: #268bd2;
+  --color-primary-hover: #2aa198;
+  --color-secondary: #839496;
+  --color-success: #859900;
+  --color-warning: #b58900;
+  --color-error: #dc322f;
+  --color-info: #6c71c4;
+  color-scheme: dark;
+}
+
+[data-theme="light-paper"] {
+  --color-bg: #fdf6e3;
+  --color-surface: #eee8d5;
+  --color-surface-elevated: #ffffff;
+  --color-border: #dcd6c2;
+  --color-text-primary: #073642;
+  --color-text-secondary: #586e75;
+  --color-text-muted: #93a1a1;
+  --color-primary: #268bd2;
+  --color-primary-hover: #2aa198;
+  --color-secondary: #839496;
+  --color-success: #859900;
+  --color-warning: #b58900;
+  --color-error: #dc322f;
+  --color-info: #6c71c4;
+  color-scheme: light;
+}
+
+[data-theme="dark-monokai"] {
+  --color-bg: #1e1f1c;
+  --color-surface: #272822;
+  --color-surface-elevated: #3e3d32;
+  --color-border: #3e3d32;
+  --color-text-primary: #f8f8f2;
+  --color-text-secondary: #cfcfc2;
+  --color-text-muted: #75715e;
+  --color-primary: #a6e22e;
+  --color-primary-hover: #b6f23e;
+  --color-secondary: #75715e;
+  --color-success: #a6e22e;
+  --color-warning: #e6db74;
+  --color-error: #f92672;
+  --color-info: #66d9ef;
+  color-scheme: dark;
+}

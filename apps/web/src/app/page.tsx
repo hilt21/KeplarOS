@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Page(): React.ReactElement {
   return (
     <main
@@ -18,7 +20,7 @@ export default function Page(): React.ReactElement {
           margin: 0,
         }}
       >
-        KEPLAR Phase 1 S1 Ready
+        KEPLAR Phase 2 Beta
       </h1>
       <p
         style={{
@@ -27,17 +29,20 @@ export default function Page(): React.ReactElement {
           margin: 0,
         }}
       >
-        脚手架与基础设施已就绪。后续 S2 领域核心、S3 API/SSE、S4 Dashboard 将在此基础上增量交付。
+        AgentOS three-pane collaboration workspace — goal spaces, node boards, cards, and confirmations.
       </p>
-      <code
+      <Link
+        href="/goal-spaces"
         style={{
           fontSize: "var(--font-small)",
           color: "var(--color-primary)",
           fontFamily: "var(--font-jetbrains-mono, monospace)",
+          textDecoration: "none",
+          borderBottom: "1px solid var(--color-primary)",
         }}
       >
-        branch: 20260606-dev-bootstrap · change: 20260606-s1-scaffold
-      </code>
+        → open goal spaces
+      </Link>
     </main>
   );
 }

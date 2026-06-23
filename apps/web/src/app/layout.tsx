@@ -24,12 +24,34 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }): React.ReactElement {
+  // FOUC-prevention script: read the stored theme id from localStorage and
+  // apply it to <html data-theme="..."> before first paint. React will
+  // warn about a hydration mismatch on the data-theme attribute; suppress
+  // it via suppressHydrationWarning (the value is intentionally
+  // client-controlled after first paint).
+  const themeBootstrapScript = `
+(function () {
+  try {
+    var k = 'keplar.theme';
+    var v = window.localStorage.getItem(k);
+    var allowed = ['dark-codex','dark-solarized','light-paper','dark-monokai'];
+    if (v && allowed.indexOf(v) >= 0) {
+      document.documentElement.dataset.theme = v;
+    }
+  } catch (e) { /* tolerate */ }
+})();
+`.trim();
+
   return (
     <html
       lang="zh-CN"
       data-theme="dark"
+      suppressHydrationWarning
       className={`${instrumentSans.variable} ${jetbrainsMono.variable}`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+      </head>
       <body>{children}</body>
     </html>
   );
