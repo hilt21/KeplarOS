@@ -29,7 +29,8 @@ export default function Page(): React.ReactElement {
           margin: 0,
         }}
       >
-        AgentOS three-pane collaboration workspace — goal spaces, node boards, cards, and confirmations.
+        AgentOS three-pane collaboration workspace — goal spaces, node boards, cards, and
+        confirmations.
       </p>
       <Link
         href="/goal-spaces"

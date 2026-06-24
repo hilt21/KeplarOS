@@ -30,8 +30,21 @@ export interface CardDetailDrawerProps {
   readonly card: CardResponse | null;
   readonly onClose: () => void;
   readonly onTransition: (target: CardState) => void;
-  readonly transitions: readonly { id: string; from_state: CardState | null; to_state: CardState; trigger: string; actor: string; timestamp: string }[];
-  readonly auditTrail: readonly { id: string; action: string; actor: string; actor_id: string | null; timestamp: string }[];
+  readonly transitions: readonly {
+    id: string;
+    from_state: CardState | null;
+    to_state: CardState;
+    trigger: string;
+    actor: string;
+    timestamp: string;
+  }[];
+  readonly auditTrail: readonly {
+    id: string;
+    action: string;
+    actor: string;
+    actor_id: string | null;
+    timestamp: string;
+  }[];
 }
 
 type Tab = "OVERVIEW" | "TRANSITIONS" | "AUDIT";
@@ -103,7 +116,9 @@ export function CardDetailDrawer({
             onClick={() => setTab(t)}
             className={[
               "border-r border-[var(--color-border)] px-[var(--space-md)] py-[var(--space-xs)] font-[var(--font-jetbrains-mono,monospace)]",
-              tab === t ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]",
+              tab === t
+                ? "text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]",
             ].join(" ")}
             style={{ transitionDuration: "var(--motion-hover)" }}
           >
@@ -116,7 +131,9 @@ export function CardDetailDrawer({
         {tab === "OVERVIEW" && (
           <div className="flex flex-col gap-[var(--space-md)] p-[var(--space-md)]">
             <p className="font-[var(--font-instrument-sans,system-ui,sans-serif)] text-[var(--font-body)] text-[var(--color-text-primary)]">
-              {card.description || <span className="italic text-[var(--color-text-muted)]">{"// no description"}</span>}
+              {card.description || (
+                <span className="italic text-[var(--color-text-muted)]">{"// no description"}</span>
+              )}
             </p>
             <dl className="grid grid-cols-[120px_1fr] gap-y-[var(--space-2xs)] font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-micro)]">
               <dt className="text-[var(--color-text-muted)]">state</dt>
@@ -127,7 +144,9 @@ export function CardDetailDrawer({
               <dd className="text-[var(--color-text-primary)]">{card.risk_level}</dd>
               <dt className="text-[var(--color-text-muted)]">assigned</dt>
               <dd className="text-[var(--color-text-primary)]">
-                {card.assigned_to ?? <span className="italic text-[var(--color-text-muted)]">unassigned</span>}
+                {card.assigned_to ?? (
+                  <span className="italic text-[var(--color-text-muted)]">unassigned</span>
+                )}
               </dd>
             </dl>
           </div>
@@ -135,7 +154,9 @@ export function CardDetailDrawer({
 
         {tab === "TRANSITIONS" && (
           <ul className="divide-y divide-[var(--color-border)]">
-            {transitions.length === 0 && <EmptyState kind="empty" caption="// no transitions yet" />}
+            {transitions.length === 0 && (
+              <EmptyState kind="empty" caption="// no transitions yet" />
+            )}
             {transitions.map((t) => (
               <li
                 key={t.id}
@@ -157,7 +178,9 @@ export function CardDetailDrawer({
 
         {tab === "AUDIT" && (
           <ul className="divide-y divide-[var(--color-border)]">
-            {auditTrail.length === 0 && <EmptyState kind="empty" caption="// no audit entries yet" />}
+            {auditTrail.length === 0 && (
+              <EmptyState kind="empty" caption="// no audit entries yet" />
+            )}
             {auditTrail.map((a) => (
               <li
                 key={a.id}
@@ -169,7 +192,9 @@ export function CardDetailDrawer({
                   <span className="px-[var(--space-2xs)] text-[var(--color-text-muted)]">by</span>
                   <span className="text-[var(--color-text-primary)]">{a.actor}</span>
                   {a.actor_id !== null && (
-                    <span className="px-[var(--space-2xs)] text-[var(--color-text-muted)]">#{a.actor_id.slice(0, 6)}</span>
+                    <span className="px-[var(--space-2xs)] text-[var(--color-text-muted)]">
+                      #{a.actor_id.slice(0, 6)}
+                    </span>
                   )}
                 </span>
               </li>

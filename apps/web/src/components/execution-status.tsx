@@ -83,9 +83,7 @@ export function ExecutionStatus({ events }: ExecutionStatusProps): React.ReactEl
               <span className="text-[var(--color-text-secondary)]">
                 {row.resourceId.slice(0, 8)}
               </span>
-              <span className="text-[var(--color-text-muted)]">
-                {formatElapsed(elapsed)}
-              </span>
+              <span className="text-[var(--color-text-muted)]">{formatElapsed(elapsed)}</span>
             </li>
           );
         })}

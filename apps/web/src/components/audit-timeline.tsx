@@ -60,9 +60,7 @@ export function AuditTimeline({ events }: AuditTimelineProps): React.ReactElemen
   const [activeFilters, setActiveFilters] = useState<Set<RealtimeEventType>>(new Set());
 
   const filtered =
-    activeFilters.size === 0
-      ? events
-      : events.filter((e) => activeFilters.has(e.type));
+    activeFilters.size === 0 ? events : events.filter((e) => activeFilters.has(e.type));
 
   return (
     <section className="flex flex-col">
@@ -92,7 +90,9 @@ export function AuditTimeline({ events }: AuditTimelineProps): React.ReactElemen
               }
               className={[
                 "border border-[var(--color-border)] px-[var(--space-2xs)] py-[var(--space-2xs)] font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-micro)] uppercase",
-                on ? "bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]",
+                on
+                  ? "bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]",
               ].join(" ")}
               style={{ transitionDuration: "var(--motion-hover)" }}
             >
@@ -116,23 +116,26 @@ export function AuditTimeline({ events }: AuditTimelineProps): React.ReactElemen
             {"// idle"}
           </li>
         )}
-        {filtered.slice().reverse().map((ev) => (
-          <li
-            key={ev.id}
-            className="flex flex-col gap-[var(--space-2xs)] px-[var(--space-md)] py-[var(--space-xs)] font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-micro)]"
-          >
-            <div className="flex items-center gap-[var(--space-2xs)]">
-              <span className="text-[var(--color-text-muted)]">[{timeOnly(ev.occurred_at)}]</span>
-              <span className="text-[var(--color-text-secondary)]">{ev.id.slice(0, 8)}</span>
-              <span style={{ color: TYPE_COLOR[ev.type] ?? "var(--color-text-primary)" }}>
-                {ev.type}
-              </span>
-              <span className="text-[var(--color-text-muted)]">
-                {ev.resource.type}:{ev.resource.id.slice(0, 8)}
-              </span>
-            </div>
-          </li>
-        ))}
+        {filtered
+          .slice()
+          .reverse()
+          .map((ev) => (
+            <li
+              key={ev.id}
+              className="flex flex-col gap-[var(--space-2xs)] px-[var(--space-md)] py-[var(--space-xs)] font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-micro)]"
+            >
+              <div className="flex items-center gap-[var(--space-2xs)]">
+                <span className="text-[var(--color-text-muted)]">[{timeOnly(ev.occurred_at)}]</span>
+                <span className="text-[var(--color-text-secondary)]">{ev.id.slice(0, 8)}</span>
+                <span style={{ color: TYPE_COLOR[ev.type] ?? "var(--color-text-primary)" }}>
+                  {ev.type}
+                </span>
+                <span className="text-[var(--color-text-muted)]">
+                  {ev.resource.type}:{ev.resource.id.slice(0, 8)}
+                </span>
+              </div>
+            </li>
+          ))}
       </ul>
     </section>
   );

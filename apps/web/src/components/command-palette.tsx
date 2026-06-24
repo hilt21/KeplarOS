@@ -21,7 +21,11 @@ type Item =
   | { kind: "shortcut"; shortcut: Shortcut }
   | { kind: "command"; label: string; insert: string };
 
-export function CommandPalette({ open, onClose, onActivate }: CommandPaletteProps): React.ReactElement | null {
+export function CommandPalette({
+  open,
+  onClose,
+  onActivate,
+}: CommandPaletteProps): React.ReactElement | null {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -50,12 +54,14 @@ export function CommandPalette({ open, onClose, onActivate }: CommandPaletteProp
   if (!open) return null;
 
   const q = query.trim().toLowerCase();
-  const filtered = q === ""
-    ? items
-    : items.filter((it) => {
-        const label = it.kind === "shortcut" ? it.shortcut.label.toLowerCase() : it.label.toLowerCase();
-        return label.includes(q);
-      });
+  const filtered =
+    q === ""
+      ? items
+      : items.filter((it) => {
+          const label =
+            it.kind === "shortcut" ? it.shortcut.label.toLowerCase() : it.label.toLowerCase();
+          return label.includes(q);
+        });
 
   const onKeyDown = (e: React.KeyboardEvent): void => {
     if (e.key === "Escape") {

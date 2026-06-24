@@ -10,11 +10,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import {
-  findShortcut,
-  parseChord,
-  registerShortcuts,
-} from "./shortcuts";
+import { findShortcut, parseChord, registerShortcuts } from "./shortcuts";
 import type { Shortcut } from "./shortcuts";
 
 export type { Shortcut };

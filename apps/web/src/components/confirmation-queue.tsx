@@ -16,7 +16,10 @@ export interface ConfirmationQueueProps {
   readonly onDecide: (id: string, outcome: "approved" | "rejected") => Promise<void>;
 }
 
-export function ConfirmationQueue({ confirmations, onDecide }: ConfirmationQueueProps): React.ReactElement {
+export function ConfirmationQueue({
+  confirmations,
+  onDecide,
+}: ConfirmationQueueProps): React.ReactElement {
   const [pending, setPending] = useState<Set<string>>(new Set());
   const [collapsed, setCollapsed] = useState(false);
 
@@ -82,7 +85,9 @@ export function ConfirmationQueue({ confirmations, onDecide }: ConfirmationQueue
                     onClick={() => void handleDecide(c.id, "approved")}
                     className={[
                       "border border-[var(--color-border)] bg-transparent px-[var(--space-sm)] py-[var(--space-2xs)] font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-micro)] uppercase text-[var(--color-success)]",
-                      isPending ? "underline underline-offset-2" : "hover:border-[var(--color-success)]",
+                      isPending
+                        ? "underline underline-offset-2"
+                        : "hover:border-[var(--color-success)]",
                     ].join(" ")}
                   >
                     approve
@@ -93,7 +98,9 @@ export function ConfirmationQueue({ confirmations, onDecide }: ConfirmationQueue
                     onClick={() => void handleDecide(c.id, "rejected")}
                     className={[
                       "border border-[var(--color-border)] bg-transparent px-[var(--space-sm)] py-[var(--space-2xs)] font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-micro)] uppercase text-[var(--color-error)]",
-                      isPending ? "underline underline-offset-2" : "hover:border-[var(--color-error)]",
+                      isPending
+                        ? "underline underline-offset-2"
+                        : "hover:border-[var(--color-error)]",
                     ].join(" ")}
                   >
                     reject

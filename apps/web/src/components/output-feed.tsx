@@ -58,10 +58,7 @@ export function OutputFeed({ entries }: OutputFeedProps): React.ReactElement {
             >
               <span className="text-[var(--color-text-muted)]">{e.timestamp.slice(11, 19)}</span>
               {KIND_LABEL[e.kind] && (
-                <span
-                  aria-hidden
-                  style={{ color: KIND_BORDER[e.kind] }}
-                >
+                <span aria-hidden style={{ color: KIND_BORDER[e.kind] }}>
                   {KIND_LABEL[e.kind]}
                 </span>
               )}

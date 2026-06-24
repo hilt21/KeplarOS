@@ -22,9 +22,7 @@ export default async function AppLayout({
 }): Promise<React.ReactElement> {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("keplar_session");
-  const cookieHeader = sessionCookie
-    ? `keplar_session=${sessionCookie.value}`
-    : "";
+  const cookieHeader = sessionCookie ? `keplar_session=${sessionCookie.value}` : "";
   const internalRequest = new Request("http://internal/app", {
     headers: cookieHeader ? { cookie: cookieHeader } : {},
   });

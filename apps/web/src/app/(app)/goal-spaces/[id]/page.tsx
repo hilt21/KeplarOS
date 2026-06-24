@@ -58,11 +58,5 @@ export default async function GoalSpaceDetailPage({
   });
   const confirmations = confirmationsResult.items;
 
-  return (
-    <GoalSpaceShell
-      snapshot={snapshot}
-      boards={boards.items}
-      confirmations={confirmations}
-    />
-  );
+  return <GoalSpaceShell snapshot={snapshot} boards={boards.items} confirmations={confirmations} />;
 }
