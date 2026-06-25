@@ -20,7 +20,7 @@ jobs:
   build-test:
     name: Build & Test (workspace root)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,5 +45,14 @@ jobs:
       - name: Install (frozen lockfile)
         run: pnpm install --frozen-lockfile
 
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Verify (typecheck + lint + test + build + format:check)
         run: pnpm check
+
+      - name: Smoke (Vitest smoke.test.ts only)
+        run: pnpm smoke
+
+      - name: E2E (Playwright happy-path)
+        run: pnpm e2e

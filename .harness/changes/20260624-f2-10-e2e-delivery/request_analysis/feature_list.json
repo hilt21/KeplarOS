@@ -1,0 +1,44 @@
+{
+  "change_id": "20260624-f2-10-e2e-delivery",
+  "name": "F2-10 E2E, Smoke, and Delivery Docs",
+  "created_at": "2026-06-24",
+  "status": "request_analysis",
+  "phase": 1,
+  "feature": {
+    "summary": "Add Playwright happy-path E2E test, wire `pnpm e2e` and `pnpm smoke` scripts, update CI, refresh docs.",
+    "depends_on": ["F2-09 Web Beta UI"],
+    "exit_gate": "`pnpm check` + `pnpm smoke` + `pnpm e2e` all pass; CI runs all three."
+  },
+  "acceptance_criteria": [
+    { "id": "AC-1", "text": "apps/web/playwright.config.ts exists, chromium only, baseURL http://localhost:3000, webServer = pnpm dev", "verified_by": "pnpm exec playwright test --list" },
+    { "id": "AC-2", "text": "apps/web/e2e/phase2-board.spec.ts walks login (via cookie minted with the new `signSessionValue` export from `lib/auth/session.ts`) → list → detail → create card (via command palette) → execute → approve (if pending) → audit → SSE-driven update", "verified_by": "pnpm e2e" },
+    { "id": "AC-3", "text": "apps/web/package.json has e2e, e2e:ui, smoke scripts", "verified_by": "cat apps/web/package.json | grep" },
+    { "id": "AC-4", "text": "Root package.json forwards e2e and smoke to the web workspace", "verified_by": "cat package.json | grep" },
+    { "id": "AC-5", "text": ".github/workflows/web-ci.yml runs playwright install + pnpm smoke + pnpm e2e after pnpm check", "verified_by": "cat .github/workflows/web-ci.yml" },
+    { "id": "AC-6", "text": "docs/architecture/test_matrix.md mentions pnpm e2e and pnpm smoke in the verification gates", "verified_by": "grep" },
+    { "id": "AC-7", "text": "pnpm check remains green (existing 566 tests untouched)", "verified_by": "pnpm check" },
+    { "id": "AC-8", "text": "pnpm smoke passes (existing __tests__/smoke.test.ts)", "verified_by": "pnpm smoke" },
+    { "id": "AC-9", "text": "pnpm e2e passes in this session, OR unavailability is documented with reason + risk", "verified_by": "pnpm e2e OR testing/results.md" },
+    { "id": "AC-10", "text": "delivery/summary.md and handoff.md are written", "verified_by": "ls delivery/" }
+  ],
+  "verification_matrix": [
+    { "criterion": "AC-1", "command": "pnpm exec playwright test --list", "expectation": "exits 0, lists at least one project (chromium)" },
+    { "criterion": "AC-2", "command": "pnpm e2e", "expectation": "exits 0; spec file exists and is non-empty" },
+    { "criterion": "AC-7", "command": "pnpm check", "expectation": "exit 0; 566 tests pass" },
+    { "criterion": "AC-8", "command": "pnpm smoke", "expectation": "exit 0; smoke.test.ts passes" }
+  ],
+  "scope_amendments": [],
+  "followups_post_phase2": [
+    "Goal-space creation UI",
+    "Node-board creation UI",
+    "Login page UI"
+  ],
+  "risks": [
+    { "id": "R1", "desc": "Playwright browser binaries missing", "mitigation": "pnpm exec playwright install chromium in CI" },
+    { "id": "R2", "desc": "SSE-driven UI assertions can be flaky", "mitigation": "use expect.toBeVisible with 10s timeout, no hard sleeps" },
+    { "id": "R3", "desc": "Fixture executor outcome is not deterministic across role + card combinations", "mitigation": "test asserts observable UI behavior, not specific state transitions" },
+    { "id": "R4", "desc": "CI browser install may be slow / fail on macOS-arm runners", "mitigation": "document unavailability with reason in testing/results.md" },
+    { "id": "R5", "desc": "Adding Playwright may push CI runtime past 15-min default", "mitigation": "single happy-path test; unit-test matrix covers details" },
+    { "id": "R6", "desc": "Real seed data variance in fixture executor", "mitigation": "waitForSseEvent pattern in E2E" }
+  ]
+}

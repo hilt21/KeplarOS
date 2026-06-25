@@ -10,6 +10,8 @@
     "typecheck": "pnpm --filter @keplar/web typecheck",
     "lint": "pnpm --filter @keplar/web lint",
     "test": "pnpm --filter @keplar/web test",
+    "smoke": "pnpm --filter @keplar/web smoke",
+    "e2e": "pnpm --filter @keplar/web e2e",
     "build": "pnpm --filter @keplar/web build",
     "format:check": "pnpm --filter @keplar/web format:check",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm format:check",

@@ -128,6 +128,12 @@ function verifySessionValue(value: string): { userId: string } | null {
   return { userId: payload.sub };
 }
 
+export function signSessionValue(payload: { sub: string; exp: number }): string {
+  const encodedPayload = encodePayload(payload);
+  const signature = signPayload(encodedPayload);
+  return `${SESSION_VERSION}.${encodedPayload}.${signature}`;
+}
+
 export async function createSession(userId: string): Promise<SessionCookie> {
   const expiresAt = new Date(Date.now() + SESSION_TTL_SECONDS * 1000).toISOString();
   const encodedPayload = encodePayload({

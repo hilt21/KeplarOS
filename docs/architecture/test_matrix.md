@@ -2,18 +2,35 @@
 title: KEPLAR 测试矩阵
 ---
 
+## 0. 验证门禁 (Phase 2)
+
+`pnpm check` 是 Phase 2 最低门槛;`pnpm smoke` 与 `pnpm e2e` 是 Web beta 协作的可选增强门禁。
+
+| 命令 | 覆盖 | 备注 |
+|------|------|------|
+| `pnpm typecheck` | tsc --noEmit | 全仓 TS 类型校验 |
+| `pnpm lint` | eslint | 全仓 lint |
+| `pnpm test` | Vitest 单测 / 集成 / API 契约 / SSE 契约 / 迁移 | 全部 565+ 测试 |
+| `pnpm smoke` | 仅 `__tests__/smoke.test.ts` | 快速冒烟,与 `pnpm test` 是互补关系 |
+| `pnpm build` | next build | 生产构建 |
+| `pnpm format:check` | prettier --check | 代码风格 |
+| `pnpm check` | 串联 typecheck + lint + test + build + format:check | 一键完整验证 |
+| `pnpm e2e` | Playwright 单一 happy path (`apps/web/e2e/phase2-board.spec.ts`) | 需要 `pnpm exec playwright install chromium`,首次运行自动启动 `pnpm dev` |
+
+CI 在 `.github/workflows/web-ci.yml` 顺序执行:`pnpm install --frozen-lockfile` → `pnpm exec playwright install --with-deps chromium` → `pnpm check` → `pnpm smoke` → `pnpm e2e`。
+
 ## 1. 测试覆盖矩阵
 
 ### 1.1 测试类型说明
 
 | 测试类型 | 说明 | 测试工具 |
 |---------|------|---------|
-| 功能测试 | 验证核心功能正常工作 | Jest/Vitest |
-| 集成测试 | 验证模块间协作正常 | Jest + Supertest |
+| 功能测试 | 验证核心功能正常工作 | Vitest |
+| 集成测试 | 验证模块间协作正常 | Vitest + better-sqlite3 |
 | E2E 测试 | 验证完整用户流程 | Playwright |
-| 边界测试 | 验证边界条件和极端输入 | Jest |
-| 异常测试 | 验证异常情况处理 | Jest |
-| 性能测试 | 验证系统响应和负载能力 | k6 / Playwright |
+| 边界测试 | 验证边界条件和极端输入 | Vitest |
+| 异常测试 | 验证异常情况处理 | Vitest |
+| 性能测试 | 验证系统响应和负载能力 | k6 / Playwright(Phase 2 不做) |
 
 ### 1.2 测试覆盖矩阵
 
