@@ -19,7 +19,12 @@ import { apiError } from "@/lib/api/response";
 import { requireActor } from "@/lib/api/actor";
 import { getDb } from "@/lib/db/client";
 import { getGoalSpaceWithMembers } from "@/lib/db/repositories/goal-spaces";
-import { listRealtimeEvents, type RealtimeEventRow } from "@/lib/db/repositories/realtime-events";
+import {
+  getLatestSequenceForGoalSpace,
+  getSequenceForRealtimeEvent,
+  listRealtimeEvents,
+  type RealtimeEventRow,
+} from "@/lib/db/repositories/realtime-events";
 import { rowToWireEvent, serializeSseEvent } from "@/lib/realtime/events";
 import { createSseStream } from "@/lib/realtime/stream";
 
@@ -53,13 +58,14 @@ export async function GET(request: Request): Promise<Response> {
       return apiError("FORBIDDEN", "Cannot read this goal space.");
     }
 
-    // Replay phase: synchronous read of events with id > cursor.
+    // Replay phase: synchronous read of events with sequence > cursor.
     const lastEventIdHeader = request.headers.get("last-event-id");
-    let cursorSequence = 0;
+    let cursorSequence = getLatestSequenceForGoalSpace(db, goalSpaceId);
     const replayedFrames: Uint8Array[] = [];
     if (lastEventIdHeader !== null && lastEventIdHeader.length > 0) {
+      cursorSequence = getSequenceForRealtimeEvent(db, goalSpaceId, lastEventIdHeader);
       const result = listRealtimeEvents(db, goalSpaceId, {
-        afterId: lastEventIdHeader,
+        afterSequence: cursorSequence,
         limit: 500,
       });
       const encoder = new TextEncoder();

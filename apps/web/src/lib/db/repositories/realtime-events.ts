@@ -69,7 +69,9 @@ export function listRealtimeEvents(
   if (options.afterSequence !== undefined) {
     conds.push(gt(realtimeEvents.sequence, options.afterSequence));
   } else if (options.afterId !== undefined) {
-    conds.push(gt(realtimeEvents.id, options.afterId));
+    conds.push(
+      gt(realtimeEvents.sequence, getSequenceForRealtimeEvent(db, goalSpaceId, options.afterId)),
+    );
   }
 
   // Read limit + 1 to detect hasMore.
@@ -105,6 +107,31 @@ export function getLatestSequenceForGoalSpace(db: DrizzleDb, goalSpaceId: string
 }
 
 /**
+ * Resolve a replay cursor event id to its sequence within a goal space.
+ * Throws EVENT_CURSOR_EXPIRED when the event is missing.
+ */
+export function getSequenceForRealtimeEvent(
+  db: DrizzleDb,
+  goalSpaceId: string,
+  eventId: string,
+): number {
+  const row = db
+    .select({ sequence: realtimeEvents.sequence })
+    .from(realtimeEvents)
+    .where(and(eq(realtimeEvents.goalSpaceId, goalSpaceId), eq(realtimeEvents.id, eventId)))
+    .get() as { sequence: number } | undefined;
+
+  if (!row) {
+    throw new ApiRequestError(
+      "EVENT_CURSOR_EXPIRED",
+      "The replay cursor is unknown or older than the retention window.",
+    );
+  }
+
+  return row.sequence;
+}
+
+/**
  * Validate that the `after_id` cursor is not older than the retention
  * window. Per realtime_events.md § 5, an expired cursor returns
  * `EVENT_CURSOR_EXPIRED` (HTTP 410).
@@ -113,17 +140,7 @@ export function getLatestSequenceForGoalSpace(db: DrizzleDb, goalSpaceId: string
  * endpoint uses this helper to enforce the documented error contract.
  */
 export function assertCursorExists(db: DrizzleDb, goalSpaceId: string, afterId: string): void {
-  const row = db
-    .select({ id: realtimeEvents.id })
-    .from(realtimeEvents)
-    .where(and(eq(realtimeEvents.goalSpaceId, goalSpaceId), eq(realtimeEvents.id, afterId)))
-    .get();
-  if (!row) {
-    throw new ApiRequestError(
-      "EVENT_CURSOR_EXPIRED",
-      "The replay cursor is unknown or older than the retention window.",
-    );
-  }
+  getSequenceForRealtimeEvent(db, goalSpaceId, afterId);
 }
 
 // Re-export the schema column for downstream serialization.

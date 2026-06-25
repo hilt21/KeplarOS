@@ -14,7 +14,7 @@ import { requireActor } from "@/lib/api/actor";
 import { getDb } from "@/lib/db/client";
 import { getGoalSpaceWithMembers } from "@/lib/db/repositories/goal-spaces";
 import {
-  assertCursorExists,
+  getSequenceForRealtimeEvent,
   listRealtimeEvents,
   type RealtimeEventRow,
 } from "@/lib/db/repositories/realtime-events";
@@ -62,14 +62,14 @@ export async function GET(request: Request, context: RouteContext): Promise<Resp
       return apiError("FORBIDDEN", "Cannot read this goal space.");
     }
 
-    // Cursor validation: 409 EVENT_CURSOR_EXPIRED for unknown after_id.
+    let afterSequence: number | undefined;
     if (afterId !== null && afterId.length > 0) {
-      assertCursorExists(db, goalSpaceId, afterId);
+      afterSequence = getSequenceForRealtimeEvent(db, goalSpaceId, afterId);
     }
 
     // Read events.
     const result = listRealtimeEvents(db, goalSpaceId, {
-      ...(afterId !== null && afterId.length > 0 ? { afterId } : {}),
+      ...(afterSequence !== undefined ? { afterSequence } : {}),
       limit,
     });
 
