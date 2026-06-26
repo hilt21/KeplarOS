@@ -20,15 +20,7 @@ export type ParsedCommand =
   | { kind: "help" }
   | { kind: "unknown"; raw: string };
 
-const VALID_STATES = new Set([
-  "backlog",
-  "todo",
-  "dev",
-  "review",
-  "done",
-  "blocked",
-  "cancelled",
-]);
+const VALID_STATES = new Set(["backlog", "todo", "dev", "review", "done", "blocked", "cancelled"]);
 
 export function parseCommand(input: string): ParsedCommand {
   const trimmed = input.trim();
@@ -74,7 +66,8 @@ export function parseCommand(input: string): ParsedCommand {
       }
       if (cmd === "block") return { kind: "block", cardId: id, ...(rest ? { reason: rest } : {}) };
       if (cmd === "unblock") return { kind: "unblock", cardId: id };
-      if (cmd === "approve") return { kind: "approve", confirmationId: id, ...(rest ? { comment: rest } : {}) };
+      if (cmd === "approve")
+        return { kind: "approve", confirmationId: id, ...(rest ? { comment: rest } : {}) };
       return { kind: "reject", confirmationId: id, ...(rest ? { reason: rest } : {}) };
     }
     case "cancel":

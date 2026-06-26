@@ -1,0 +1,103 @@
+{
+  "change_id": "20260626-phase3-baseline-health-ci",
+  "title": "Phase 3 Baseline Health And CI Gate",
+  "status": "done_with_concerns",
+  "features": [
+    {
+      "id": "P3-00",
+      "title": "Baseline Health And CI Gate",
+      "description": "Restore the web package baseline verification gate by ignoring generated artifacts, applying Prettier formatting only to reported source/config files, and recording verification evidence.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "completed",
+      "acceptance_criteria": [
+        "apps/web/.prettierignore exactly includes generated Playwright/test artifact ignores",
+        "Only baseline-reported source/config files are formatted by Prettier",
+        "Generated test-results paths are excluded from Prettier handling",
+        "Required verification commands pass or have documented unavailable-check exceptions",
+        "Node version mismatch and lint warnings are recorded in testing results",
+        "No commit is created"
+      ],
+      "affected_areas": [
+        "web formatting configuration",
+        "web source formatting",
+        "harness artifacts",
+        "verification gate"
+      ],
+      "dependencies": [
+        "P3-00 baseline format:check output supplied in the implementation request",
+        "pnpm package scripts for @keplar/web"
+      ],
+      "test_needs": [
+        "pnpm --filter @keplar/web format:check",
+        "pnpm --filter @keplar/web typecheck",
+        "pnpm --filter @keplar/web lint",
+        "pnpm --filter @keplar/web test",
+        "pnpm --filter @keplar/web build",
+        "git diff --check"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required verification passes or unavailable checks are documented with reason and risk",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated",
+        "Delivery summary and handoff written"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable",
+        "format": "required",
+        "build": "required",
+        "diff_check": "required"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed_with_concerns",
+      "done_status": "done_with_concerns",
+      "verification_evidence": {
+        "node_version": "v25.2.1",
+        "pnpm_version": "11.5.1",
+        "commands": [
+          {
+            "command": "pnpm --filter @keplar/web format:check",
+            "result": "passed"
+          },
+          {
+            "command": "pnpm --filter @keplar/web typecheck",
+            "result": "passed"
+          },
+          {
+            "command": "pnpm --filter @keplar/web lint",
+            "result": "passed_with_warnings"
+          },
+          {
+            "command": "pnpm --filter @keplar/web test",
+            "result": "passed_with_runtime_warnings"
+          },
+          {
+            "command": "pnpm --filter @keplar/web build",
+            "result": "passed_with_lint_warnings"
+          },
+          {
+            "command": "git diff --check",
+            "result": "passed"
+          }
+        ],
+        "unavailable": [
+          {
+            "check": "Exact Node 20 verification",
+            "reason": "Local runtime is Node v25.2.1 while @keplar/web requires >=20.10.0 <21.0.0.",
+            "risk": "Passing evidence may not exactly match the supported CI/runtime engine."
+          }
+        ]
+      }
+    }
+  ]
+}

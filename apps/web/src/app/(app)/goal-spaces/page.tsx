@@ -10,6 +10,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSessionActor } from "@/lib/auth/session";
 import { listGoalSpacesService } from "@/lib/services/goal-spaces";
+import { CreateGoalSpaceForm } from "@/components/create-goal-space-form";
 import { GoalSpaceList } from "@/components/goal-space-list";
 import { EmptyState } from "@/components/empty-state";
 
@@ -37,6 +38,7 @@ export default async function GoalSpacesPage(): Promise<React.ReactElement> {
           {String(snapshot.total)} total
         </span>
       </header>
+      <CreateGoalSpaceForm />
       {snapshot.items.length === 0 ? (
         <EmptyState kind="empty" caption="// no goal spaces yet — start one to begin." />
       ) : (

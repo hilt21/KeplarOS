@@ -1,2 +1,6 @@
 db/migrations/meta/
 db/dev.db
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

@@ -1,0 +1,66 @@
+{
+  "change_id": "20260626-phase3-goal-space-create-ui",
+  "title": "P3-02 Goal-Space Creation UI",
+  "status": "ready_for_delivery",
+  "features": [
+    {
+      "id": "P3-02",
+      "title": "Goal-Space Creation UI",
+      "description": "Allow an authenticated user to create a goal space from the existing /goal-spaces page using the existing goal-space API.",
+      "scope": "in",
+      "priority": "P3",
+      "status": "completed",
+      "acceptance_criteria": [
+        "Feature only creates goal spaces from the existing /goal-spaces page.",
+        "No P3-03 node-board UI is added.",
+        "No backend, API, database, schema, migration, or authorization changes are made.",
+        "Form exposes accessible labels exactly Goal name and Description.",
+        "Idle submit button text is exactly Create goal space.",
+        "Successful submit posts JSON to /api/v1/goal-spaces with method POST and credentials include.",
+        "Request body includes name, description, constraints: [], and acceptance_criteria: [].",
+        "Successful submit resets the form and calls router.refresh().",
+        "API envelope error renders the envelope error message and does not refresh.",
+        "Thrown fetch error renders Unable to create goal space.",
+        "UI uses design tokens/CSS variables with no hardcoded hex or tracking/letter-spacing classes in P3-02 files."
+      ],
+      "affected_areas": [
+        "web-ui",
+        "ui-tests",
+        "harness-artifacts"
+      ],
+      "dependencies": [
+        "Existing POST /api/v1/goal-spaces endpoint",
+        "Existing /goal-spaces page"
+      ],
+      "test_needs": [
+        "Focused UI component test for success",
+        "Focused UI component test for API envelope error",
+        "Focused UI component test for thrown fetch error if small",
+        "Requested lint, typecheck, format, and diff checks"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass or documented exceptions are recorded",
+        "Required verification matrix items pass or have documented exceptions",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated",
+        "No commit created"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "not_applicable",
+        "smoke": "optional",
+        "e2e": "optional"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}

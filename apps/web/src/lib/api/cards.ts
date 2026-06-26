@@ -33,8 +33,12 @@ export function getCard(id: string): Promise<CardDetailResponse> {
   return apiGet<CardDetailResponse>(`/api/v1/cards/${id}`);
 }
 
-export function getCardTransitions(cardId: string): Promise<{ items: readonly StateTransitionResponse[] }> {
-  return apiGet<{ items: readonly StateTransitionResponse[] }>(`/api/v1/cards/${cardId}/transitions`);
+export function getCardTransitions(
+  cardId: string,
+): Promise<{ items: readonly StateTransitionResponse[] }> {
+  return apiGet<{ items: readonly StateTransitionResponse[] }>(
+    `/api/v1/cards/${cardId}/transitions`,
+  );
 }
 
 export function createCard(
@@ -101,7 +105,14 @@ export function executeCard(
   id: string,
   role: string,
   context?: Record<string, unknown>,
-): Promise<{ task_id: string; card_id: string; role: string; status: "queued"; estimated_time: number; polling_url: string }> {
+): Promise<{
+  task_id: string;
+  card_id: string;
+  role: string;
+  status: "queued";
+  estimated_time: number;
+  polling_url: string;
+}> {
   return apiRequest(`/api/v1/cards/${id}/execute`, {
     method: "POST",
     body: { role, ...(context !== undefined ? { context } : {}) },

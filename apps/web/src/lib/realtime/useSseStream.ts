@@ -22,13 +22,7 @@ import type { RealtimeEvent, RealtimeEventType } from "@/lib/api/types";
 
 // ─── types ─────────────────────────────────────────────────────────
 
-export type SseStatus =
-  | "idle"
-  | "connecting"
-  | "live"
-  | "reconnecting"
-  | "stale"
-  | "error";
+export type SseStatus = "idle" | "connecting" | "live" | "reconnecting" | "stale" | "error";
 
 export interface UseSseStreamOptions {
   readonly goalSpaceId: string | null;
@@ -163,10 +157,7 @@ function openStream(stream: SharedStream, goalSpaceId: string): void {
         stream.attempts = 0;
         try {
           if (typeof window !== "undefined") {
-            window.localStorage.setItem(
-              `keplar.sse.lastEventId.${goalSpaceId}`,
-              payload.id,
-            );
+            window.localStorage.setItem(`keplar.sse.lastEventId.${goalSpaceId}`, payload.id);
           }
         } catch {
           // localStorage may throw in private mode; tolerate.
@@ -274,14 +265,22 @@ export function useSseStream(options: UseSseStreamOptions): UseSseStreamResult {
     };
   };
 
-  const getSnapshot = (): { events: readonly RealtimeEvent[]; status: SseStatus; lastEventId: string | null } => {
+  const getSnapshot = (): {
+    events: readonly RealtimeEvent[];
+    status: SseStatus;
+    lastEventId: string | null;
+  } => {
     if (!goalSpaceId) return { events: [], status: "idle", lastEventId: null };
     const stream = streams.get(goalSpaceId);
     if (!stream) return { events: [], status: "idle", lastEventId: null };
     return snapshot(stream);
   };
 
-  const getServerSnapshot = (): { events: readonly RealtimeEvent[]; status: SseStatus; lastEventId: string | null } => ({
+  const getServerSnapshot = (): {
+    events: readonly RealtimeEvent[];
+    status: SseStatus;
+    lastEventId: string | null;
+  } => ({
     events: [],
     status: "idle",
     lastEventId: null,

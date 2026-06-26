@@ -28,7 +28,11 @@ export interface NodeBoardViewProps {
   readonly onSelectCard: (id: string) => void;
 }
 
-export function NodeBoardView({ board, cards, onSelectCard }: NodeBoardViewProps): React.ReactElement {
+export function NodeBoardView({
+  board,
+  cards,
+  onSelectCard,
+}: NodeBoardViewProps): React.ReactElement {
   const selectedCardId = useState(uiStore.get().selectedCardId)[0];
 
   const grouped = useMemo(() => {

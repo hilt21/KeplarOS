@@ -33,11 +33,21 @@ export function GoalSpaceList({ snapshot }: GoalSpaceListProps): React.ReactElem
     <table className="w-full table-fixed border-collapse text-left">
       <thead>
         <tr className="border-b border-[var(--color-border)] text-[var(--font-micro)] uppercase tracking-wider text-[var(--color-text-muted)]">
-          <th className="w-[6px] py-[var(--space-xs)] font-[var(--font-jetbrains-mono,monospace)] font-normal">·</th>
-          <th className="py-[var(--space-xs)] pl-[var(--space-2xs)] font-[var(--font-jetbrains-mono,monospace)] font-normal">id</th>
-          <th className="py-[var(--space-xs)] font-[var(--font-instrument-sans,system-ui,sans-serif)] font-normal">name</th>
-          <th className="py-[var(--space-xs)] font-[var(--font-jetbrains-mono,monospace)] font-normal">status</th>
-          <th className="py-[var(--space-xs)] text-right font-[var(--font-jetbrains-mono,monospace)] font-normal">updated</th>
+          <th className="w-[6px] py-[var(--space-xs)] font-[var(--font-jetbrains-mono,monospace)] font-normal">
+            ·
+          </th>
+          <th className="py-[var(--space-xs)] pl-[var(--space-2xs)] font-[var(--font-jetbrains-mono,monospace)] font-normal">
+            id
+          </th>
+          <th className="py-[var(--space-xs)] font-[var(--font-instrument-sans,system-ui,sans-serif)] font-normal">
+            name
+          </th>
+          <th className="py-[var(--space-xs)] font-[var(--font-jetbrains-mono,monospace)] font-normal">
+            status
+          </th>
+          <th className="py-[var(--space-xs)] text-right font-[var(--font-jetbrains-mono,monospace)] font-normal">
+            updated
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -47,7 +57,9 @@ export function GoalSpaceList({ snapshot }: GoalSpaceListProps): React.ReactElem
             className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface)]"
             style={{ transitionDuration: "var(--motion-hover)" }}
           >
-            <td className="py-[var(--space-sm)]"><StatusDot status={gs.status} /></td>
+            <td className="py-[var(--space-sm)]">
+              <StatusDot status={gs.status} />
+            </td>
             <td className="py-[var(--space-sm)] pl-[var(--space-2xs)] font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-small)] text-[var(--color-text-secondary)]">
               <Link href={`/goal-spaces/${gs.id}`} className="hover:text-[var(--color-primary)]">
                 {gs.id.slice(0, 8)}

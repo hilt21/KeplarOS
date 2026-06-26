@@ -18,10 +18,7 @@ export async function fetchReplay(
   if (afterId !== null) {
     query.after_id = afterId;
   }
-  return apiGet<RealtimeEventsResponse>(
-    `/api/v1/goal-spaces/${goalSpaceId}/events`,
-    { query },
-  );
+  return apiGet<RealtimeEventsResponse>(`/api/v1/goal-spaces/${goalSpaceId}/events`, { query });
 }
 
 export { ApiClientError };

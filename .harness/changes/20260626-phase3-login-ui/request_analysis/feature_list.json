@@ -1,0 +1,72 @@
+{
+  "change_id": "20260626-phase3-login-ui",
+  "title": "P3-01 Session Login UI",
+  "status": "done_with_concerns",
+  "features": [
+    {
+      "id": "P3-01",
+      "title": "Session Login UI",
+      "description": "Add a compact login page and form that authenticate through the existing POST /api/v1/auth/login endpoint and existing keplar_session cookie flow.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "completed",
+      "acceptance_criteria": [
+        "Successful login posts to /api/v1/auth/login with method POST and credentials include.",
+        "Successful login calls router.refresh() and router.push(\"/goal-spaces\").",
+        "Failed API login renders envelope.error.message and does not push.",
+        "Thrown or network error renders Unable to sign in.",
+        "Form labels are accessible as Email and Password and idle submit text is Sign in.",
+        "The /login page redirects a valid keplar_session to /goal-spaces.",
+        "The /login page renders a compact design-system-compliant page for anonymous users.",
+        "No hardcoded hex colors are introduced."
+      ],
+      "affected_areas": [
+        "ui",
+        "auth-session-consumption",
+        "tests",
+        "harness-artifacts"
+      ],
+      "dependencies": [
+        "Existing POST /api/v1/auth/login API",
+        "Existing getSessionActor(request) session validation",
+        "Existing keplar_session cookie name"
+      ],
+      "non_goals": [
+        "No new auth backend",
+        "No SSO",
+        "No role changes",
+        "No database changes",
+        "No API changes",
+        "No P3-02+ scope"
+      ],
+      "test_needs": [
+        "React Testing Library coverage for successful login routing",
+        "React Testing Library coverage for API error rendering",
+        "Focused web package test run",
+        "Typecheck, lint, format check, and git diff whitespace check"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass",
+        "Required verification matrix items pass or have documented exceptions",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed_with_concerns",
+      "done_status": "completed_with_concerns"
+    }
+  ]
+}

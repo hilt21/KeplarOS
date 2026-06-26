@@ -3,11 +3,7 @@
  */
 
 import { apiGet, apiRequest } from "./client";
-import type {
-  NodeBoardListResponse,
-  NodeBoardMemberResponse,
-  NodeBoardResponse,
-} from "./types";
+import type { NodeBoardListResponse, NodeBoardMemberResponse, NodeBoardResponse } from "./types";
 
 export function listNodeBoards(goalSpaceId: string): Promise<NodeBoardListResponse> {
   return apiGet<NodeBoardListResponse>(`/api/v1/goal-spaces/${goalSpaceId}/node-boards`);
@@ -29,7 +25,11 @@ export function createNodeBoard(
 
 export function updateNodeBoard(
   id: string,
-  input: Partial<{ name: string; description: string; status: "active" | "completed" | "archived" }>,
+  input: Partial<{
+    name: string;
+    description: string;
+    status: "active" | "completed" | "archived";
+  }>,
 ): Promise<NodeBoardResponse> {
   return apiRequest<NodeBoardResponse>(`/api/v1/node-boards/${id}`, {
     method: "PATCH",

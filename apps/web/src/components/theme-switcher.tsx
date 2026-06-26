@@ -59,7 +59,9 @@ export function ThemeSwitcher(): React.ReactElement {
           style={{ backgroundColor: themes[current].swatch }}
         />
         <span>{themes[current].label}</span>
-        <span aria-hidden className="text-[var(--color-text-muted)]">▾</span>
+        <span aria-hidden className="text-[var(--color-text-muted)]">
+          ▾
+        </span>
       </button>
 
       {open && (
@@ -82,7 +84,12 @@ export function ThemeSwitcher(): React.ReactElement {
                 />
                 <span className="flex-1">{themes[id].label}</span>
                 {id === current && (
-                  <span aria-hidden className="font-[var(--font-jetbrains-mono,monospace)] text-[var(--color-text-secondary)]">✓</span>
+                  <span
+                    aria-hidden
+                    className="font-[var(--font-jetbrains-mono,monospace)] text-[var(--color-text-secondary)]"
+                  >
+                    ✓
+                  </span>
                 )}
               </button>
             </li>

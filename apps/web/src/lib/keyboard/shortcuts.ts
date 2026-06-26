@@ -87,7 +87,5 @@ export function findShortcut(
   chord: KeyCombo,
   scope: "global" | "list" | "detail" | "modal",
 ): Shortcut | undefined {
-  return registry.find(
-    (s) => s.scope === scope && chordsMatch(s.chord, chord),
-  );
+  return registry.find((s) => s.scope === scope && chordsMatch(s.chord, chord));
 }

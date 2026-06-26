@@ -63,5 +63,9 @@ export const uiStore = {
 };
 
 export function useUiStore<T>(selector: (s: UiState) => T): T {
-  return useSyncExternalStore(subscribe, () => selector(state), () => selector(DEFAULT_STATE));
+  return useSyncExternalStore(
+    subscribe,
+    () => selector(state),
+    () => selector(DEFAULT_STATE),
+  );
 }

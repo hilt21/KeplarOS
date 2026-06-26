@@ -5,9 +5,11 @@
 import { apiGet, apiRequest } from "./client";
 import type { ConfirmationListResponse, HumanConfirmationResponse } from "./types";
 
-export function listConfirmations(opts: {
-  readonly status?: "pending" | "approved" | "rejected" | "cancelled";
-} = {}): Promise<ConfirmationListResponse> {
+export function listConfirmations(
+  opts: {
+    readonly status?: "pending" | "approved" | "rejected" | "cancelled";
+  } = {},
+): Promise<ConfirmationListResponse> {
   const query: Record<string, string> = {};
   if (opts.status !== undefined) query.status = opts.status;
   return apiGet<ConfirmationListResponse>("/api/v1/confirmations", { query });

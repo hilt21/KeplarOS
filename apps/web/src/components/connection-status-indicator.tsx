@@ -36,7 +36,9 @@ const STATUS_LABEL: Record<SseStatus, string> = {
   error: "error",
 };
 
-export function ConnectionStatusIndicator({ status }: ConnectionStatusIndicatorProps): React.ReactElement | null {
+export function ConnectionStatusIndicator({
+  status,
+}: ConnectionStatusIndicatorProps): React.ReactElement | null {
   const color = STATUS_COLOR[status];
   if (color === null) return null;
 
@@ -53,7 +55,9 @@ export function ConnectionStatusIndicator({ status }: ConnectionStatusIndicatorP
         className={[
           "inline-block h-[6px] w-[6px] rounded-full",
           pulse ? "animate-[pulse_1s_ease-in-out_infinite]" : "",
-        ].filter(Boolean).join(" ")}
+        ]
+          .filter(Boolean)
+          .join(" ")}
         style={{
           backgroundColor: color,
           ...(pulse ? { animationDuration: "var(--motion-hover)" } : {}),

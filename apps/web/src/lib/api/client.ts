@@ -50,10 +50,7 @@ function buildUrl(path: string, query?: ApiRequestOptions["query"]): string {
   return qs.length > 0 ? `${path}?${qs}` : path;
 }
 
-export async function apiRequest<T>(
-  path: string,
-  options: ApiRequestOptions = {},
-): Promise<T> {
+export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
   const { method = "GET", body, query, signal, onCursorExpired } = options;
   const url = buildUrl(path, query);
 
@@ -87,11 +84,7 @@ export async function apiRequest<T>(
   try {
     envelope = (await response.json()) as ApiResponse<T>;
   } catch {
-    throw new ApiClientError(
-      "INTERNAL_ERROR",
-      "Response body is not valid JSON.",
-      response.status,
-    );
+    throw new ApiClientError("INTERNAL_ERROR", "Response body is not valid JSON.", response.status);
   }
 
   if (envelope.success) {
