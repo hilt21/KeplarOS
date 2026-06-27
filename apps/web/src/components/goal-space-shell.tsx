@@ -18,6 +18,7 @@ import { CardDetailDrawer } from "./card-detail-drawer";
 import { CommandInput } from "./command-input";
 import { OutputFeed, type OutputEntry } from "./output-feed";
 import { EmptyState } from "./empty-state";
+import { CreateNodeBoardForm } from "./create-node-board-form";
 import { fetchReplay } from "@/lib/realtime/replay";
 import { useSseStream } from "@/lib/realtime/useSseStream";
 import { boardStore, useBoardStore } from "@/lib/state/board-store";
@@ -317,7 +318,11 @@ export function GoalSpaceShell({
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 overflow-y-auto">
           {boards.length === 0 ? (
-            <EmptyState kind="empty" caption="// no node boards yet" />
+            <EmptyState
+              kind="empty"
+              caption="// no node boards yet"
+              action={<CreateNodeBoardForm goalSpaceId={goalSpaceId} />}
+            />
           ) : (
             <NodeBoardView
               board={boards[0]!}

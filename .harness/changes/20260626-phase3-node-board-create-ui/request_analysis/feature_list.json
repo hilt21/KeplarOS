@@ -1,0 +1,73 @@
+{
+  "change_id": "20260626-phase3-node-board-create-ui",
+  "title": "P3-03 Node-Board Creation UI",
+  "status": "ready_for_delivery",
+  "features": [
+    {
+      "id": "P3-03",
+      "title": "Node-Board Creation UI",
+      "description": "Allow an authenticated user to create the first node board for a goal space from the goal-space detail page using the existing node-board API.",
+      "scope": "in",
+      "priority": "P3",
+      "status": "completed",
+      "acceptance_criteria": [
+        "Feature only adds a browser node-board creation surface on the goal-space detail page.",
+        "No backend, API, database, schema, migration, or authorization changes are made.",
+        "No P3-04 browser-first E2E rewrites are included.",
+        "Component file path is apps/web/src/components/create-node-board-form.tsx.",
+        "Component exports CreateNodeBoardForm as a named client component.",
+        "Component requires goalSpaceId: string as a prop.",
+        "Form has accessible labels exactly Board key, Board name, and Description.",
+        "Idle submit button text is exactly Create node board.",
+        "Successful submit posts JSON to /api/v1/goal-spaces/${goalSpaceId}/node-boards with method POST, credentials include, and content-type application/json.",
+        "Request body includes key, name, and description strings (description may be empty string).",
+        "Successful submit resets the form and calls router.refresh().",
+        "API envelope error renders envelope.error.message and does not refresh.",
+        "Thrown fetch error renders Unable to create node board. and does not refresh.",
+        "UI uses design tokens/CSS variables with no hardcoded hex or tracking/letter-spacing classes in P3-03 files.",
+        "goal-space-shell.tsx renders <CreateNodeBoardForm goalSpaceId={goalSpaceId} /> inside the boards.length === 0 branch alongside the existing EmptyState caption.",
+        "Existing NodeBoardView branch is preserved unchanged for boards.length > 0."
+      ],
+      "affected_areas": [
+        "web-ui",
+        "ui-tests",
+        "harness-artifacts"
+      ],
+      "dependencies": [
+        "Existing POST /api/v1/goal-spaces/{goalSpaceId}/node-boards endpoint",
+        "Existing createNodeBoard API wrapper at apps/web/src/lib/api/node-boards.ts",
+        "Existing GoalSpaceShell boards.length === 0 branch",
+        "P3-02 CreateGoalSpaceForm (visual reference)"
+      ],
+      "test_needs": [
+        "Focused UI component test for success",
+        "Focused UI component test for API envelope error",
+        "Focused UI component test for thrown fetch error",
+        "Requested lint, typecheck, format, and diff checks"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass or documented exceptions are recorded",
+        "Required verification matrix items pass or have documented exceptions",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated",
+        "No commit created"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "not_applicable",
+        "smoke": "optional",
+        "e2e": "optional"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}
