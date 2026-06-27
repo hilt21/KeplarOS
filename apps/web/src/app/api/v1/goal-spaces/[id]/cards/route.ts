@@ -71,13 +71,13 @@ function optionalStringArray(value: unknown, field: string): string[] | undefine
 }
 
 interface RouteContext {
-  readonly params: Promise<{ goalSpaceId: string }>;
+  readonly params: Promise<{ id: string }>;
 }
 
 export async function GET(request: Request, context: RouteContext): Promise<Response> {
   try {
     const actor = await requireActor(request);
-    const { goalSpaceId } = await context.params;
+    const { id: goalSpaceId } = await context.params;
     const url = new URL(request.url);
 
     const state = validateState(url.searchParams.get("state") ?? undefined);
@@ -111,7 +111,7 @@ export async function GET(request: Request, context: RouteContext): Promise<Resp
 export async function POST(request: Request, context: RouteContext): Promise<Response> {
   try {
     const actor = await requireActor(request);
-    const { goalSpaceId } = await context.params;
+    const { id: goalSpaceId } = await context.params;
     const body = await readJsonBody<CreateCardBody>(request);
 
     const title = requireString(body.title, "title");

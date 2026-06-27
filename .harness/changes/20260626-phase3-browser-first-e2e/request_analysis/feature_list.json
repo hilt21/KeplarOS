@@ -1,0 +1,75 @@
+{
+  "change_id": "20260626-phase3-browser-first-e2e",
+  "title": "P3-04 Browser-First E2E",
+  "status": "pending_human_approval",
+  "features": [
+    {
+      "id": "P3-04",
+      "title": "Browser-First E2E",
+      "description": "Rewrite apps/web/e2e/phase2-board.spec.ts so the happy-path test drives login, goal-space creation, and node-board creation through the existing browser UIs (P3-01 / P3-02 / P3-03) instead of pre-creating those rows through direct API calls in beforeAll.",
+      "scope": "in",
+      "priority": "P3",
+      "status": "pending",
+      "acceptance_criteria": [
+        "Feature only rewrites apps/web/e2e/phase2-board.spec.ts and updates the seeded-user helper.",
+        "No backend, API, database, schema, migration, or product UI changes are made.",
+        "apps/web/e2e/global-setup.ts is unchanged (still applies migrations only).",
+        "phase2-board.spec.ts no longer calls apiCreateGoalSpace or apiCreateNodeBoard.",
+        "beforeAll no longer pre-creates a goal space or a node board.",
+        "beforeAll no longer pre-creates a card; the test creates its own card via the command palette.",
+        "seedUser writes a real scrypt hash for e2e-password produced by hashPassword from apps/web/src/lib/auth/password.ts.",
+        "The test visits /login, fills Email with SEEDED_USER_EMAIL, fills Password with e2e-password, clicks Sign in, and waits for URL match /goal-spaces$.",
+        "The test fills Goal name with P3 browser beta, fills Description, clicks Create goal space, waits for a link matching the goal name, and clicks through to the detail page.",
+        "The test fills Board key with MAIN, fills Board name, clicks Create node board, and waits for getByTestId(lane-backlog) to be visible.",
+        "The test issues /create-card E2E verification card via the command palette and waits for a button matching the title.",
+        "The test obtains the created card's id via the intercepted POST /api/v1/goal-spaces/{id}/cards response and uses it for /execute <cardId>.",
+        "The test asserts an audit row appears without manual refresh.",
+        "The test asserts getByTestId(lane-backlog) remains visible after the execute round-trip.",
+        "afterAll cancels the goal space using the id obtained from the UI flow.",
+        "pnpm --filter @keplar/web typecheck exits 0.",
+        "pnpm --filter @keplar/web lint exits 0 with no new errors.",
+        "pnpm --filter @keplar/web format:check exits 0.",
+        "pnpm --filter @keplar/web e2e exits 0 with 1 passed."
+      ],
+      "affected_areas": [
+        "e2e",
+        "harness-artifacts"
+      ],
+      "dependencies": [
+        "P3-01 Login UI at /login",
+        "P3-02 CreateGoalSpaceForm on /goal-spaces",
+        "P3-03 CreateNodeBoardForm in GoalSpaceShell empty branch",
+        "Existing hashPassword helper in apps/web/src/lib/auth/password.ts",
+        "Running pnpm dev on 127.0.0.1:3000"
+      ],
+      "test_needs": [
+        "Focused Playwright happy-path run via pnpm --filter @keplar/web e2e",
+        "Sanity runs of P3-01/P3-02/P3-03 focused unit tests to confirm forms are wired",
+        "Requested lint, typecheck, format, and diff checks"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass or documented exceptions are recorded",
+        "Required verification matrix items pass or have documented exceptions",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated",
+        "No commit created"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "not_applicable",
+        "smoke": "optional",
+        "e2e": "required"
+      },
+      "implementation_status": "pending",
+      "test_status": "pending",
+      "done_status": "pending"
+    }
+  ]
+}

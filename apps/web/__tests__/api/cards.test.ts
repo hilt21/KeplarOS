@@ -232,20 +232,20 @@ afterEach(() => vi.restoreAllMocks());
 
 describe("POST /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
   it("returns 401 without a session", async () => {
-    const { POST } = await import("@/app/api/v1/goal-spaces/[goalSpaceId]/cards/route");
+    const { POST } = await import("@/app/api/v1/goal-spaces/[id]/cards/route");
     const response = await POST(
       createJsonRequest("/api/v1/goal-spaces/gs-1/cards", "POST", {
         title: "Card",
         node_board_id: "nb-1",
       }),
-      { params: Promise.resolve({ goalSpaceId: "gs-1" }) },
+      { params: Promise.resolve({ id: "gs-1" }) },
     );
     await expectApiError(response, "UNAUTHORIZED", 401);
   });
 
   it("returns 403 when a viewer tries to create a card", async () => {
     queueSelectResults({ ...baseGoalSpace }, [{ userId: "user-chain" }]);
-    const { POST } = await import("@/app/api/v1/goal-spaces/[goalSpaceId]/cards/route");
+    const { POST } = await import("@/app/api/v1/goal-spaces/[id]/cards/route");
     const response = await POST(
       createJsonRequest(
         "/api/v1/goal-spaces/gs-1/cards",
@@ -253,14 +253,14 @@ describe("POST /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
         { title: "Card", node_board_id: "nb-1" },
         withTestSession(actorViewer),
       ),
-      { params: Promise.resolve({ goalSpaceId: "gs-1" }) },
+      { params: Promise.resolve({ id: "gs-1" }) },
     );
     await expectApiError(response, "FORBIDDEN", 403);
   });
 
   it("returns 400 when title is missing", async () => {
     queueSelectResults({ ...baseGoalSpace }, [{ userId: "user-chain" }]);
-    const { POST } = await import("@/app/api/v1/goal-spaces/[goalSpaceId]/cards/route");
+    const { POST } = await import("@/app/api/v1/goal-spaces/[id]/cards/route");
     const response = await POST(
       createJsonRequest(
         "/api/v1/goal-spaces/gs-1/cards",
@@ -268,14 +268,14 @@ describe("POST /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
         { node_board_id: "nb-1" },
         withTestSession(actorInitiator),
       ),
-      { params: Promise.resolve({ goalSpaceId: "gs-1" }) },
+      { params: Promise.resolve({ id: "gs-1" }) },
     );
     await expectApiError(response, "INVALID_FIELD", 400);
   });
 
   it("returns 400 when node_board_id is missing", async () => {
     queueSelectResults({ ...baseGoalSpace }, [{ userId: "user-chain" }]);
-    const { POST } = await import("@/app/api/v1/goal-spaces/[goalSpaceId]/cards/route");
+    const { POST } = await import("@/app/api/v1/goal-spaces/[id]/cards/route");
     const response = await POST(
       createJsonRequest(
         "/api/v1/goal-spaces/gs-1/cards",
@@ -283,14 +283,14 @@ describe("POST /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
         { title: "Card" },
         withTestSession(actorInitiator),
       ),
-      { params: Promise.resolve({ goalSpaceId: "gs-1" }) },
+      { params: Promise.resolve({ id: "gs-1" }) },
     );
     await expectApiError(response, "INVALID_FIELD", 400);
   });
 
   it("returns 404 when goal space does not exist", async () => {
     queueSelectResults(null);
-    const { POST } = await import("@/app/api/v1/goal-spaces/[goalSpaceId]/cards/route");
+    const { POST } = await import("@/app/api/v1/goal-spaces/[id]/cards/route");
     const response = await POST(
       createJsonRequest(
         "/api/v1/goal-spaces/gs-missing/cards",
@@ -298,7 +298,7 @@ describe("POST /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
         { title: "Card", node_board_id: "nb-1" },
         withTestSession(actorInitiator),
       ),
-      { params: Promise.resolve({ goalSpaceId: "gs-missing" }) },
+      { params: Promise.resolve({ id: "gs-missing" }) },
     );
     await expectApiError(response, "NOT_FOUND", 404);
   });
@@ -313,7 +313,7 @@ describe("POST /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
     captureMutations();
     makeTxHarness({ ...baseCard });
 
-    const { POST } = await import("@/app/api/v1/goal-spaces/[goalSpaceId]/cards/route");
+    const { POST } = await import("@/app/api/v1/goal-spaces/[id]/cards/route");
     const response = await POST(
       createJsonRequest(
         "/api/v1/goal-spaces/gs-1/cards",
@@ -321,7 +321,7 @@ describe("POST /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
         { title: "Implement login", description: "Wire up auth flow", node_board_id: "nb-1" },
         withTestSession(actorInitiator),
       ),
-      { params: Promise.resolve({ goalSpaceId: "gs-1" }) },
+      { params: Promise.resolve({ id: "gs-1" }) },
     );
     const json = await expectApiOk<{
       id: string;
@@ -346,9 +346,9 @@ describe("POST /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
 
 describe("GET /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
   it("returns 401 without a session", async () => {
-    const { GET } = await import("@/app/api/v1/goal-spaces/[goalSpaceId]/cards/route");
+    const { GET } = await import("@/app/api/v1/goal-spaces/[id]/cards/route");
     const response = await GET(createJsonRequest("/api/v1/goal-spaces/gs-1/cards", "GET"), {
-      params: Promise.resolve({ goalSpaceId: "gs-1" }),
+      params: Promise.resolve({ id: "gs-1" }),
     });
     await expectApiError(response, "UNAUTHORIZED", 401);
   });
@@ -359,7 +359,7 @@ describe("GET /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
     //   2. members (getGoalSpaceWithMembers → distinct)
     //   3. cards (listActiveCardsForGoalSpace → initiator path)
     queueSelectResults({ ...baseGoalSpace }, [{ userId: "user-chain" }], [{ ...baseCard }]);
-    const { GET } = await import("@/app/api/v1/goal-spaces/[goalSpaceId]/cards/route");
+    const { GET } = await import("@/app/api/v1/goal-spaces/[id]/cards/route");
     const response = await GET(
       createJsonRequest(
         "/api/v1/goal-spaces/gs-1/cards",
@@ -367,7 +367,7 @@ describe("GET /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
         undefined,
         withTestSession(actorInitiator),
       ),
-      { params: Promise.resolve({ goalSpaceId: "gs-1" }) },
+      { params: Promise.resolve({ id: "gs-1" }) },
     );
     const json = await expectApiOk<{ items: unknown[]; total: number }>(response);
     expect(json.data.items).toHaveLength(1);
@@ -386,7 +386,7 @@ describe("GET /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
       [{ boardId: "nb-1" }],
       [{ ...baseCard }],
     );
-    const { GET } = await import("@/app/api/v1/goal-spaces/[goalSpaceId]/cards/route");
+    const { GET } = await import("@/app/api/v1/goal-spaces/[id]/cards/route");
     const response = await GET(
       createJsonRequest(
         "/api/v1/goal-spaces/gs-1/cards",
@@ -394,7 +394,7 @@ describe("GET /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
         undefined,
         withTestSession(actorChainUser),
       ),
-      { params: Promise.resolve({ goalSpaceId: "gs-1" }) },
+      { params: Promise.resolve({ id: "gs-1" }) },
     );
     const json = await expectApiOk<{ items: unknown[]; total: number }>(response);
     expect(json.data.items).toHaveLength(1);
@@ -402,7 +402,7 @@ describe("GET /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
 
   it("returns 403 when the actor has no access to the goal space", async () => {
     queueSelectResults({ ...baseGoalSpace }, [{ userId: "user-other" }]);
-    const { GET } = await import("@/app/api/v1/goal-spaces/[goalSpaceId]/cards/route");
+    const { GET } = await import("@/app/api/v1/goal-spaces/[id]/cards/route");
     const response = await GET(
       createJsonRequest(
         "/api/v1/goal-spaces/gs-1/cards",
@@ -410,14 +410,14 @@ describe("GET /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
         undefined,
         withTestSession(actorViewer),
       ),
-      { params: Promise.resolve({ goalSpaceId: "gs-1" }) },
+      { params: Promise.resolve({ id: "gs-1" }) },
     );
     await expectApiError(response, "FORBIDDEN", 403);
   });
 
   it("returns 404 when the goal space does not exist", async () => {
     queueSelectResults(null);
-    const { GET } = await import("@/app/api/v1/goal-spaces/[goalSpaceId]/cards/route");
+    const { GET } = await import("@/app/api/v1/goal-spaces/[id]/cards/route");
     const response = await GET(
       createJsonRequest(
         "/api/v1/goal-spaces/gs-missing/cards",
@@ -425,7 +425,7 @@ describe("GET /api/v1/goal-spaces/:goalSpaceId/cards (F2-05)", () => {
         undefined,
         withTestSession(actorInitiator),
       ),
-      { params: Promise.resolve({ goalSpaceId: "gs-missing" }) },
+      { params: Promise.resolve({ id: "gs-missing" }) },
     );
     await expectApiError(response, "NOT_FOUND", 404);
   });

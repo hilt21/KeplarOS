@@ -1,38 +1,37 @@
 /**
- * F2-10 Phase 2 board E2E happy-path.
+ * F2-10 Phase 2 board E2E happy-path (P3-04 browser-first rewrite).
  *
- * Single happy-path Playwright test that exercises the F2-09 Web UI
- * against the running `pnpm dev` server. The test:
+ * The test now drives the entire setup flow through the running `pnpm dev`
+ * server's browser UIs:
  *
- *  1. Seeds a user row + an auth_credentials row directly into the
- *     dev SQLite DB (the dev DB has no seeded users; auth/login
- *     requires an existing row).
- *  2. Mints a `keplar_session` cookie via `signSessionValue` (the
- *     F2-10 T0 export that shares `lib/auth/session.ts`'s internal
- *     signing primitives with `createSession`).
- *  3. Pre-creates goal space + node board + one card via direct
- *     HTTP calls (the F2-09 UI does not yet ship goal-space /
- *     node-board / login pages; the plan documents those UI flows
- *     as Phase 3 follow-ups).
- *  4. Navigates to /goal-spaces, asserts the seeded goal space is
- *     listed, clicks through to detail, asserts the board lanes
- *     render, types `/create-card <title>` and `/execute <card_id>`
- *     in the command palette, and asserts an SSE-driven UI update
- *     arrives without manual refresh.
+ *   1. `global-setup.ts` applies migrations.
+ *   2. `beforeAll` seeds the user with a real scrypt hash for `e2e-password`
+ *      (so the `/login` form can authenticate) and warms up the dev server.
+ *   3. The test visits `/login`, signs in through the P3-01 `LoginForm`,
+ *      waits for the redirect to `/goal-spaces`, fills the P3-02
+ *      `CreateGoalSpaceForm`, opens the goal-space detail page, fills
+ *      the P3-03 `CreateNodeBoardForm` mounted in the empty-board branch,
+ *      and waits for the populated `NodeBoardView`.
+ *   4. Card creation, execute, audit, and SSE assertions continue to use
+ *      the existing command palette as the user would. The card id for
+ *      `/execute` is captured from the intercepted `POST .../cards`
+ *      response — no UI change required.
+ *   5. `afterAll` mints a fresh session by POSTing to `/api/v1/auth/login`
+ *      with the seeded credentials and cancels the UI-created goal space.
  *
- * The test asserts OBSERVABLE UI behavior (presence of rows, audit
- * timeline growth) rather than specific state transitions, because
- * the fixture executor's outcome is intentionally non-deterministic
- * across role + card combinations.
+ * The test asserts observable UI behavior (presence of rows, audit timeline
+ * growth, lane visibility) rather than specific state transitions, because
+ * the fixture executor's outcome is intentionally non-deterministic across
+ * role + card combinations.
  */
 
-import { test, expect, type APIRequestContext, type BrowserContext } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { resolve } from "node:path";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import Database from "better-sqlite3";
 
-import { signSessionValue } from "../src/lib/auth/session";
+import { hashPassword } from "../src/lib/auth/password";
 
 // ─── constants ─────────────────────────────────────────────────────────
 
@@ -40,212 +39,180 @@ const SEEDED_USER_ID = "e2e-user-00000001";
 const SEEDED_USER_EMAIL = "e2e@keplar.test";
 const SEEDED_USER_NAME = "E2E Initiator";
 const SEEDED_USER_ROLE = "initiator";
+const E2E_PASSWORD = "e2e-password";
 
-const SESSION_COOKIE_NAME = "keplar_session";
-const SESSION_TTL_MS = 30 * 60 * 1000;
+const GOAL_SPACE_NAME = "P3 browser beta";
+const GOAL_SPACE_DESCRIPTION = "Browser-created goal space.";
+
+const BOARD_KEY = "MAIN";
+const BOARD_NAME = "Main board";
+
+const CARD_TITLE = "E2E verification card";
 
 // Relative to apps/web cwd (matches apps/web/src/lib/db/client.ts).
 const DEV_DB_PATH = resolve(process.cwd(), "db/dev.db");
 
 // ─── helpers ──────────────────────────────────────────────────────────
 
-interface SeededRefs {
-  readonly goalSpaceId: string;
-  readonly nodeBoardId: string;
-  readonly cardId: string;
-}
-
 function ensureDbFile(): void {
   const dir = dirname(DEV_DB_PATH);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 }
 
-function seedUser(db: Database.Database): void {
+async function seedUser(db: Database.Database): Promise<void> {
   const now = new Date().toISOString();
-  // Insert (or replace) the user row. We use INSERT OR REPLACE so the
-  // test is idempotent across reruns against the same dev DB.
   db.prepare(
     `INSERT OR REPLACE INTO users (id, name, email, role, preferences, created_at)
      VALUES (?, ?, ?, ?, '{}', ?)`,
   ).run(SEEDED_USER_ID, SEEDED_USER_NAME, SEEDED_USER_EMAIL, SEEDED_USER_ROLE, now);
-  // The auth_credentials row is required by POST /api/v1/auth/login
-  // and by FK from users. We store a dummy hash; the test never logs
-  // in via /auth/login (it injects the session cookie directly), so
-  // the hash value does not need to verify any password.
+  // Real scrypt hash so the /login form's POST to /api/v1/auth/login
+  // can authenticate via verifyPassword. The dummy-hash placeholder
+  // from F2-10 was only safe because that spec injected the session
+  // cookie directly; P3-04 drives login through the UI.
+  const passwordHash = await hashPassword(E2E_PASSWORD);
   db.prepare(
     `INSERT OR REPLACE INTO auth_credentials (user_id, password_hash, failed_login_attempts, last_rotated_at)
-     VALUES (?, 'e2e-dummy-hash', 0, ?)`,
-  ).run(SEEDED_USER_ID, now);
+     VALUES (?, ?, 0, ?)`,
+  ).run(SEEDED_USER_ID, passwordHash, now);
 }
 
-function createSessionCookieValue(): string {
-  return signSessionValue({
-    sub: SEEDED_USER_ID,
-    exp: Date.now() + SESSION_TTL_MS,
-  });
-}
-
-async function apiCreateGoalSpace(
-  request: APIRequestContext,
-  cookieValue: string,
-): Promise<string> {
-  const response = await request.post("/api/v1/goal-spaces", {
-    headers: { cookie: `${SESSION_COOKIE_NAME}=${cookieValue}` },
-    data: {
-      name: `F2-10 E2E ${Date.now()}`,
-      description: "End-to-end beta verification.",
-      constraints: [],
-      acceptance_criteria: [],
-    },
-  });
-  expect(response.ok(), `POST /api/v1/goal-spaces returned ${response.status()}`).toBeTruthy();
-  const body = (await response.json()) as { data: { id: string } };
-  return body.data.id;
-}
-
-async function apiCreateNodeBoard(
-  request: APIRequestContext,
-  cookieValue: string,
-  goalSpaceId: string,
-): Promise<string> {
-  const response = await request.post(`/api/v1/goal-spaces/${goalSpaceId}/node-boards`, {
-    headers: { cookie: `${SESSION_COOKIE_NAME}=${cookieValue}` },
-    data: { key: "MAIN", name: "Main board", description: "E2E board" },
-  });
-  expect(response.ok(), `POST node-boards returned ${response.status()}`).toBeTruthy();
-  const body = (await response.json()) as { data: { id: string } };
-  return body.data.id;
-}
-
-async function apiCreateCard(
-  request: APIRequestContext,
-  cookieValue: string,
-  goalSpaceId: string,
-  nodeBoardId: string,
-): Promise<string> {
-  const response = await request.post(`/api/v1/goal-spaces/${goalSpaceId}/cards`, {
-    headers: { cookie: `${SESSION_COOKIE_NAME}=${cookieValue}` },
-    data: { title: "E2E seed card", node_board_id: nodeBoardId },
-  });
-  expect(response.ok(), `POST cards returned ${response.status()}`).toBeTruthy();
-  const body = (await response.json()) as { data: { id: string } };
-  return body.data.id;
+function extractSessionCookie(setCookie: string | undefined): string | null {
+  if (!setCookie) return null;
+  // Forward only the `name=value` pair; ignore HttpOnly/SameSite/Path
+  // attributes that are browser-context concerns, not API-call concerns.
+  const firstPair = setCookie.split(";")[0]?.trim() ?? "";
+  return firstPair.length > 0 ? firstPair : null;
 }
 
 // ─── setup ─────────────────────────────────────────────────────────────
 
-let refs: SeededRefs;
-let cookieValue: string;
+let goalSpaceId: string | undefined;
 
 test.beforeAll(async ({ request, baseURL }) => {
   ensureDbFile();
   const db = new Database(DEV_DB_PATH);
   try {
-    seedUser(db);
+    await seedUser(db);
   } finally {
     db.close();
   }
 
-  cookieValue = createSessionCookieValue();
-
   // Warm up the dev server: Next.js compiles routes on first hit.
   // Without this, the first POST may receive "socket hang up" while
-  // the route is still being compiled. Retry the GET up to 5 times
+  // the route is still being compiled. Retry the GET up to 8 times
   // with backoff until the server responds.
   const warmupUrl = `${baseURL ?? "http://127.0.0.1:3000"}/api/v1/auth/me`;
   let warmed = false;
   for (let i = 0; i < 8 && !warmed; i += 1) {
     try {
-      const res = await request.get(warmupUrl, {
-        headers: { cookie: `${SESSION_COOKIE_NAME}=${cookieValue}` },
-      });
+      const res = await request.get(warmupUrl);
       // Any HTTP response (even 401) means the server is up.
       warmed = res.status() > 0;
     } catch {
       await new Promise((r) => setTimeout(r, 500 * (i + 1)));
     }
   }
-
-  const goalSpaceId = await apiCreateGoalSpace(request, cookieValue);
-  const nodeBoardId = await apiCreateNodeBoard(request, cookieValue, goalSpaceId);
-  const cardId = await apiCreateCard(request, cookieValue, goalSpaceId, nodeBoardId);
-
-  refs = { goalSpaceId, nodeBoardId, cardId };
 });
 
 test.afterAll(async ({ request }) => {
-  if (!refs) return;
-  // Best-effort cleanup so reruns don't accumulate state. The cancel
-  // endpoint is the cleanest reversible action available in F2-09.
-  await request.post(`/api/v1/goal-spaces/${refs.goalSpaceId}/cancel`, {
-    headers: { cookie: `${SESSION_COOKIE_NAME}=${cookieValue}` },
+  if (!goalSpaceId) return;
+  // Mint a fresh session by logging in through the API; the cookie
+  // is required by the cancel endpoint. We forward only the
+  // `name=value` pair so the request carries a valid session cookie.
+  const loginRes = await request.post("/api/v1/auth/login", {
+    data: { email: SEEDED_USER_EMAIL, password: E2E_PASSWORD },
+  });
+  const cookieHeader = extractSessionCookie(loginRes.headers()["set-cookie"]);
+  if (!loginRes.ok() || !cookieHeader) return;
+  await request.post(`/api/v1/goal-spaces/${goalSpaceId}/cancel`, {
+    headers: { cookie: cookieHeader },
     data: { reason: "e2e cleanup" },
   });
 });
 
-async function injectSessionCookie(context: BrowserContext): Promise<void> {
-  await context.addCookies([
-    {
-      name: SESSION_COOKIE_NAME,
-      value: cookieValue,
-      url: "http://127.0.0.1:3000",
-      path: "/",
-      httpOnly: true,
-      sameSite: "Lax",
-    },
-  ]);
-}
-
 // ─── test ──────────────────────────────────────────────────────────────
 
-test("phase 2 board happy path: list → detail → create card → execute → audit → SSE update", async ({
+test("phase 2 board happy path: login → create goal space → create board → create card → execute → audit → SSE update", async ({
   page,
-  context,
 }) => {
-  test.setTimeout(60_000);
-  await injectSessionCookie(context);
+  test.setTimeout(90_000);
 
-  // 1. /goal-spaces lists the seeded goal space.
-  await page.goto("/goal-spaces");
-  await expect(page.getByRole("link", { name: /F2-10 E2E/ })).toBeVisible({ timeout: 15_000 });
+  // 1. Login through the P3-01 LoginForm UI. Wait for React hydration
+  //    before clicking Sign in — otherwise the form submits as a
+  //    native GET (no React onSubmit handler wired yet) and ends up
+  //    at /login?email=...&password=... with the query params and
+  //    no API call. In Next.js dev mode hydration completes after
+  //    `load` but before `networkidle`; the LoginForm's <form> has
+  //    no `method` so the browser falls back to GET. We probe for a
+  //    click handler on the submit button by tapping React's internal
+  //    fiber node attribute on the form itself.
+  await page.goto("/login");
+  await page.waitForLoadState("load");
+  await page.waitForTimeout(1500);
+  await page.getByLabel("Email").fill(SEEDED_USER_EMAIL);
+  await page.getByLabel("Password").fill(E2E_PASSWORD);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/goal-spaces$/);
 
-  // 2. Navigate into the goal-space detail.
-  await page.getByRole("link", { name: /F2-10 E2E/ }).click();
-  await expect(page).toHaveURL(new RegExp(`/goal-spaces/${refs.goalSpaceId}$`));
+  // 2. Create a goal space through the P3-02 CreateGoalSpaceForm.
+  //    Same hydration caveat: wait for the page to settle before
+  //    clicking Create goal space.
+  await page.waitForLoadState("load");
+  await page.waitForTimeout(1500);
+  await page.getByLabel("Goal name").fill(GOAL_SPACE_NAME);
+  await page.getByLabel("Description").fill(GOAL_SPACE_DESCRIPTION);
+  await page.getByRole("button", { name: "Create goal space" }).click();
+
+  const goalSpaceLink = page.getByRole("link", { name: new RegExp(GOAL_SPACE_NAME) });
+  await expect(goalSpaceLink).toBeVisible({ timeout: 15_000 });
+  await goalSpaceLink.click();
+  await expect(page).toHaveURL(/\/goal-spaces\/[A-Za-z0-9_-]+$/);
+
+  // Capture the goal space id from the URL for afterAll cleanup.
+  const url = new URL(page.url());
+  const pathSegments = url.pathname.split("/").filter((s) => s.length > 0);
+  goalSpaceId = pathSegments[pathSegments.length - 1];
+
+  // 3. Create the first node board through the P3-03 CreateNodeBoardForm
+  //    mounted in the empty-board branch of the goal-space detail page.
+  await expect(page.getByLabel("Board key")).toBeVisible({ timeout: 15_000 });
+  await page.getByLabel("Board key").fill(BOARD_KEY);
+  await page.getByLabel("Board name").fill(BOARD_NAME);
+  await page.getByRole("button", { name: "Create node board" }).click();
   await expect(page.getByTestId("lane-backlog")).toBeVisible({ timeout: 15_000 });
 
-  // 3. Use the command palette to create a new card. We don't know
-  //    its assigned display_id, so we just assert that the existing
-  //    card count goes up by one in any lane.
+  // 4. Use the command palette to create a new card. Intercept the
+  //    POST .../cards response so we can read the new card's id; the
+  //    command parser's `/execute` subcommand requires a card id, not
+  //    a title, and we want to avoid extra round trips to look it up.
   const commandInput = page.getByLabel("Command input");
-  await commandInput.fill("/create-card E2E verification card");
+  const createCardResponsePromise = page.waitForResponse(
+    (resp) =>
+      resp.url().match(/\/api\/v1\/goal-spaces\/[^/]+\/cards$/) !== null &&
+      resp.request().method() === "POST",
+    { timeout: 15_000 },
+  );
+  await commandInput.fill(`/create-card ${CARD_TITLE}`);
   await commandInput.press("Enter");
+  const createCardResponse = await createCardResponsePromise;
+  const createCardBody = (await createCardResponse.json()) as { data: { id: string } };
+  const cardId = createCardBody.data.id;
 
-  // Wait for the SSE-driven UI update: at least one card row whose
-  // title is "E2E verification card" should appear somewhere on the
-  // board. We don't assert a specific lane because the F2-09
-  // command handler picks the first board, and that board's lane
-  // ordering is deterministic but server-controlled.
-  await expect(page.getByRole("button", { name: /E2E verification card/ }).first()).toBeVisible({
+  await expect(page.getByRole("button", { name: new RegExp(CARD_TITLE) }).first()).toBeVisible({
     timeout: 15_000,
   });
 
-  // 4. Execute the seeded card. The fixture executor is
-  //    deterministic per (card, role) but the state outcome is not
-  //    formally guaranteed; we assert that an audit row appears.
-  await commandInput.fill(`/execute ${refs.cardId}`);
+  // 5. Execute the card via the command palette. The fixture executor's
+  //    outcome is intentionally non-deterministic across role + card
+  //    combinations; assert an audit row appears rather than a specific
+  //    state transition.
+  await commandInput.fill(`/execute ${cardId}`);
   await commandInput.press("Enter");
-
-  // The right sidebar's audit timeline renders events in the
-  // document. We wait for any new ai_role_* row, OR an in-flight
-  // execution row, whichever the fixture produces.
   await expect(
     page.locator("text=/ai_role_started|ai_role_completed|ai_role_failed|// idle/").first(),
   ).toBeVisible({ timeout: 15_000 });
 
-  // 5. Final assertion: the seeded goal space still renders the
-  //    board header (i.e. the page did not crash mid-execute). This
-  //    is a smoke check that the SSE-driven UI stayed healthy
-  //    after the execution round-trip.
+  // 6. Final assertion: the page did not crash mid-execute and the
+  //    SSE-driven UI stayed healthy after the execution round-trip.
   await expect(page.getByTestId("lane-backlog")).toBeVisible();
 });

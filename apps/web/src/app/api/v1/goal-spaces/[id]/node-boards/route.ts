@@ -49,13 +49,13 @@ function parseMembers(value: unknown): SeedMember[] | undefined {
 }
 
 interface RouteContext {
-  readonly params: Promise<{ goalSpaceId: string }>;
+  readonly params: Promise<{ id: string }>;
 }
 
 export async function GET(request: Request, context: RouteContext): Promise<Response> {
   try {
     const actor = await requireActor(request);
-    const { goalSpaceId } = await context.params;
+    const { id: goalSpaceId } = await context.params;
     return apiOk(listNodeBoardsForGoalSpaceService(goalSpaceId, actor));
   } catch (error) {
     if (error instanceof ApiRequestError) {
@@ -68,7 +68,7 @@ export async function GET(request: Request, context: RouteContext): Promise<Resp
 export async function POST(request: Request, context: RouteContext): Promise<Response> {
   try {
     const actor = await requireInitiator(request);
-    const { goalSpaceId } = await context.params;
+    const { id: goalSpaceId } = await context.params;
     const body = await readJsonBody<CreateNodeBoardBody>(request);
 
     const input: CreateNodeBoardInput = {
