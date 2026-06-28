@@ -13,6 +13,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { NodeBoardView } from "./node-board-view";
 import { CardDetailDrawer } from "./card-detail-drawer";
 import { CommandInput } from "./command-input";
@@ -59,6 +60,41 @@ export function GoalSpaceShell({
   });
   const selectedCardId = useUiStore((s) => s.selectedCardId);
   const boardState = useBoardStore(goalSpaceId, (s) => s);
+  const router = useRouter();
+
+  // F2-03's snapshot.cards is always `[]` by design (the goal-space
+  // detail endpoint returns counts only and delegates full card
+  // detail to the F2-05 list endpoint). We fetch the full card list
+  // here on mount and merge into the live-cards view. After a UI
+  // createCard call we also push the returned card into this state
+  // for an immediate render without waiting for the refresh.
+  const [listCards, setListCards] = useState<CardResponse[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    void (async (): Promise<void> => {
+      try {
+        const { listCards: fetchList } = await import("@/lib/api/cards");
+        const result = await fetchList(goalSpaceId);
+        if (!cancelled) setListCards([...result.items]);
+      } catch {
+        // Best-effort: the SSE feed will eventually deliver card_created
+        // events; the UI can recover from there.
+      }
+    })();
+    return (): void => {
+      cancelled = true;
+    };
+  }, [goalSpaceId]);
+
+  const refreshCards = useCallback(async (): Promise<void> => {
+    try {
+      const { listCards: fetchList } = await import("@/lib/api/cards");
+      const result = await fetchList(goalSpaceId);
+      setListCards([...result.items]);
+    } catch {
+      // Best-effort.
+    }
+  }, [goalSpaceId]);
 
   // Hydrate from replay on mount; merge into board store.
   useEffect(() => {
@@ -98,15 +134,21 @@ export function GoalSpaceShell({
   }, []);
 
   // Apply SSE state-change events to the snapshot's cards list.
-  // The server-side detail returns `cards: readonly unknown[]` because
-  // F2-03 does not embed full CardResponse shapes; only id, state,
-  // and node_board_id are referenced here, so a narrow guard suffices.
+  // F2-03 returns `cards: readonly unknown[]` (always empty by
+  // design — full card detail lives at the F2-05 list endpoint,
+  // fetched above into `listCards`). The view merges both: the
+  // server-rendered list is sparse so the `listCards` result is
+  // the authoritative source.
   const liveCards: CardResponse[] = useMemo(() => {
     const map = new Map<string, CardResponse>();
+    for (const c of listCards) {
+      map.set(c.id, c);
+    }
     for (const raw of snapshot.cards) {
       if (typeof raw !== "object" || raw === null) continue;
       const c = raw as Partial<CardResponse>;
       if (typeof c.id !== "string") continue;
+      if (map.has(c.id)) continue;
       map.set(c.id, {
         id: c.id,
         display_id: typeof c.display_id === "string" ? c.display_id : c.id.slice(0, 8),
@@ -216,6 +258,11 @@ export function GoalSpaceShell({
               title: parsed.title,
               node_board_id: board.id,
             });
+            // SSE event for card_created carries only summary fields.
+            // Push the full card (returned by the API) into the local
+            // card-list state so the UI updates immediately; the SSE
+            // feed will eventually redeliver and re-render.
+            setListCards((prev) => [...prev, card]);
             appendOutput({ kind: "success", text: `${card.display_id} created` });
             return;
           }

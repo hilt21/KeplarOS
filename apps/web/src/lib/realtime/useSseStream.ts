@@ -64,6 +64,12 @@ const SUBSCRIBED_EVENT_TYPES: readonly RealtimeEventType[] = [
 
 // ─── module-scoped shared state ──────────────────────────────────────
 
+interface SseSnapshot {
+  events: readonly RealtimeEvent[];
+  status: SseStatus;
+  lastEventId: string | null;
+}
+
 interface SharedStream {
   source: EventSource | null;
   events: RealtimeEvent[];
@@ -75,24 +81,45 @@ interface SharedStream {
   staleTimer: ReturnType<typeof setTimeout> | null;
   reconnectTimer: ReturnType<typeof setTimeout> | null;
   listeners: Set<() => void>;
+  // Cached snapshot: useSyncExternalStore requires a stable
+  // reference between notifications. We cache the
+  // { events, status, lastEventId } wrapper and only rebuild it
+  // when one of the three fields actually changes.
+  cachedSnapshot: SseSnapshot | null;
 }
 
 const streams = new Map<string, SharedStream>();
+
+// Single frozen constant for `getServerSnapshot`: useSyncExternalStore
+// expects the server snapshot to be the same reference for the
+// lifetime of a request.
+const SSE_SERVER_SNAPSHOT: SseSnapshot = Object.freeze({
+  events: Object.freeze([]) as readonly RealtimeEvent[],
+  status: "idle",
+  lastEventId: null,
+});
 
 function notify(stream: SharedStream): void {
   for (const l of stream.listeners) l();
 }
 
-function snapshot(stream: SharedStream): {
-  events: readonly RealtimeEvent[];
-  status: SseStatus;
-  lastEventId: string | null;
-} {
-  return {
+function snapshot(stream: SharedStream): SseSnapshot {
+  const cached = stream.cachedSnapshot;
+  if (
+    cached !== null &&
+    cached.events === stream.events &&
+    cached.status === stream.status &&
+    cached.lastEventId === stream.lastEventId
+  ) {
+    return cached;
+  }
+  const fresh: SseSnapshot = {
     events: stream.events,
     status: stream.status,
     lastEventId: stream.lastEventId,
   };
+  stream.cachedSnapshot = fresh;
+  return fresh;
 }
 
 function teardown(stream: SharedStream): void {
@@ -202,6 +229,7 @@ function ensureStream(goalSpaceId: string): SharedStream {
       staleTimer: null,
       reconnectTimer: null,
       listeners: new Set(),
+      cachedSnapshot: null,
     };
     streams.set(goalSpaceId, stream);
     openStream(stream, goalSpaceId);
@@ -265,26 +293,14 @@ export function useSseStream(options: UseSseStreamOptions): UseSseStreamResult {
     };
   };
 
-  const getSnapshot = (): {
-    events: readonly RealtimeEvent[];
-    status: SseStatus;
-    lastEventId: string | null;
-  } => {
-    if (!goalSpaceId) return { events: [], status: "idle", lastEventId: null };
+  const getSnapshot = (): SseSnapshot => {
+    if (!goalSpaceId) return SSE_SERVER_SNAPSHOT;
     const stream = streams.get(goalSpaceId);
-    if (!stream) return { events: [], status: "idle", lastEventId: null };
+    if (!stream) return SSE_SERVER_SNAPSHOT;
     return snapshot(stream);
   };
 
-  const getServerSnapshot = (): {
-    events: readonly RealtimeEvent[];
-    status: SseStatus;
-    lastEventId: string | null;
-  } => ({
-    events: [],
-    status: "idle",
-    lastEventId: null,
-  });
+  const getServerSnapshot = (): SseSnapshot => SSE_SERVER_SNAPSHOT;
 
   const snap = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 

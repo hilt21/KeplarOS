@@ -44,6 +44,7 @@ export const boardStore = {
     if (s.byId.has(event.id)) return;
     s.byId.add(event.id);
     s.events = [...s.events, event];
+    snapshots.delete(goalSpaceId);
     notify(goalSpaceId);
   },
   appendMany(goalSpaceId: string, events: readonly RealtimeEvent[]): void {
@@ -56,11 +57,13 @@ export const boardStore = {
     }
     if (fresh.length > 0) {
       s.events = [...s.events, ...fresh];
+      snapshots.delete(goalSpaceId);
       notify(goalSpaceId);
     }
   },
   clear(goalSpaceId: string): void {
     states.delete(goalSpaceId);
+    snapshots.delete(goalSpaceId);
     notify(goalSpaceId);
   },
   subscribe(goalSpaceId: string, cb: () => void): () => void {
@@ -76,12 +79,35 @@ export const boardStore = {
   },
   getSnapshot(goalSpaceId: string): BoardState {
     const s = getOrCreate(goalSpaceId);
-    return { events: s.events, byId: s.byId };
+    // useSyncExternalStore requires a stable reference between
+    // notifications. Cache the { events, byId } wrapper so repeated
+    // reads return the same object until the underlying state
+    // actually changes (which we detect by checking the events
+    // array reference — it is reassigned to a new array on every
+    // append / appendMany / clear).
+    let snap = snapshots.get(goalSpaceId);
+    if (snap === undefined || snap.events !== s.events) {
+      snap = { events: s.events, byId: s.byId };
+      snapshots.set(goalSpaceId, snap);
+    }
+    return snap;
   },
   getServerSnapshot(): BoardState {
-    return { events: [], byId: new Set() };
+    return SERVER_SNAPSHOT;
   },
 };
+
+// Per-goal-space snapshot cache. Cleared on every mutation so
+// `getSnapshot` returns the same reference between notifications.
+const snapshots = new Map<string, BoardState>();
+
+// Server snapshot is a single frozen constant: useSyncExternalStore
+// expects `getServerSnapshot` to return the same reference for the
+// lifetime of the request.
+const SERVER_SNAPSHOT: BoardState = Object.freeze({
+  events: Object.freeze([]) as readonly RealtimeEvent[],
+  byId: new Set<string>(),
+}) as BoardState;
 
 export function useBoardStore<T>(goalSpaceId: string, selector: (s: BoardState) => T): T {
   return useSyncExternalStore(

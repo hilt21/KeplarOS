@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
@@ -17,9 +17,16 @@ export function LoginForm(): React.ReactElement {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Hydration marker — the form is server-rendered without React event
+  // listeners; flipping this in useEffect signals that React has
+  // mounted and the form is interactive. P3-04b's E2E waits on this.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
-    event.preventDefault();
+  async function handleSubmit(event?: FormEvent<HTMLFormElement>): Promise<void> {
+    event?.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
@@ -96,8 +103,10 @@ export function LoginForm(): React.ReactElement {
       ) : null}
 
       <button
-        type="submit"
-        disabled={isSubmitting}
+        type="button"
+        onClick={() => void handleSubmit()}
+        disabled={!hydrated || isSubmitting}
+        data-hydrated={hydrated ? "true" : "false"}
         className="min-h-10 bg-[var(--color-primary)] px-[var(--space-md)] py-[var(--space-xs)] text-[var(--font-small)] font-semibold text-[var(--color-bg)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isSubmitting ? "Signing in" : "Sign in"}

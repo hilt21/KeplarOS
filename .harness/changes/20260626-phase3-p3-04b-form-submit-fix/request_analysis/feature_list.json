@@ -1,0 +1,67 @@
+{
+  "change_id": "20260626-phase3-p3-04b-form-submit-fix",
+  "title": "P3-04b Form Submit Hydration Fix",
+  "status": "ready_for_delivery",
+  "features": [
+    {
+      "id": "P3-04b",
+      "title": "Form Submit Hydration Fix",
+      "description": "Convert the three P3-01/02/03 form components from <form onSubmit> + <button type=\"submit\"> to <button type=\"button\" onClick> + Enter-key handling, so the browser does not natively submit the form as a GET before React hydrates. This unblocks the P3-04 E2E in Next.js dev mode and removes the latent UX hazard of passwords in URL query params.",
+      "scope": "in",
+      "priority": "P3",
+      "status": "completed_with_documented_exception",
+      "acceptance_criteria": [
+        "Feature only modifies the three form components in apps/web/src/components/.",
+        "No backend, API, database, schema, migration, authorization, or E2E spec changes are required.",
+        "login-form.tsx submit button uses type=button and onClick={handleSubmit} (or an equivalent wrapper).",
+        "create-goal-space-form.tsx submit button uses type=button and onClick={handleSubmit} (or an equivalent wrapper).",
+        "create-node-board-form.tsx submit button uses type=button and onClick={handleSubmit} (or an equivalent wrapper).",
+        "All three forms keep <form onSubmit={handleSubmit}> so Enter-to-submit continues to work after hydration.",
+        "pnpm --filter @keplar/web typecheck exits 0.",
+        "pnpm --filter @keplar/web lint exits 0 with no new warnings.",
+        "pnpm --filter @keplar/web test exits 0; all three focused UI test files pass without modification.",
+        "pnpm --filter @keplar/web format:check exits 0.",
+        "pnpm --filter @keplar/web e2e exits 0 with 1 passed for the P3-04 happy-path spec."
+      ],
+      "affected_areas": [
+        "web-ui",
+        "e2e-test-coverage"
+      ],
+      "dependencies": [
+        "P3-01 LoginForm",
+        "P3-02 CreateGoalSpaceForm",
+        "P3-03 CreateNodeBoardForm",
+        "P3-04 happy-path spec (1e9d03f) which depends on these forms submitting reliably"
+      ],
+      "test_needs": [
+        "Three focused UI test files (no modifications expected)",
+        "Full Vitest suite",
+        "Playwright happy-path E2E run via pnpm --filter @keplar/web e2e",
+        "Requested lint, typecheck, format, and diff checks"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass or documented exceptions are recorded",
+        "Required verification matrix items pass or have documented exceptions",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated",
+        "No commit created"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "not_applicable",
+        "smoke": "optional",
+        "e2e": "required"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed_with_exception",
+      "done_status": "completed_with_documented_exception"
+    }
+  ]
+}

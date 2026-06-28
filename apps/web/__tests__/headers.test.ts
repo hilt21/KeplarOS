@@ -25,5 +25,29 @@ describe("buildSecurityHeaders", () => {
     );
     expect(headers.find((h) => h.key === "Permissions-Policy")?.value).toContain("camera=()");
     expect(headers.find((h) => h.key === "Permissions-Policy")?.value).toContain("microphone=()");
+
+    // Production script-src must NOT contain `'unsafe-inline'` /
+    // `'unsafe-eval'`. Per CSP spec, both are ignored when a nonce
+    // is present, so the nonce-only policy stays strict.
+    // (style-src intentionally keeps `'unsafe-inline'` for Tailwind
+    // inline styles — that is unrelated to script execution.)
+    const scriptSrc = csp?.split(";").find((d) => d.trim().startsWith("script-src")) ?? "";
+    expect(scriptSrc).not.toContain("'unsafe-inline'");
+    expect(scriptSrc).not.toContain("'unsafe-eval'");
+  });
+
+  it("relaxes script-src in dev mode so React Refresh can boot", () => {
+    const headers = buildSecurityHeaders({ nonce: "test-nonce-abc", isDev: true });
+    const csp = headers.find((h) => h.key === "Content-Security-Policy")?.value;
+
+    // In dev, the per-request nonce is dropped (it would invalidate
+    // the inline scripts React Refresh injects) and replaced with
+    // `'unsafe-inline' + 'unsafe-eval'` so the React Refresh runtime
+    // can evaluate hot-reloaded module code. Production CSP stays
+    // strict because prod is exposed to the public.
+    const scriptSrc = csp?.split(";").find((d) => d.trim().startsWith("script-src")) ?? "";
+    expect(scriptSrc).toContain("'unsafe-inline'");
+    expect(scriptSrc).toContain("'unsafe-eval'");
+    expect(scriptSrc).not.toContain("'nonce-");
   });
 });

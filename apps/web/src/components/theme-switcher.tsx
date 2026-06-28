@@ -10,12 +10,27 @@
 
 import { useEffect, useRef, useState } from "react";
 import { themes, themeOrder } from "@/lib/theme/themes";
-import { applyTheme, getStoredTheme, setTheme, type TmThemeId } from "@/lib/theme/tmTheme";
+import {
+  applyTheme,
+  DEFAULT_THEME_ID,
+  getStoredTheme,
+  setTheme,
+  type TmThemeId,
+} from "@/lib/theme/tmTheme";
 
 export function ThemeSwitcher(): React.ReactElement {
   const [open, setOpen] = useState(false);
-  const [current, setCurrent] = useState<TmThemeId>(getStoredTheme());
+  // Initialize with the server-safe default to avoid an SSR / client
+  // hydration mismatch (localStorage is not available on the server).
+  // We sync from localStorage in a useEffect after mount; the brief
+  // flash of the default theme before the stored one applies is
+  // acceptable for this case.
+  const [current, setCurrent] = useState<TmThemeId>(DEFAULT_THEME_ID);
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setCurrent(getStoredTheme());
+  }, []);
 
   useEffect(() => {
     if (!open) return undefined;

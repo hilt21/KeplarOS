@@ -137,33 +137,28 @@ test("phase 2 board happy path: login → create goal space → create board →
 }) => {
   test.setTimeout(90_000);
 
-  // 1. Login through the P3-01 LoginForm UI. Wait for React hydration
-  //    before clicking Sign in — otherwise the form submits as a
-  //    native GET (no React onSubmit handler wired yet) and ends up
-  //    at /login?email=...&password=... with the query params and
-  //    no API call. In Next.js dev mode hydration completes after
-  //    `load` but before `networkidle`; the LoginForm's <form> has
-  //    no `method` so the browser falls back to GET. We probe for a
-  //    click handler on the submit button by tapping React's internal
-  //    fiber node attribute on the form itself.
+  // 1. Login through the P3-01 LoginForm UI. P3-04b converted the
+  //    submit button to `type="button"` + onClick and added a
+  //    `data-hydrated="true"` attribute that flips via useEffect.
+  //    We wait for that attribute before clicking so the React
+  //    onClick handler is guaranteed to be attached.
   await page.goto("/login");
-  await page.waitForLoadState("load");
-  await page.waitForTimeout(1500);
+  await page.locator('button[data-hydrated="true"]').waitFor();
   await page.getByLabel("Email").fill(SEEDED_USER_EMAIL);
   await page.getByLabel("Password").fill(E2E_PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/goal-spaces$/);
+  // Dev server compiles /goal-spaces on first hit; the default 10s
+  // expect timeout is too tight. 30s covers first-compile + route
+  // data fetch comfortably.
+  await expect(page).toHaveURL(/\/goal-spaces$/, { timeout: 30_000 });
 
   // 2. Create a goal space through the P3-02 CreateGoalSpaceForm.
-  //    Same hydration caveat: wait for the page to settle before
-  //    clicking Create goal space.
-  await page.waitForLoadState("load");
-  await page.waitForTimeout(1500);
+  await page.locator('button[data-hydrated="true"]').waitFor();
   await page.getByLabel("Goal name").fill(GOAL_SPACE_NAME);
   await page.getByLabel("Description").fill(GOAL_SPACE_DESCRIPTION);
   await page.getByRole("button", { name: "Create goal space" }).click();
 
-  const goalSpaceLink = page.getByRole("link", { name: new RegExp(GOAL_SPACE_NAME) });
+  const goalSpaceLink = page.getByRole("link", { name: new RegExp(GOAL_SPACE_NAME) }).first();
   await expect(goalSpaceLink).toBeVisible({ timeout: 15_000 });
   await goalSpaceLink.click();
   await expect(page).toHaveURL(/\/goal-spaces\/[A-Za-z0-9_-]+$/);
@@ -175,6 +170,14 @@ test("phase 2 board happy path: login → create goal space → create board →
 
   // 3. Create the first node board through the P3-03 CreateNodeBoardForm
   //    mounted in the empty-board branch of the goal-space detail page.
+  //    Wait for that form's submit button to be hydrated before
+  //    interacting — the goal-space detail page is first-compiled by
+  //    the dev server on this navigation, and `getByLabel` does not
+  //    auto-wait for React to attach event handlers.
+  await page
+    .locator('button[data-hydrated="true"]:has-text("Create node board")')
+    .first()
+    .waitFor({ timeout: 30_000 });
   await expect(page.getByLabel("Board key")).toBeVisible({ timeout: 15_000 });
   await page.getByLabel("Board key").fill(BOARD_KEY);
   await page.getByLabel("Board name").fill(BOARD_NAME);

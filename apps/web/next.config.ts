@@ -11,7 +11,17 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/:path*",
-        headers: [...buildSecurityHeaders({ nonce: randomBytes(16).toString("base64") })],
+        headers: [
+          ...buildSecurityHeaders({
+            nonce: randomBytes(16).toString("base64"),
+            // Loosen the dev CSP so Next.js's React Refresh runtime
+            // can boot. Without `unsafe-inline` + `unsafe-eval` in
+            // dev, the browser blocks React Refresh's bootstrap
+            // script and eval'd module code, and no client component
+            // ever hydrates. Production CSP is unchanged.
+            isDev: process.env.NODE_ENV === "development",
+          }),
+        ],
       },
     ];
   },
