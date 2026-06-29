@@ -61,24 +61,28 @@ const SERVER_STORE: ContextStore = Object.freeze({
   setContext: (): void => {},
 }) as ContextStore;
 
-export const useContextStore = {
-  getState: (): ContextStore => state,
-  setState: (patch: Partial<ContextStore>): void => {
-    state = { ...state, ...patch };
-    notify();
+export const useContextStore = Object.assign(
+  function useContextStore<T>(selector: (s: ContextStore) => T): T {
+    return useSyncExternalStore(
+      subscribe,
+      () => selector(state),
+      () => selector(SERVER_STORE),
+    );
   },
-  subscribe,
-  getSnapshot,
-  getServerSnapshot,
-};
-
-export function useContextStoreSelector<T>(selector: (s: ContextStore) => T): T {
-  return useSyncExternalStore(
+  {
+    getState: (): ContextStore => state,
+    setState: (patch: Partial<ContextStore>): void => {
+      state = { ...state, ...patch };
+      notify();
+    },
     subscribe,
-    () => selector(state),
-    () => selector(SERVER_STORE),
-  );
-}
+    getSnapshot,
+    getServerSnapshot,
+  },
+);
+
+/** @deprecated — prefer the default export shape; kept for any caller using the named hook. */
+export const useContextStoreSelector = useContextStore;
 
 /**
  * Parse the current route into an `AppContext`. Used by `AppShell`
