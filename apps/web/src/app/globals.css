@@ -1,6 +1,15 @@
 @import "../styles/tokens.css";
 @import "tailwindcss";
 
+:root {
+  /* Motion tokens (added by Frontend Polish 2026-06-29) */
+  --motion-message-enter: cubic-bezier(0.16, 1, 0.3, 1) 280ms;
+  --motion-pulse: cubic-bezier(0.4, 0, 0.6, 1) 1600ms infinite;
+  --motion-highlight: ease-out 800ms;
+  --motion-route: cubic-bezier(0.16, 1, 0.3, 1) 240ms;
+  --motion-collapse: ease-in-out 200ms;
+}
+
 /* Bridge CSS variables (from tokens.css) into Tailwind 4 theme. */
 @theme {
   --color-bg: var(--color-bg);
