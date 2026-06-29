@@ -39,6 +39,12 @@
   --motion-exit: 150ms;
   --motion-move: 250ms;
   --motion-hover: 100ms;
+  /* Preset transition shorthands (added by Frontend Polish 2026-06-29) */
+  --motion-message-enter: cubic-bezier(0.16, 1, 0.3, 1) 280ms;
+  --motion-pulse: cubic-bezier(0.4, 0, 0.6, 1) 1600ms infinite;
+  --motion-highlight: ease-out 800ms;
+  --motion-route: cubic-bezier(0.16, 1, 0.3, 1) 240ms;
+  --motion-collapse: ease-in-out 200ms;
 
   /* === Type scale === */
   --font-display: 48px;
