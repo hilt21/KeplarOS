@@ -2,19 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactElement } from "react";
-import { GoalSpaceKanbanView } from "./primary-pane/goal-space-kanban-view";
 import { TaskTimelineView, type TimelineEntry } from "./timeline/task-timeline-view";
 
 interface PrimaryPaneProps {
   readonly goalSpaceId: string;
   readonly taskId?: string;
-  readonly goalSpaceData: {
-    readonly goalSpaceId: string;
-    readonly goalSpaceName: string;
-    readonly boardName: string;
-    readonly tasks: ReadonlyArray<{ id: string; displayId: string; title: string; state: "backlog" | "todo" | "dev" | "review" | "done" | "blocked" | "cancelled"; assignee: string | null }>;
-    readonly liveCards: ReadonlyArray<{ id: string; displayId: string; title: string; state: "backlog" | "todo" | "dev" | "review" | "done" | "blocked" | "cancelled"; nodeBoardId: string | null }>;
-  };
   readonly taskData?: {
     readonly displayId: string;
     readonly title: string;
@@ -26,9 +18,7 @@ interface PrimaryPaneProps {
 }
 
 export function PrimaryPane({
-  goalSpaceId,
   taskId,
-  goalSpaceData,
   taskData,
   onSendTaskMessage,
 }: PrimaryPaneProps): ReactElement {
@@ -48,13 +38,15 @@ export function PrimaryPane({
     );
   }
 
+  // The Goal Space view is currently rendered by the existing
+  // `(app)/goal-spaces/[id]/page.tsx` which uses GoalSpaceShell
+  // directly with its own props (snapshot / boards / confirmations).
+  // A future refactor wires the AppShell to route-switch through
+  // PrimaryPane and threads the F2-05 / F2-08 data here.
   return (
-    <GoalSpaceKanbanView
-      goalSpaceId={goalSpaceData.goalSpaceId}
-      goalSpaceName={goalSpaceData.goalSpaceName}
-      boardName={goalSpaceData.boardName}
-      tasks={[...goalSpaceData.tasks]}
-      liveCards={[...goalSpaceData.liveCards]}
-    />
+    <div style={{ padding: 16, color: "var(--color-text-muted)" }}>
+      Primary pane: Goal Space view is rendered by the existing page
+      directly. The persistent shell integration is a follow-up.
+    </div>
   );
 }
