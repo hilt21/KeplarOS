@@ -11,6 +11,7 @@ export type TimelineVariant =
   | "system";
 
 interface CommonProps {
+  readonly variant: TimelineVariant;
   readonly body: string;
   readonly meta?: string;
 }
