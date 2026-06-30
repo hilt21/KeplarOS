@@ -27,13 +27,6 @@ export default async function TaskPage({ params }: PageProps) {
     <PrimaryPane
       goalSpaceId={id}
       taskId={taskId}
-      goalSpaceData={{
-        goalSpaceId: id,
-        goalSpaceName: "Loading…",
-        boardName: "Loading…",
-        tasks: [],
-        liveCards: [],
-      }}
       onSendTaskMessage={async () => {
         "use server";
         // server action stub — implementation deferred
