@@ -34,18 +34,18 @@ export function MasterPane({
   const filteredSpaces = useMemo(() => {
     if (!filter.trim()) return goalSpaces;
     const q = filter.toLowerCase();
-    return goalSpaces
-      .map((gs) => {
-        const tasks = (tasksByGoalSpace[gs.id] ?? []).filter(
-          (t) =>
-            t.title.toLowerCase().includes(q) ||
-            t.display_id.toLowerCase().includes(q),
-        );
-        return tasks.length > 0 || gs.name.toLowerCase().includes(q)
-          ? { gs, tasks }
-          : null;
-      })
-      .filter((x): x is { gs: GoalSpaceSummary; tasks: TaskSummary[] } => x !== null);
+    const result: Array<{ gs: GoalSpaceSummary; tasks: TaskSummary[] }> = [];
+    for (const gs of goalSpaces) {
+      const tasks = (tasksByGoalSpace[gs.id] ?? []).filter(
+        (t) =>
+          t.title.toLowerCase().includes(q) ||
+          t.display_id.toLowerCase().includes(q),
+      );
+      if (tasks.length > 0 || gs.name.toLowerCase().includes(q)) {
+        result.push({ gs, tasks });
+      }
+    }
+    return result;
   }, [filter, goalSpaces, tasksByGoalSpace]);
 
   return (
