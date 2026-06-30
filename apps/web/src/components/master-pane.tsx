@@ -31,21 +31,18 @@ export function MasterPane({
     useContextStore.setState({ current: urlCtx });
   }
 
-  const filteredSpaces = useMemo(() => {
-    if (!filter.trim()) return goalSpaces;
+  const filteredSpaces: ReadonlyArray<{ gs: GoalSpaceSummary; tasks: readonly TaskSummary[] }> = useMemo(() => {
+    const baseList = goalSpaces.map((gs) => ({
+      gs,
+      tasks: tasksByGoalSpace[gs.id] ?? [],
+    }));
+    if (!filter.trim()) return baseList;
     const q = filter.toLowerCase();
-    const result: Array<{ gs: GoalSpaceSummary; tasks: TaskSummary[] }> = [];
-    for (const gs of goalSpaces) {
-      const tasks = (tasksByGoalSpace[gs.id] ?? []).filter(
-        (t) =>
-          t.title.toLowerCase().includes(q) ||
-          t.display_id.toLowerCase().includes(q),
-      );
-      if (tasks.length > 0 || gs.name.toLowerCase().includes(q)) {
-        result.push({ gs, tasks });
-      }
-    }
-    return result;
+    return baseList.filter(
+      ({ gs, tasks }) =>
+        tasks.length > 0 ||
+        gs.name.toLowerCase().includes(q),
+    );
   }, [filter, goalSpaces, tasksByGoalSpace]);
 
   return (
