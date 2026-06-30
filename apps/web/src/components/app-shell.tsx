@@ -1,21 +1,10 @@
 "use client";
 
 /**
- * AppShell — Frontend Polish 2026-06-29, Task 12.
- *
- * Persistent 3-pane shell hoisted to `(app)/layout.tsx` so it
- * survives route changes between `/goal-spaces/[id]` and
- * `/goal-spaces/[id]/tasks/[taskId]`. The Master and Detail panes
- * mount once; only the Primary pane swaps content based on the
- * current route.
- *
- * Persists Master / Detail across routes; Primary is the only
- * pane that re-renders.
- */
- * Client wrapper that owns the three-column layout, header bar, and
- * shortcut provider. Server components (page.tsx) render their children
- * inside `<main>`; the shell handles left/right sidebar visibility,
- * header chrome, theme switching, and keyboard shortcuts.
+ * AppShell (F2-09). Persistent 3-pane shell owned by `(app)/layout.tsx`
+ * (see Task 12 of the Frontend Polish plan). Left/right rail
+ * visibility, header chrome, theme switching, and keyboard shortcuts
+ * live here; server pages render their content inside `<main>`.
  */
 
 "use client";
