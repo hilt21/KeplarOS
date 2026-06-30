@@ -2,7 +2,7 @@
 
 import { useState, type ReactElement } from "react";
 
-interface CardRuntimeInfo {
+export interface CardRuntimeInfo {
   readonly cardId: string;
   readonly displayId: string;
   readonly state: "backlog" | "todo" | "dev" | "review" | "done" | "blocked" | "cancelled";
