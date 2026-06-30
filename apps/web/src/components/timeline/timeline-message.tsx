@@ -88,7 +88,7 @@ export function TimelineMessage(props: Props): ReactElement {
     );
   }
 
-  if (variant === "confirmation") {
+  if (variant === "confirmation" && "onApprove" in props) {
     return (
       <div style={{ display: "flex", gap: 8, marginBottom: 14, animation: "fadeInUp 280ms ease-out" }}>
         <div
