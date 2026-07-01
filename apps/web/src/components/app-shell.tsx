@@ -11,7 +11,6 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { LeftSidebar } from "./left-sidebar";
 import { ThemeSwitcher } from "./theme-switcher";
 import { ShortcutProvider } from "@/lib/keyboard/shortcut-provider";
 import { uiStore, useUiStore } from "@/lib/state/ui-store";
@@ -21,7 +20,6 @@ export interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps): React.ReactElement {
-  const leftOpen = useUiStore((s) => s.leftOpen);
   const rightOpen = useUiStore((s) => s.rightOpen);
 
   return (
@@ -35,21 +33,12 @@ export function AppShell({ children }: AppShellProps): React.ReactElement {
             >
               KEPLAR
             </Link>
-            <button
-              type="button"
-              onClick={() => uiStore.set({ leftOpen: !leftOpen })}
-              className="font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-micro)] uppercase text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
-              aria-label="Toggle left sidebar (Cmd+B)"
-            >
-              {leftOpen ? "← hide (⌘B)" : "→ show (⌘B)"}
-            </button>
           </div>
           <div className="flex items-center gap-[var(--space-md)]">
             <ThemeSwitcher />
           </div>
         </header>
         <div className="flex flex-1 overflow-hidden">
-          <LeftSidebar goalSpaceId={null} goalSpaceName={null} eventCount={0} lastEventId={null} />
           <main className="flex-1 overflow-y-auto">{children}</main>
           {rightOpen && (
             <aside
