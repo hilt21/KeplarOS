@@ -7,7 +7,11 @@ export interface CardRuntimeInfo {
   readonly displayId: string;
   readonly state: "backlog" | "todo" | "dev" | "review" | "done" | "blocked" | "cancelled";
   readonly assignee: string | null;
-  readonly modifiedFiles: readonly { readonly path: string; readonly op: "M" | "+" | "-"; readonly lines: string }[];
+  readonly modifiedFiles: readonly {
+    readonly path: string;
+    readonly op: "M" | "+" | "-";
+    readonly lines: string;
+  }[];
   readonly planSteps: number;
   readonly auditEvents: number;
 }
@@ -91,7 +95,9 @@ export function CardRuntime({ info }: CardRuntimeProps): ReactElement {
         >
           CARD RUNTIME
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, padding: "2px 0" }}>
+        <div
+          style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, padding: "2px 0" }}
+        >
           <div
             style={{
               fontFamily: "var(--font-jetbrains-mono,monospace)",
@@ -148,8 +154,8 @@ export function CardRuntime({ info }: CardRuntimeProps): ReactElement {
                     f.op === "M"
                       ? "var(--color-warning)"
                       : f.op === "+"
-                      ? "var(--color-success)"
-                      : "var(--color-error)",
+                        ? "var(--color-success)"
+                        : "var(--color-error)",
                   fontFamily: "var(--font-jetbrains-mono,monospace)",
                 }}
               >
@@ -186,14 +192,28 @@ export function CardRuntime({ info }: CardRuntimeProps): ReactElement {
       </AccordionSection>
 
       <AccordionSection title="PLAN" count={info.planSteps} defaultOpen={false}>
-        <div style={{ padding: "8px 14px", fontSize: 10, color: "var(--color-text-muted)", fontFamily: "var(--font-jetbrains-mono,monospace)" }}>
-          // see plan panel
+        <div
+          style={{
+            padding: "8px 14px",
+            fontSize: 10,
+            color: "var(--color-text-muted)",
+            fontFamily: "var(--font-jetbrains-mono,monospace)",
+          }}
+        >
+          {"// see plan panel"}
         </div>
       </AccordionSection>
 
       <AccordionSection title="AUDIT" count={info.auditEvents} defaultOpen={false}>
-        <div style={{ padding: "8px 14px", fontSize: 10, color: "var(--color-text-muted)", fontFamily: "var(--font-jetbrains-mono,monospace)" }}>
-          // see audit panel
+        <div
+          style={{
+            padding: "8px 14px",
+            fontSize: 10,
+            color: "var(--color-text-muted)",
+            fontFamily: "var(--font-jetbrains-mono,monospace)",
+          }}
+        >
+          {"// see audit panel"}
         </div>
       </AccordionSection>
     </div>

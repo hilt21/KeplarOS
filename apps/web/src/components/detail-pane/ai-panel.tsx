@@ -70,10 +70,12 @@ export function AIPanel(): ReactElement {
                 background: STATE_COLOR[state.status],
                 borderRadius: "50%",
                 flexShrink: 0,
-                animation: state.status === "running" ? "pulse 1.6s ease-in-out infinite" : undefined,
+                animation: state.status === "running" ? "var(--motion-pulse)" : undefined,
               }}
             />
-            <span style={{ color: "var(--color-text-secondary)", flex: 1 }}>{ROLE_LABELS[role]}</span>
+            <span style={{ color: "var(--color-text-secondary)", flex: 1 }}>
+              {ROLE_LABELS[role]}
+            </span>
             <span
               style={{
                 color: state.status === "running" ? "var(--color-info)" : "var(--color-text-muted)",

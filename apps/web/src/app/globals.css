@@ -110,3 +110,17 @@ body {
   --color-info: #66d9ef;
   color-scheme: dark;
 }
+
+/* Respect reduced-motion: disable all animations and transitions
+ * (Frontend Polish 2026-06-29, spec §6.1 / §16). The pulse animation
+ * on AI role running dots is the primary beneficiary. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

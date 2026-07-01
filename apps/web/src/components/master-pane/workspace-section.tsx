@@ -82,8 +82,8 @@ export function WorkspaceSection({
           style={{
             width: 16,
             height: 16,
-            background: "rgba(14,165,233,0.15)",
-            border: "1px solid rgba(14,165,233,0.30)",
+            background: "var(--color-info-bg)",
+            border: "1px solid var(--color-info-border)",
             borderRadius: 3,
             display: "flex",
             alignItems: "center",
@@ -154,8 +154,10 @@ export function WorkspaceSection({
                   padding: isSelected ? "6px 12px 6px 28px" : "4px 12px 4px 28px",
                   fontSize: 12,
                   color: isSelected ? "var(--color-text-primary)" : "var(--color-text-muted)",
-                  background: isSelected ? "rgba(14,165,233,0.10)" : "transparent",
-                  borderLeft: isSelected ? "2px solid var(--color-primary)" : "2px solid transparent",
+                  background: isSelected ? "var(--color-info-bg)" : "transparent",
+                  borderLeft: isSelected
+                    ? "2px solid var(--color-primary)"
+                    : "2px solid transparent",
                   cursor: "pointer",
                 }}
               >

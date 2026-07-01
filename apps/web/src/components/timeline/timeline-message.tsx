@@ -25,18 +25,25 @@ interface ConfirmationProps extends CommonProps {
 
 type Props = CommonProps | ConfirmationProps;
 
-const iconFor = (variant: TimelineVariant): { glyph: string; label: string; bg: string; border?: string } => {
+const iconFor = (
+  variant: TimelineVariant,
+): { glyph: string; label: string; bg: string; border?: string } => {
   switch (variant) {
     case "user":
       return { glyph: "", label: "", bg: "transparent" };
     case "agent-thinking":
-      return { glyph: "AI", label: "Agent", bg: "rgba(14,165,233,0.15)" };
+      return { glyph: "AI", label: "Agent", bg: "var(--color-info-bg)" };
     case "agent-streaming":
-      return { glyph: "AI", label: "Agent streaming", bg: "rgba(14,165,233,0.15)", border: "1px solid rgba(14,165,233,0.30)" };
+      return {
+        glyph: "AI",
+        label: "Agent streaming",
+        bg: "var(--color-info-bg)",
+        border: "1px solid var(--color-info-border)",
+      };
     case "tool":
       return { glyph: "⚙", label: "Tool", bg: "var(--color-surface)" };
     case "confirmation":
-      return { glyph: "!", label: "Confirmation required", bg: "rgba(245,158,11,0.15)" };
+      return { glyph: "!", label: "Confirmation required", bg: "var(--color-warning-bg)" };
     case "system":
       return { glyph: "", label: "", bg: "transparent" };
   }
@@ -49,12 +56,17 @@ export function TimelineMessage(props: Props): ReactElement {
   if (variant === "user") {
     return (
       <div
-        style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14, animation: "fadeInUp 280ms ease-out" }}
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: 14,
+          animation: "var(--motion-message-enter)",
+        }}
       >
         <div
           style={{
             maxWidth: "80%",
-            background: "rgba(255,255,255,0.04)",
+            background: "var(--color-surface-elevated)",
             border: "1px solid var(--color-border)",
             padding: "8px 12px",
             borderRadius: 4,
@@ -72,7 +84,9 @@ export function TimelineMessage(props: Props): ReactElement {
               {meta}
             </div>
           )}
-          <div style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>{body}</div>
+          <div style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
+            {body}
+          </div>
         </div>
       </div>
     );
@@ -80,8 +94,15 @@ export function TimelineMessage(props: Props): ReactElement {
 
   if (variant === "system") {
     return (
-      <div style={{ marginBottom: 14, animation: "fadeInUp 280ms ease-out" }}>
-        <div style={{ fontSize: 11, color: "var(--color-text-muted)", fontStyle: "italic", lineHeight: 1.5 }}>
+      <div style={{ marginBottom: 14, animation: "var(--motion-message-enter)" }}>
+        <div
+          style={{
+            fontSize: 11,
+            color: "var(--color-text-muted)",
+            fontStyle: "italic",
+            lineHeight: 1.5,
+          }}
+        >
           {body}
         </div>
       </div>
@@ -90,14 +111,21 @@ export function TimelineMessage(props: Props): ReactElement {
 
   if (variant === "confirmation" && "onApprove" in props) {
     return (
-      <div style={{ display: "flex", gap: 8, marginBottom: 14, animation: "fadeInUp 280ms ease-out" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          marginBottom: 14,
+          animation: "var(--motion-message-enter)",
+        }}
+      >
         <div
           aria-label={icon.label}
           style={{
             width: 20,
             height: 20,
             background: icon.bg,
-            border: "1px solid rgba(245,158,11,0.30)",
+            border: "1px solid var(--color-warning-border)",
             borderRadius: "50%",
             display: "flex",
             alignItems: "center",
@@ -113,8 +141,8 @@ export function TimelineMessage(props: Props): ReactElement {
           style={{
             flex: 1,
             minWidth: 0,
-            background: "rgba(245,158,11,0.05)",
-            border: "1px solid rgba(245,158,11,0.30)",
+            background: "var(--color-warning-bg)",
+            border: "1px solid var(--color-warning-border)",
             padding: "10px 12px",
             borderLeft: "3px solid var(--color-warning)",
             borderRadius: 4,
@@ -133,7 +161,9 @@ export function TimelineMessage(props: Props): ReactElement {
           >
             HUMAN CONFIRMATION REQUIRED
           </div>
-          <div style={{ fontSize: 12, color: "var(--color-text-primary)", marginBottom: 8 }}>{body}</div>
+          <div style={{ fontSize: 12, color: "var(--color-text-primary)", marginBottom: 8 }}>
+            {body}
+          </div>
           {meta && (
             <div
               style={{
@@ -185,7 +215,14 @@ export function TimelineMessage(props: Props): ReactElement {
 
   // agent-thinking / agent-streaming / tool
   return (
-    <div style={{ display: "flex", gap: 8, marginBottom: 14, animation: "fadeInUp 280ms ease-out" }}>
+    <div
+      style={{
+        display: "flex",
+        gap: 8,
+        marginBottom: 14,
+        animation: "var(--motion-message-enter)",
+      }}
+    >
       <div
         aria-label={icon.label}
         style={{
@@ -200,7 +237,7 @@ export function TimelineMessage(props: Props): ReactElement {
           fontSize: 9,
           color: variant === "tool" ? "var(--color-text-muted)" : "var(--color-info)",
           flexShrink: 0,
-          animation: variant === "agent-streaming" ? "pulse 1.6s ease-in-out infinite" : undefined,
+          animation: variant === "agent-streaming" ? "var(--motion-pulse)" : undefined,
         }}
       >
         {icon.glyph}

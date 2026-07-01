@@ -38,7 +38,7 @@ export function SettingsBar({ user, onOpenSettings }: SettingsBarProps): ReactEl
         style={{
           width: 18,
           height: 18,
-          background: "rgba(14,165,233,0.15)",
+          background: "var(--color-info-bg)",
           borderRadius: "50%",
           display: "flex",
           alignItems: "center",
@@ -73,10 +73,7 @@ export function SettingsBar({ user, onOpenSettings }: SettingsBarProps): ReactEl
           {user.role} · {user.workspace}
         </div>
       </div>
-      <div
-        aria-label="Open settings"
-        style={{ fontSize: 12, color: "var(--color-text-muted)" }}
-      >
+      <div aria-label="Open settings" style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
         ⚙
       </div>
     </div>
