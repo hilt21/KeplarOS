@@ -1,28 +1,35 @@
 "use client";
 
 /**
- * AppShell (F2-09). Persistent 3-pane shell owned by `(app)/layout.tsx`
- * (see Task 12 of the Frontend Polish plan). Left/right rail
- * visibility, header chrome, theme switching, and keyboard shortcuts
- * live here; server pages render their content inside `<main>`.
+ * AppShell (F3). Persistent 3-pane shell owned by `(app)/layout.tsx`
+ * via `<AppShellWrapper>`. Owns:
+ *   - Top bar (breadcrumbs, token meter, command palette opener).
+ *   - Left rail (MasterPane) — goal spaces + per-space task index.
+ *   - Center `<main>` — server pages render their content here.
+ *   - Right rail (DetailPane) — workspace metadata, AI panel, card runtime.
+ *   - Keyboard shortcut provider (Cmd+B / Cmd+J / Cmd+/ / g g).
+ *
+ * The data contract was established by F2 (see `app-shell-wrapper.tsx`).
+ * Per-page context (current goal space header, current card) is forwarded
+ * by `(app)/layout.tsx` and rendered directly here.
  */
 
-"use client";
-
-import Link from "next/link";
-import type { ReactNode } from "react";
-import { ThemeSwitcher } from "./theme-switcher";
+import { useEffect, useMemo, type ReactElement, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { TopBar, type TopBarSegment } from "./top-bar";
+import { MasterPane } from "./master-pane";
+import { DetailPane } from "./detail-pane";
+import type { CardRuntimeInfo } from "./detail-pane/card-runtime";
+import {
+  useContextStore,
+  parseContextFromPath,
+  type AppContext,
+} from "@/lib/state/context-store";
+import { uiStore } from "@/lib/state/ui-store";
 import { ShortcutProvider } from "@/lib/keyboard/shortcut-provider";
-import { uiStore, useUiStore } from "@/lib/state/ui-store";
 
-// F2 lays down the data contract. F3 will actually consume these props
-// to render the left/right rails; today the AppShell ignores them and
-// the type stays purely additive so existing callers (tests, etc.)
-// don't break.
-
-// Minimal shapes used by the data contract. They intentionally mirror
-// what the per-page components (MasterPane / DetailPane / TopBar) expect
-// so the type contract is forward-compatible with F3.
+// Re-export the F2 prop types so `AppShellWrapper` keeps importing them
+// from here without a circular edge case. F3 reads them; F2 declared them.
 export interface AppShellUser {
   readonly name: string;
   readonly role: string;
@@ -49,67 +56,140 @@ export interface AppShellCurrentHeader {
 
 export interface AppShellCardRuntimeInfo {
   readonly cardId: string;
+  readonly displayId: string;
   readonly title: string;
   readonly state: AppShellTaskSummary["state"];
 }
 
 export interface AppShellProps {
+  readonly user: AppShellUser;
+  readonly goalSpaces: readonly AppShellGoalSpaceSummary[];
+  readonly tasksByGoalSpace: Readonly<Record<string, readonly AppShellTaskSummary[]>>;
+  readonly currentGoalSpaceHeader: AppShellCurrentHeader | null;
+  readonly goalSpaceId: string | null;
+  readonly card: AppShellCardRuntimeInfo | null;
+  readonly tokensUsed: number;
+  readonly tokensCap: number;
+  readonly env: "dev" | "prod";
   readonly children: ReactNode;
-  // F2 forwards these from the (app) layout's server-side fetches; F3
-  // will read them inside the shell. All optional so the existing
-  // single-prop call sites (tests) keep compiling.
-  readonly user?: AppShellUser;
-  readonly goalSpaces?: readonly AppShellGoalSpaceSummary[];
-  readonly tasksByGoalSpace?: Readonly<Record<string, readonly AppShellTaskSummary[]>>;
-  readonly currentGoalSpaceHeader?: AppShellCurrentHeader | null;
-  readonly goalSpaceId?: string | null;
-  readonly card?: AppShellCardRuntimeInfo | null;
-  readonly tokensUsed?: number;
-  readonly tokensCap?: number;
-  readonly env?: "dev" | "prod";
 }
 
-export function AppShell({ children }: AppShellProps): React.ReactElement {
-  const rightOpen = useUiStore((s) => s.rightOpen);
+const PRIMARY_PANE_WIDTH = 280;
+const DETAIL_PANE_WIDTH = 320;
+
+export function AppShell({
+  user,
+  goalSpaces,
+  tasksByGoalSpace,
+  currentGoalSpaceHeader,
+  goalSpaceId,
+  card,
+  tokensUsed,
+  tokensCap,
+  env,
+  children,
+}: AppShellProps): ReactElement {
+  const pathname = usePathname();
+  const context: AppContext = useContextStore((s) => s.current);
+
+  // Keep the global context store in sync with the URL on every navigation.
+  // `useContextStore.setState` is a cheap immutable spread + notify.
+  useEffect(() => {
+    const next = parseContextFromPath(pathname);
+    if (
+      next.goalSpaceId !== context.goalSpaceId ||
+      next.taskId !== context.taskId
+    ) {
+      useContextStore.setState({ current: next });
+    }
+  }, [pathname, context.goalSpaceId, context.taskId]);
+
+  // Breadcrumb segments: KEPLAR → goal space → card.
+  const segments: readonly TopBarSegment[] = useMemo<TopBarSegment[]>(() => {
+    const list: TopBarSegment[] = [{ label: "KEPLAR", href: "/goal-spaces" }];
+    if (currentGoalSpaceHeader) {
+      const next: TopBarSegment =
+        goalSpaceId !== null
+          ? { label: currentGoalSpaceHeader.name, href: `/goal-spaces/${goalSpaceId}` }
+          : { label: currentGoalSpaceHeader.name };
+      list.push(next);
+    }
+    if (card) {
+      list.push({ label: card.displayId });
+    }
+    return list;
+  }, [currentGoalSpaceHeader, goalSpaceId, card]);
+
+  // The F2 contract for `card` only carries display metadata. The full
+  // `CardRuntimeInfo` (modified files, plan steps, audit events) is owned
+  // by F11/F12; until it ships, keep the runtime panel hidden rather than
+  // fabricating fields.
+  const cardRuntime: CardRuntimeInfo | null = null;
+
+  const openCommandPalette = (): void => {
+    uiStore.set({ paletteOpen: true });
+  };
+
+  const openSettings = (): void => {
+    // TODO(F9): wire to the settings overlay once it ships.
+  };
 
   return (
     <ShortcutProvider>
-      <div className="flex h-screen flex-col bg-[var(--color-bg)] text-[var(--color-text-primary)]">
-        <header className="flex h-[48px] shrink-0 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-bg)] px-[var(--space-md)]">
-          <div className="flex items-center gap-[var(--space-md)]">
-            <Link
-              href="/goal-spaces"
-              className="font-[var(--font-instrument-sans,system-ui,sans-serif)] text-[var(--font-body)] text-[var(--color-text-primary)] hover:text-[var(--color-primary)]"
-            >
-              KEPLAR
-            </Link>
-          </div>
-          <div className="flex items-center gap-[var(--space-md)]">
-            <ThemeSwitcher />
-          </div>
-        </header>
+      <div
+        className="flex h-screen flex-col bg-[var(--color-bg)] text-[var(--color-text-primary)]"
+        style={{ height: "100vh" }}
+      >
+        <TopBar
+          segments={segments}
+          tokensUsed={tokensUsed}
+          tokensCap={tokensCap}
+          onOpenCommandPalette={openCommandPalette}
+        />
         <div className="flex flex-1 overflow-hidden">
+          <div
+            style={{
+              width: PRIMARY_PANE_WIDTH,
+              flexShrink: 0,
+              minWidth: PRIMARY_PANE_WIDTH,
+              maxWidth: PRIMARY_PANE_WIDTH,
+              height: "100%",
+            }}
+            aria-label="Workspaces"
+          >
+            <MasterPane
+              goalSpaces={goalSpaces}
+              tasksByGoalSpace={tasksByGoalSpace}
+              user={user}
+              onOpenSettings={openSettings}
+            />
+          </div>
           <main className="flex-1 overflow-y-auto">{children}</main>
-          {rightOpen && (
-            <aside
-              aria-label="Context"
-              className="flex w-[360px] shrink-0 flex-col border-l border-[var(--color-border)] bg-[var(--color-surface)]"
-            >
-              <header className="flex items-center justify-between border-b border-[var(--color-border)] px-[var(--space-md)] py-[var(--space-sm)]">
-                <span className="font-[var(--font-instrument-sans,system-ui,sans-serif)] text-[var(--font-small)] text-[var(--color-text-primary)]">
-                  Context
-                </span>
-                <button
-                  type="button"
-                  onClick={() => uiStore.set({ rightOpen: false })}
-                  className="font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-micro)] uppercase text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
-                  aria-label="Hide right sidebar (Cmd+J)"
-                >
-                  hide (⌘J)
-                </button>
-              </header>
-            </aside>
-          )}
+          <div
+            style={{
+              width: DETAIL_PANE_WIDTH,
+              flexShrink: 0,
+              minWidth: DETAIL_PANE_WIDTH,
+              maxWidth: DETAIL_PANE_WIDTH,
+              height: "100%",
+            }}
+            aria-label="Context"
+          >
+            <DetailPane
+              workspace={{
+                goalSpaceName: currentGoalSpaceHeader?.name ?? "—",
+                boardName: currentGoalSpaceHeader?.boardName ?? "—",
+                userName: user.name,
+                userRole: user.role,
+                runtime: "Next.js · React",
+                apiBase: "/api/v1",
+                tokensUsed,
+                tokensCap,
+              }}
+              env={env}
+              card={cardRuntime}
+            />
+          </div>
         </div>
       </div>
     </ShortcutProvider>
