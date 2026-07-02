@@ -15,8 +15,58 @@ import { ThemeSwitcher } from "./theme-switcher";
 import { ShortcutProvider } from "@/lib/keyboard/shortcut-provider";
 import { uiStore, useUiStore } from "@/lib/state/ui-store";
 
+// F2 lays down the data contract. F3 will actually consume these props
+// to render the left/right rails; today the AppShell ignores them and
+// the type stays purely additive so existing callers (tests, etc.)
+// don't break.
+
+// Minimal shapes used by the data contract. They intentionally mirror
+// what the per-page components (MasterPane / DetailPane / TopBar) expect
+// so the type contract is forward-compatible with F3.
+export interface AppShellUser {
+  readonly name: string;
+  readonly role: string;
+  readonly workspace: string;
+}
+
+export interface AppShellGoalSpaceSummary {
+  readonly id: string;
+  readonly name: string;
+}
+
+export interface AppShellTaskSummary {
+  readonly id: string;
+  readonly display_id: string;
+  readonly title: string;
+  readonly state: "backlog" | "todo" | "dev" | "review" | "done" | "blocked" | "cancelled";
+  readonly updated_at: string;
+}
+
+export interface AppShellCurrentHeader {
+  readonly name: string;
+  readonly boardName: string;
+}
+
+export interface AppShellCardRuntimeInfo {
+  readonly cardId: string;
+  readonly title: string;
+  readonly state: AppShellTaskSummary["state"];
+}
+
 export interface AppShellProps {
   readonly children: ReactNode;
+  // F2 forwards these from the (app) layout's server-side fetches; F3
+  // will read them inside the shell. All optional so the existing
+  // single-prop call sites (tests) keep compiling.
+  readonly user?: AppShellUser;
+  readonly goalSpaces?: readonly AppShellGoalSpaceSummary[];
+  readonly tasksByGoalSpace?: Readonly<Record<string, readonly AppShellTaskSummary[]>>;
+  readonly currentGoalSpaceHeader?: AppShellCurrentHeader | null;
+  readonly goalSpaceId?: string | null;
+  readonly card?: AppShellCardRuntimeInfo | null;
+  readonly tokensUsed?: number;
+  readonly tokensCap?: number;
+  readonly env?: "dev" | "prod";
 }
 
 export function AppShell({ children }: AppShellProps): React.ReactElement {

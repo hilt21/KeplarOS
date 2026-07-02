@@ -13,6 +13,10 @@
 
 import { randomUUID } from "node:crypto";
 
+import { and, inArray, isNull } from "drizzle-orm";
+
+import { cards } from "@db/schema";
+
 import { ApiRequestError } from "@/lib/api/errors";
 import { runWithAudit, type AuditContext } from "@/lib/audit/run-with-audit";
 import { canManageGoalSpace, canReadGoalSpace } from "@/lib/authorization/goal-space";
@@ -587,4 +591,98 @@ export function cancelGoalSpaceService(
       },
     };
   });
+}
+
+// ─── service: list goal spaces with task summaries (F2) ──────────
+
+/**
+ * Minimal task summary shape consumed by the persistent shell's
+ * `WorkspaceSection` (see `apps/web/src/components/master-pane/workspace-section.tsx`).
+ */
+export interface GoalSpaceTaskSummary {
+  readonly id: string;
+  readonly display_id: string;
+  readonly title: string;
+  readonly state: "backlog" | "todo" | "dev" | "review" | "done" | "blocked" | "cancelled";
+  readonly updated_at: string;
+}
+
+export interface GoalSpaceWithTasks {
+  readonly goalSpace: { readonly id: string; readonly name: string };
+  readonly tasks: readonly GoalSpaceTaskSummary[];
+}
+
+/**
+ * List all goal spaces visible to the actor, each paired with the
+ * summary cards (`id` / `display_id` / `title` / `state` / `updated_at`)
+ * that belong to it.
+ *
+ * Implementation note (F2):
+ * - One query for goal spaces (via the existing `listGoalSpaces` repository
+ *   helper that already enforces actor visibility).
+ * - One query for ALL non-deleted cards belonging to those goal spaces,
+ *   grouped in-memory by `goal_space_id`. This avoids N+1 against the
+ *   `cards` table when the actor sees many goal spaces.
+ * - If the actor sees no goal spaces, no card query is issued.
+ *
+ * Authorization: re-uses the existing `listGoalSpaces` repository filter
+ * (`actor.role` + node_board membership), so `GoalSpaceContext` checks are
+ * not duplicated here.
+ */
+export function listGoalSpacesWithTasksService(
+  actor: Actor,
+  db: DrizzleDb = getDb(),
+): readonly GoalSpaceWithTasks[] {
+  const { items } = listGoalSpacesRows(db, {
+    page: 1,
+    limit: 1000,
+    actor,
+  });
+
+  if (items.length === 0) {
+    return [];
+  }
+
+  const goalSpaceIds = items.map((row) => row.id);
+  const cardRows = db
+    .select({
+      id: cards.id,
+      displayId: cards.displayId,
+      title: cards.title,
+      state: cards.state,
+      updatedAt: cards.updatedAt,
+      goalSpaceId: cards.goalSpaceId,
+    })
+    .from(cards)
+    .where(and(inArray(cards.goalSpaceId, goalSpaceIds), isNull(cards.deletedAt)))
+    .all() as Array<{
+    readonly id: string;
+    readonly displayId: string;
+    readonly title: string;
+    readonly state: GoalSpaceTaskSummary["state"];
+    readonly updatedAt: string;
+    readonly goalSpaceId: string;
+  }>;
+
+  const byGoalSpace = new Map<string, GoalSpaceTaskSummary[]>();
+  for (const row of cardRows) {
+    const list = byGoalSpace.get(row.goalSpaceId);
+    const summary: GoalSpaceTaskSummary = {
+      id: row.id,
+      display_id: row.displayId,
+      title: row.title,
+      state: row.state,
+      updated_at: row.updatedAt,
+    };
+    if (list) {
+      list.push(summary);
+    } else {
+      byGoalSpace.set(row.goalSpaceId, [summary]);
+    }
+  }
+
+  return items.map((row) => ({
+    goalSpace: { id: row.id, name: row.name },
+    tasks: byGoalSpace.get(row.id) ?? [],
+  }));
 }

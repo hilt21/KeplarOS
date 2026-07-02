@@ -1,19 +1,36 @@
 /**
- * Authenticated three-column shell (F2-09).
+ * Authenticated three-column shell (F2-09 / F2 server-side fetcher).
  *
  * Server component wrapper. Reads the `keplar_session` cookie via
  * Next.js' `cookies()` and gates the (app) route group on a valid
- * session. Renders a single client `<AppShell>` containing the header
- * (logo, breadcrumb, theme switcher, connection status) and the CSS
- * grid (left 280px / center / right 360px collapsible).
+ * session. Renders a single client `<AppShellWrapper>` containing the
+ * header (logo, breadcrumb, theme switcher, connection status) and the
+ * CSS grid (left 280px / center / right 360px collapsible).
+ *
+ * F2 responsibilities:
+ *   - Resolve the authenticated actor.
+ *   - Fetch the actor's goal spaces together with task summaries
+ *     (single batch fetch via `listGoalSpacesWithTasksService` — no N+1).
+ *   - Build the F3 props for `<AppShell>`: user info, goal spaces,
+ *     tasks by goal space, plus placeholders for per-page context that
+ *     F3/F4/F5 derive client-side from `usePathname()`.
  *
  * Auth: redirects to `/login` when no session is present.
  */
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
+import { users } from "@db/schema";
+
 import { getSessionActor } from "@/lib/auth/session";
-import { AppShell } from "@/components/app-shell";
+import { AppShellWrapper } from "@/components/app-shell-wrapper";
+import type { AppShellTaskSummary } from "@/components/app-shell";
+import { getDb } from "@/lib/db/client";
+import { listGoalSpacesWithTasksService } from "@/lib/services/goal-spaces";
+
+// Placeholder caps until F10 wires the real token meter.
+const TOKENS_CAP_PLACEHOLDER = 100000;
 
 export default async function AppLayout({
   children,
@@ -30,5 +47,36 @@ export default async function AppLayout({
   if (actor === null) {
     redirect("/login");
   }
-  return <AppShell>{children}</AppShell>;
+
+  // Look up the actor's display name (used by `SettingsBar`/`MasterPane`).
+  // We only need `name` for the F2 contract; the actor role is already on
+  // the Actor type. Workspace is left blank — the front end treats it as
+  // derived state from the URL until a dedicated workspace endpoint ships.
+  const db = getDb();
+  const actorRow = db.select({ name: users.name }).from(users).where(eq(users.id, actor.id)).get();
+
+  const goalSpacesWithTasks = listGoalSpacesWithTasksService(actor, db);
+  const goalSpaceList = goalSpacesWithTasks.map((entry) => entry.goalSpace);
+  const tasksByGoalSpace: Readonly<Record<string, readonly AppShellTaskSummary[]>> =
+    Object.fromEntries(goalSpacesWithTasks.map((entry) => [entry.goalSpace.id, entry.tasks]));
+
+  return (
+    <AppShellWrapper
+      user={{
+        name: actorRow?.name ?? "",
+        role: actor.role,
+        workspace: "",
+      }}
+      goalSpaces={goalSpaceList}
+      tasksByGoalSpace={tasksByGoalSpace}
+      currentGoalSpaceHeader={null}
+      goalSpaceId={null}
+      card={null}
+      tokensUsed={0}
+      tokensCap={TOKENS_CAP_PLACEHOLDER}
+      env={process.env.NODE_ENV === "production" ? "prod" : "dev"}
+    >
+      {children}
+    </AppShellWrapper>
+  );
 }
