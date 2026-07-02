@@ -1,10 +1,11 @@
 /**
- * /goal-spaces/[id] (F2-09).
+ * /goal-spaces/[id] (F2-09 + F4).
  *
  * Server component: fetches goal space detail, node boards, and pending
  * confirmations server-side via the F2-03 / F2-04 / F2-07 services and
- * hands them to the `<GoalSpaceShell>` client component. The shell
- * owns SSE hydration, replay loop, and command output.
+ * hands them to the `<PrimaryPane>` client component. PrimaryPane uses
+ * the shared `useContextStore` (populated by AppShell from the pathname)
+ * to route between `<GoalSpaceKanbanView>` and `<TaskTimelineView>`.
  */
 
 import { cookies } from "next/headers";
@@ -14,7 +15,7 @@ import { getSessionActor } from "@/lib/auth/session";
 import { getGoalSpaceDetailService } from "@/lib/services/goal-spaces";
 import { listNodeBoardsForGoalSpaceService } from "@/lib/services/node-boards";
 import { listConfirmationsService } from "@/lib/services/confirmations";
-import { GoalSpaceShell } from "@/components/goal-space-shell";
+import { PrimaryPane } from "@/components/primary-pane";
 
 interface GoalSpaceDetailPageProps {
   readonly params: Promise<{ id: string }>;
@@ -58,5 +59,16 @@ export default async function GoalSpaceDetailPage({
   });
   const confirmations = confirmationsResult.items;
 
-  return <GoalSpaceShell snapshot={snapshot} boards={boards.items} confirmations={confirmations} />;
+  return (
+    <PrimaryPane
+      goalSpaceId={id}
+      snapshot={snapshot}
+      boards={boards.items}
+      confirmations={confirmations}
+      onSendTaskMessage={async () => {
+        "use server";
+        // server action stub — implementation deferred
+      }}
+    />
+  );
 }
