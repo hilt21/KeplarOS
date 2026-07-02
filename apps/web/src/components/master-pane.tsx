@@ -1,9 +1,13 @@
 "use client";
 
-import { useMemo, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
 import { useRouter } from "next/navigation";
 import { useContextStore, parseContextFromPath } from "@/lib/state/context-store";
-import { WorkspaceSection, type GoalSpaceSummary, type TaskSummary } from "./master-pane/workspace-section";
+import {
+  WorkspaceSection,
+  type GoalSpaceSummary,
+  type TaskSummary,
+} from "./master-pane/workspace-section";
 import { SettingsBar } from "./master-pane/settings-bar";
 
 interface MasterPaneProps {
@@ -11,6 +15,10 @@ interface MasterPaneProps {
   readonly tasksByGoalSpace: Readonly<Record<string, readonly TaskSummary[]>>;
   readonly user: { readonly name: string; readonly role: string; readonly workspace: string };
   readonly onOpenSettings: () => void;
+}
+
+function storageKey(goalSpaceId: string): string {
+  return `keplar.master.expanded.${goalSpaceId}`;
 }
 
 export function MasterPane({
@@ -23,27 +31,25 @@ export function MasterPane({
   const [filter, setFilter] = useState("");
 
   const current = useContextStore((s) => s.current);
-  const pathname =
-    typeof window !== "undefined" ? window.location.pathname : "/goal-spaces";
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "/goal-spaces";
   // Sync the context store with the URL on every render — `useContextStore.setState` is cheap.
   const urlCtx = parseContextFromPath(pathname);
   if (urlCtx.goalSpaceId !== current.goalSpaceId || urlCtx.taskId !== current.taskId) {
     useContextStore.setState({ current: urlCtx });
   }
 
-  const filteredSpaces: ReadonlyArray<{ gs: GoalSpaceSummary; tasks: readonly TaskSummary[] }> = useMemo(() => {
-    const baseList = goalSpaces.map((gs) => ({
-      gs,
-      tasks: tasksByGoalSpace[gs.id] ?? [],
-    }));
-    if (!filter.trim()) return baseList;
-    const q = filter.toLowerCase();
-    return baseList.filter(
-      ({ gs, tasks }) =>
-        tasks.length > 0 ||
-        gs.name.toLowerCase().includes(q),
-    );
-  }, [filter, goalSpaces, tasksByGoalSpace]);
+  const filteredSpaces: ReadonlyArray<{ gs: GoalSpaceSummary; tasks: readonly TaskSummary[] }> =
+    useMemo(() => {
+      const baseList = goalSpaces.map((gs) => ({
+        gs,
+        tasks: tasksByGoalSpace[gs.id] ?? [],
+      }));
+      if (!filter.trim()) return baseList;
+      const q = filter.toLowerCase();
+      return baseList.filter(
+        ({ gs, tasks }) => tasks.length > 0 || gs.name.toLowerCase().includes(q),
+      );
+    }, [filter, goalSpaces, tasksByGoalSpace]);
 
   return (
     <div
@@ -110,17 +116,13 @@ export function MasterPane({
           />
         </div>
         {filteredSpaces.map(({ gs, tasks }) => (
-          <WorkspaceSection
+          <MasterPaneSection
             key={gs.id}
             goalSpace={gs}
             tasks={tasks}
             selectedTaskId={current.taskId}
-            onSelectTask={(taskId) =>
-              router.push(`/goal-spaces/${gs.id}/tasks/${taskId}`)
-            }
-            onSelectGoalSpace={(goalSpaceId) =>
-              router.push(`/goal-spaces/${goalSpaceId}`)
-            }
+            onSelectTask={(taskId) => router.push(`/goal-spaces/${gs.id}/tasks/${taskId}`)}
+            onSelectGoalSpace={(goalSpaceId) => router.push(`/goal-spaces/${goalSpaceId}`)}
           />
         ))}
       </div>
@@ -128,5 +130,58 @@ export function MasterPane({
       {/* Bottom: Settings */}
       <SettingsBar user={user} onOpenSettings={onOpenSettings} />
     </div>
+  );
+}
+
+interface MasterPaneSectionProps {
+  readonly goalSpace: GoalSpaceSummary;
+  readonly tasks: readonly TaskSummary[];
+  readonly selectedTaskId: string | null;
+  readonly onSelectTask: (taskId: string) => void;
+  readonly onSelectGoalSpace: (goalSpaceId: string) => void;
+}
+
+function MasterPaneSection({
+  goalSpace,
+  tasks,
+  selectedTaskId,
+  onSelectTask,
+  onSelectGoalSpace,
+}: MasterPaneSectionProps): ReactElement {
+  // Default to expanded for SSR; persist actual state in localStorage once mounted.
+  const [collapsed, setCollapsed] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Mirror the persisted expanded value into local `collapsed` state.
+    const stored = window.localStorage.getItem(storageKey(goalSpace.id));
+    if (stored === null) {
+      // First visit: persist the default expanded state.
+      window.localStorage.setItem(storageKey(goalSpace.id), "true");
+      setCollapsed(false);
+    } else {
+      setCollapsed(stored !== "true");
+    }
+  }, [goalSpace.id]);
+
+  const onToggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(storageKey(goalSpace.id), String(!next));
+      }
+      return next;
+    });
+  }, [goalSpace.id]);
+
+  return (
+    <WorkspaceSection
+      goalSpace={goalSpace}
+      tasks={tasks}
+      selectedTaskId={selectedTaskId}
+      onSelectTask={onSelectTask}
+      onSelectGoalSpace={onSelectGoalSpace}
+      collapsed={collapsed}
+      onToggleCollapsed={onToggleCollapsed}
+    />
   );
 }

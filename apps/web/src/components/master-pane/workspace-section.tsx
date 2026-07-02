@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { ReactElement } from "react";
 
 export interface TaskSummary {
@@ -22,6 +21,8 @@ interface WorkspaceSectionProps {
   readonly selectedTaskId: string | null;
   readonly onSelectTask: (taskId: string) => void;
   readonly onSelectGoalSpace: (goalSpaceId: string) => void;
+  readonly collapsed: boolean;
+  readonly onToggleCollapsed: () => void;
 }
 
 const STATE_COLOR: Record<TaskSummary["state"], string> = {
@@ -44,9 +45,9 @@ export function WorkspaceSection({
   selectedTaskId,
   onSelectTask,
   onSelectGoalSpace,
+  collapsed,
+  onToggleCollapsed,
 }: WorkspaceSectionProps): ReactElement {
-  const [collapsed, setCollapsed] = useState(false);
-
   return (
     <div>
       {/* Section header */}
@@ -62,9 +63,11 @@ export function WorkspaceSection({
         <button
           type="button"
           aria-label={collapsed ? "Expand" : "Collapse"}
+          aria-expanded={!collapsed}
+          aria-controls={`workspace-section-${goalSpace.id}-tasks`}
           onClick={(e) => {
             e.stopPropagation();
-            setCollapsed((c) => !c);
+            onToggleCollapsed();
           }}
           style={{
             background: "transparent",
@@ -134,7 +137,7 @@ export function WorkspaceSection({
 
       {/* Tasks */}
       {!collapsed && (
-        <div>
+        <div id={`workspace-section-${goalSpace.id}-tasks`}>
           {tasks.map((task) => {
             const isSelected = task.id === selectedTaskId;
             return (
