@@ -28,7 +28,8 @@
 
 import { randomUUID } from "node:crypto";
 
-import { RISK_LEVEL_VALUES, type CardState, type RiskLevel } from "@db/schema";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { RISK_LEVEL_VALUES, realtimeEvents, type CardState, type RiskLevel } from "@db/schema";
 
 import { ApiRequestError } from "@/lib/api/errors";
 import { runWithAudit, type AuditContext } from "@/lib/audit/run-with-audit";
@@ -52,6 +53,9 @@ import {
   type UpdateCardInput,
 } from "@/lib/db/repositories/cards";
 import { isTerminalState } from "@/lib/state-machine";
+
+import type { TimelineEntry } from "@/components/timeline/task-timeline-view";
+import type { TimelineVariant } from "@/components/timeline/timeline-message";
 
 // ─── realtime event constants (F2-08 handoff) ──────────────────────
 
@@ -643,3 +647,125 @@ export function listCardTransitionsService(
     }),
   );
 }
+
+// ─── service: timeline replay (F5) ───────────────────────────────
+
+/**
+ * Storage-format realtime event type → `TimelineVariant` mapping.
+ * Unknown event types render as the muted `system` variant. F8 (SSE
+ * live wiring) is responsible for additional variants such as
+ * `agent-streaming`.
+ */
+const CARD_EVENT_VARIANT: Readonly<Record<string, TimelineVariant>> = {
+  "card.created": "system",
+  "card.updated": "system",
+  "card.assigned": "system",
+  "card.blocked": "system",
+  "card.unblocked": "system",
+  "agent_execution.queued": "agent-thinking",
+  "agent_execution.completed": "agent-thinking",
+  "agent_execution.failed": "agent-thinking",
+  "agent_execution.needs_confirmation": "confirmation",
+  "human_confirmation.approved": "system",
+  "human_confirmation.rejected": "system",
+};
+
+function describeCardEvent(row: {
+  readonly type: string;
+  readonly data: Record<string, unknown>;
+}): string {
+  switch (row.type) {
+    case "card.created":
+      return "Card created";
+    case "card.updated":
+      return "Card updated";
+    case "card.assigned":
+      return `Card assigned${row.data.to ? ` to ${String(row.data.to)}` : ""}`;
+    case "card.blocked":
+      return `Card blocked: ${row.data.reason ? String(row.data.reason) : "no reason"}`;
+    case "card.unblocked":
+      return `Card unblocked → ${row.data.target_state ? String(row.data.target_state) : "ok"}`;
+    case "agent_execution.queued":
+      return "Agent execution queued";
+    case "agent_execution.completed":
+      return "Agent execution completed";
+    case "agent_execution.failed":
+      return `Agent execution failed: ${
+        row.data.error_message ? String(row.data.error_message) : "unknown error"
+      }`;
+    case "agent_execution.needs_confirmation":
+      return "Agent requested human confirmation";
+    case "human_confirmation.approved":
+      return "Human confirmation approved";
+    case "human_confirmation.rejected":
+      return "Human confirmation rejected";
+    default:
+      return row.type;
+  }
+}
+
+/**
+ * Build the initial timeline replay for a card — the most recent `limit`
+ * realtime events whose `resource_type = 'card'` and `resource_id = cardId`,
+ * filtered to the card's goal space (so authorization at the goal-space
+ * level is sufficient). Returns entries newest-first (per F8 contract:
+ * the live SSE layer appends new events at the tail; the replay seeds
+ * the head with the most recent history).
+ *
+ * Authorization: re-uses `loadReadableContext` so only readers with
+ * `canReadCard === true` get the data. The card's goal space is read
+ * from the loaded context so we never join across multiple cards.
+ *
+ * Performance: single batched query, ordered by `sequence DESC` to
+ * avoid scanning the entire goal-space event history.
+ */
+export function getCardTimelineReplayService(
+  cardId: string,
+  actor: Actor,
+  limit: number = 50,
+  db: DrizzleDb = getDb(),
+): readonly TimelineEntry[] {
+  const ctx = loadReadableContext(db, cardId, actor);
+
+  const safeLimit = Math.max(1, Math.min(Math.trunc(limit), 500));
+
+  const rows = db
+    .select({
+      id: realtimeEvents.id,
+      sequence: realtimeEvents.sequence,
+      type: realtimeEvents.type,
+      resourceType: realtimeEvents.resourceType,
+      resourceId: realtimeEvents.resourceId,
+      data: realtimeEvents.data,
+      occurredAt: realtimeEvents.occurredAt,
+    })
+    .from(realtimeEvents)
+    .where(
+      and(
+        eq(realtimeEvents.goalSpaceId, ctx.goalSpaceId),
+        eq(realtimeEvents.resourceType, "card"),
+        eq(realtimeEvents.resourceId, cardId),
+      ),
+    )
+    .orderBy(sql`${realtimeEvents.sequence} DESC`)
+    .limit(safeLimit)
+    .all() as Array<{
+    readonly id: string;
+    readonly sequence: number;
+    readonly type: string;
+    readonly resourceType: string;
+    readonly resourceId: string;
+    readonly data: Record<string, unknown>;
+    readonly occurredAt: string;
+  }>;
+
+  return rows.map(
+    (row): TimelineEntry => ({
+      id: row.id,
+      variant: CARD_EVENT_VARIANT[row.type] ?? "system",
+      body: describeCardEvent(row),
+      meta: row.occurredAt,
+    }),
+  );
+}
+void desc;

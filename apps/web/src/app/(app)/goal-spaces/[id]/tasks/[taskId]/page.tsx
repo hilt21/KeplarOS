@@ -1,17 +1,25 @@
 /**
- * /goal-spaces/[id]/tasks/[taskId] (F4).
+ * /goal-spaces/[id]/tasks/[taskId] (F4 + F5).
  *
  * Server component: renders `<PrimaryPane>` with the goal-space data
- * the page loaded server-side and the per-task data the F5 wiring
- * populates. PrimaryPane uses the shared `useContextStore` (populated
- * by AppShell from the pathname) to decide whether to show
- * `<TaskTimelineView>` or fall through to `<GoalSpaceKanbanView>`.
+ * the page loaded server-side and the per-task data F5 populates.
+ * PrimaryPane uses the shared `useContextStore` (populated by AppShell
+ * from the pathname) to decide whether to show `<TaskTimelineView>` or
+ * fall through to `<GoalSpaceKanbanView>`.
+ *
+ * F5 wiring: fetches `getCardDetailService` for the card header fields
+ * and `getCardTimelineReplayService` for the initial timeline entries
+ * (newest-first replay, single batched query — see service for details).
+ * The card detail service already enforces `canReadCard`; the replay
+ * service re-uses the same load to avoid duplicating authorization.
  */
 
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+
 import { ApiRequestError } from "@/lib/api/errors";
 import { getSessionActor } from "@/lib/auth/session";
+import { getCardDetailService, getCardTimelineReplayService } from "@/lib/services/cards";
 import { getGoalSpaceDetailService } from "@/lib/services/goal-spaces";
 import { listNodeBoardsForGoalSpaceService } from "@/lib/services/node-boards";
 import { listConfirmationsService } from "@/lib/services/confirmations";
@@ -49,11 +57,28 @@ export default async function TaskPage({ params }: PageProps) {
     limit: 50,
   });
 
-  // NOTE: card / timeline events fetch is a follow-up (F5). The route
-  // exists so the persistent shell can navigate to it; PrimaryPane
-  // currently falls through to GoalSpaceKanbanView when taskData is
-  // absent. Once F5 wires the F2-05 / F2-08 services, populate
-  // `taskData` here and PrimaryPane will render <TaskTimelineView>.
+  // F5: fetch the card header + initial replay (newest 50 events for
+  // this card). `getCardDetailService` throws NOT_FOUND when the card
+  // is missing or soft-deleted; redirect to the parent goal space so
+  // the persistent shell can recover cleanly.
+  let taskData;
+  try {
+    const card = getCardDetailService(taskId, actor);
+    const entries = getCardTimelineReplayService(taskId, actor, 50);
+    taskData = {
+      displayId: card.display_id,
+      title: card.title,
+      state: card.state,
+      assignee: card.assigned_to ?? "—",
+      entries,
+    } as const;
+  } catch (err) {
+    if (err instanceof ApiRequestError && err.code === "NOT_FOUND") {
+      notFound();
+    }
+    throw err;
+  }
+
   return (
     <PrimaryPane
       goalSpaceId={id}
@@ -61,6 +86,7 @@ export default async function TaskPage({ params }: PageProps) {
       boards={boards.items}
       confirmations={confirmationsResult.items}
       taskId={taskId}
+      taskData={taskData}
       onSendTaskMessage={async () => {
         "use server";
         // server action stub — implementation deferred
