@@ -1,6 +1,7 @@
 "use client";
 
-import type { ReactElement } from "react";
+import { useEffect, type ReactElement } from "react";
+import { tokensStore, useTokensStore } from "@/lib/state/tokens-store";
 
 interface WorkspaceInfo {
   readonly goalSpaceName: string;
@@ -19,16 +20,43 @@ interface WorkspacePanelProps {
 }
 
 export function WorkspacePanel({ info, env }: WorkspacePanelProps): ReactElement {
-  const pct = Math.min(100, Math.round((info.tokensUsed / info.tokensCap) * 100));
+  const tokensUsed = useTokensStore((s) => s.used);
+  const tokensCap = useTokensStore((s) => s.cap);
+
+  // Seed the store from the server-provided props on mount.
+  useEffect(() => {
+    tokensStore.setState({ used: info.tokensUsed, cap: info.tokensCap });
+  }, [info.tokensUsed, info.tokensCap]);
+
+  const safeCap = tokensCap > 0 ? tokensCap : 1;
+  const pct = Math.min(100, Math.round((tokensUsed / safeCap) * 100));
   const row = (key: string, value: ReactElement | string) => (
     <div style={{ display: "flex", gap: 6 }}>
       <span style={{ color: "var(--color-text-muted)", minWidth: 64 }}>{key}</span>
-      <span style={{ color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>{value}</span>
+      <span
+        style={{
+          color: "var(--color-text-primary)",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          flex: 1,
+          minWidth: 0,
+        }}
+      >
+        {value}
+      </span>
     </div>
   );
   return (
     <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--color-border)" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 8,
+        }}
+      >
         <div
           style={{
             fontSize: 10,
@@ -50,7 +78,13 @@ export function WorkspacePanel({ info, env }: WorkspacePanelProps): ReactElement
           {env}
         </div>
       </div>
-      <div style={{ fontFamily: "var(--font-jetbrains-mono,monospace)", fontSize: 10, lineHeight: 1.7 }}>
+      <div
+        style={{
+          fontFamily: "var(--font-jetbrains-mono,monospace)",
+          fontSize: 10,
+          lineHeight: 1.7,
+        }}
+      >
         {row("goal", info.goalSpaceName)}
         {row("board", info.boardName)}
         {row("user", `${info.userName} · ${info.userRole}`)}
@@ -59,7 +93,7 @@ export function WorkspacePanel({ info, env }: WorkspacePanelProps): ReactElement
         <div style={{ display: "flex", gap: 6 }}>
           <span style={{ color: "var(--color-text-muted)", minWidth: 64 }}>tokens</span>
           <span style={{ color: "var(--color-text-primary)" }}>
-            {(info.tokensUsed / 1000).toFixed(1)}k / {(info.tokensCap / 1000).toFixed(0)}k
+            {tokensUsed.toLocaleString()} / {tokensCap.toLocaleString()}
           </span>
         </div>
         <div

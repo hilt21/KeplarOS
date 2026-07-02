@@ -1,7 +1,8 @@
 "use client";
 
-import type { ReactElement } from "react";
+import { useEffect, type ReactElement } from "react";
 import { useRouter } from "next/navigation";
+import { tokensStore, useTokensStore } from "@/lib/state/tokens-store";
 
 export interface TopBarSegment {
   readonly label: string;
@@ -15,8 +16,14 @@ interface TopBarProps {
   readonly onOpenCommandPalette: () => void;
 }
 
-function formatK(n: number): string {
-  return `${(n / 1000).toFixed(1)}k`;
+function formatTokensShort(n: number): string {
+  if (n >= 1_000_000) {
+    return `${(n / 1_000_000).toFixed(1)}M`;
+  }
+  if (n >= 1_000) {
+    return `${(n / 1_000).toFixed(1)}k`;
+  }
+  return `${n}`;
 }
 
 export function TopBar({
@@ -26,6 +33,13 @@ export function TopBar({
   onOpenCommandPalette,
 }: TopBarProps): ReactElement {
   const router = useRouter();
+  const tokensUsedFromStore = useTokensStore((s) => s.used);
+
+  // Seed the store from server-provided props on mount. Subsequent
+  // updates (e.g. live token usage from SSE) flow through the store.
+  useEffect(() => {
+    tokensStore.setState({ used: tokensUsed, cap: tokensCap });
+  }, [tokensUsed, tokensCap]);
   return (
     <div
       style={{
@@ -95,7 +109,7 @@ export function TopBar({
             color: "var(--color-text-muted)",
           }}
         >
-          {formatK(tokensUsed)}
+          {formatTokensShort(tokensUsedFromStore)} tok
         </div>
         <button
           type="button"

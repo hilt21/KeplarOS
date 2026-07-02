@@ -35,14 +35,12 @@ describe("TopBar", () => {
     render(
       <TopBar segments={[]} tokensUsed={2400} tokensCap={8000} onOpenCommandPalette={() => {}} />,
     );
-    expect(screen.getByText("2.4k")).toBeInTheDocument();
+    expect(screen.getByText("2.4k tok")).toBeInTheDocument();
   });
 
   it("calls onOpenCommandPalette when CMD K button clicked", () => {
     const onOpen = vi.fn();
-    render(
-      <TopBar segments={[]} tokensUsed={0} tokensCap={0} onOpenCommandPalette={onOpen} />,
-    );
+    render(<TopBar segments={[]} tokensUsed={0} tokensCap={0} onOpenCommandPalette={onOpen} />);
     fireEvent.click(screen.getByRole("button", { name: "Open command palette" }));
     expect(onOpen).toHaveBeenCalled();
   });

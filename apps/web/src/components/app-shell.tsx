@@ -20,11 +20,8 @@ import { TopBar, type TopBarSegment } from "./top-bar";
 import { MasterPane } from "./master-pane";
 import { DetailPane } from "./detail-pane";
 import type { CardRuntimeInfo } from "./detail-pane/card-runtime";
-import {
-  useContextStore,
-  parseContextFromPath,
-  type AppContext,
-} from "@/lib/state/context-store";
+import { useContextStore, parseContextFromPath, type AppContext } from "@/lib/state/context-store";
+import { tokensStore } from "@/lib/state/tokens-store";
 import { uiStore } from "@/lib/state/ui-store";
 import { ShortcutProvider } from "@/lib/keyboard/shortcut-provider";
 
@@ -96,13 +93,17 @@ export function AppShell({
   // `useContextStore.setState` is a cheap immutable spread + notify.
   useEffect(() => {
     const next = parseContextFromPath(pathname);
-    if (
-      next.goalSpaceId !== context.goalSpaceId ||
-      next.taskId !== context.taskId
-    ) {
+    if (next.goalSpaceId !== context.goalSpaceId || next.taskId !== context.taskId) {
       useContextStore.setState({ current: next });
     }
   }, [pathname, context.goalSpaceId, context.taskId]);
+
+  // Seed the tokens store with server-provided values. Done here (rather
+  // than in TopBar/WorkspacePanel) so the store is populated exactly once
+  // before any descendant reads it.
+  useEffect(() => {
+    tokensStore.setState({ used: tokensUsed, cap: tokensCap });
+  }, [tokensUsed, tokensCap]);
 
   // Breadcrumb segments: KEPLAR → goal space → card.
   const segments: readonly TopBarSegment[] = useMemo<TopBarSegment[]>(() => {
