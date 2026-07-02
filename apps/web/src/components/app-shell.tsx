@@ -14,15 +14,16 @@
  * by `(app)/layout.tsx` and rendered directly here.
  */
 
-import { useEffect, useMemo, type ReactElement, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, type ReactElement, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { TopBar, type TopBarSegment } from "./top-bar";
 import { MasterPane } from "./master-pane";
 import { DetailPane } from "./detail-pane";
 import type { CardRuntimeInfo } from "./detail-pane/card-runtime";
+import { CommandPalette } from "./command-palette";
 import { useContextStore, parseContextFromPath, type AppContext } from "@/lib/state/context-store";
 import { tokensStore } from "@/lib/state/tokens-store";
-import { uiStore } from "@/lib/state/ui-store";
+import { uiStore, useUiStore } from "@/lib/state/ui-store";
 import { ShortcutProvider } from "@/lib/keyboard/shortcut-provider";
 
 // Re-export the F2 prop types so `AppShellWrapper` keeps importing them
@@ -131,6 +132,21 @@ export function AppShell({
     uiStore.set({ paletteOpen: true });
   };
 
+  const closeCommandPalette = useCallback((): void => {
+    uiStore.set({ paletteOpen: false });
+  }, []);
+
+  const handleActivateShortcut = useCallback((shortcut: { id: string }): void => {
+    // Built-in shortcuts already wire to their actions via shortcut-provider
+    // (e.g., Cmd+B toggles leftOpen, Cmd+J toggles rightOpen). For everything
+    // else, the shortcut registry owns the handler; we only need to close
+    // the palette here. The id is kept for future per-id routing.
+    void shortcut.id;
+    closeCommandPalette();
+  }, [closeCommandPalette]);
+
+  const paletteOpen = useUiStore((s) => s.paletteOpen);
+
   const openSettings = (): void => {
     // TODO(F9): wire to the settings overlay once it ships.
   };
@@ -192,6 +208,11 @@ export function AppShell({
             />
           </div>
         </div>
+        <CommandPalette
+          open={paletteOpen}
+          onClose={closeCommandPalette}
+          onActivate={handleActivateShortcut}
+        />
       </div>
     </ShortcutProvider>
   );
