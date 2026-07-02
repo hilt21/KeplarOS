@@ -21,6 +21,32 @@ function storageKey(goalSpaceId: string): string {
   return `keplar.master.expanded.${goalSpaceId}`;
 }
 
+const STATE_PRIORITY = [
+  "dev",
+  "review",
+  "todo",
+  "backlog",
+  "done",
+  "blocked",
+  "cancelled",
+] as const;
+
+export function sortTasksByPriority(
+  tasks: readonly TaskSummary[],
+): readonly TaskSummary[] {
+  const priorityIndex = (state: TaskSummary["state"]): number => {
+    const idx = STATE_PRIORITY.indexOf(state);
+    return idx === -1 ? STATE_PRIORITY.length : idx;
+  };
+  return [...tasks].sort((a, b) => {
+    const pa = priorityIndex(a.state);
+    const pb = priorityIndex(b.state);
+    if (pa !== pb) return pa - pb;
+    // Same priority: most recently updated first.
+    return b.updated_at.localeCompare(a.updated_at);
+  });
+}
+
 export function MasterPane({
   goalSpaces,
   tasksByGoalSpace,
@@ -42,7 +68,7 @@ export function MasterPane({
     useMemo(() => {
       const baseList = goalSpaces.map((gs) => ({
         gs,
-        tasks: tasksByGoalSpace[gs.id] ?? [],
+        tasks: sortTasksByPriority(tasksByGoalSpace[gs.id] ?? []),
       }));
       if (!filter.trim()) return baseList;
       const q = filter.toLowerCase();
