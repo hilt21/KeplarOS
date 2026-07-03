@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactElement } from "react";
 import { useRouter } from "next/navigation";
-import { tokensStore, useTokensStore } from "@/lib/state/tokens-store";
+import { useTokensStore } from "@/lib/state/tokens-store";
 
 export interface TopBarSegment {
   readonly label: string;
@@ -33,13 +33,14 @@ export function TopBar({
   onOpenCommandPalette,
 }: TopBarProps): ReactElement {
   const router = useRouter();
+  // The tokens store is owned by AppShell — it seeds the store from
+  // server-provided props. TopBar is a read-only consumer.
   const tokensUsedFromStore = useTokensStore((s) => s.used);
 
-  // Seed the store from server-provided props on mount. Subsequent
-  // updates (e.g. live token usage from SSE) flow through the store.
-  useEffect(() => {
-    tokensStore.setState({ used: tokensUsed, cap: tokensCap });
-  }, [tokensUsed, tokensCap]);
+  // `tokensUsed` / `tokensCap` props remain on the API for forward-compat
+  // with non-AppShell call sites (tests, storybook). Unused at runtime.
+  void tokensUsed;
+  void tokensCap;
   return (
     <div
       style={{

@@ -190,9 +190,10 @@ export function TaskTimelineView({
     // counter is correct even if the rAF-debounced onScroll hasn't
     // updated the ref yet (typical right after a prop-driven merge).
     const el = scrollerRef.current;
-    const atBottom = el === null
-      ? isAtBottomRef.current
-      : el.scrollHeight - el.scrollTop - el.clientHeight <= SCROLL_BOTTOM_THRESHOLD_PX;
+    const atBottom =
+      el === null
+        ? isAtBottomRef.current
+        : el.scrollHeight - el.scrollTop - el.clientHeight <= SCROLL_BOTTOM_THRESHOLD_PX;
     if (!atBottom) {
       setUnreadCount((n) => n + newEntries.length);
     }

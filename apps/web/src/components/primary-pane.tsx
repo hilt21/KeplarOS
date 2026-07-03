@@ -22,14 +22,7 @@ import type {
 import { TaskTimelineView, type TimelineEntry } from "./timeline/task-timeline-view";
 import { GoalSpaceKanbanView } from "./primary-pane/goal-space-kanban-view";
 
-type TaskState =
-  | "backlog"
-  | "todo"
-  | "dev"
-  | "review"
-  | "done"
-  | "blocked"
-  | "cancelled";
+type TaskState = "backlog" | "todo" | "dev" | "review" | "done" | "blocked" | "cancelled";
 
 export interface PrimaryPaneTaskData {
   readonly displayId: string;
@@ -75,7 +68,5 @@ export function PrimaryPane({
     );
   }
 
-  return (
-    <GoalSpaceKanbanView snapshot={snapshot} boards={boards} confirmations={confirmations} />
-  );
+  return <GoalSpaceKanbanView snapshot={snapshot} boards={boards} confirmations={confirmations} />;
 }

@@ -165,11 +165,7 @@ describe("MasterPane section collapse persistence", () => {
 });
 
 describe("sortTasksByPriority", () => {
-  function makeTask(
-    id: string,
-    state: TaskSummary["state"],
-    updatedAt: string,
-  ): TaskSummary {
+  function makeTask(id: string, state: TaskSummary["state"], updatedAt: string): TaskSummary {
     return {
       id,
       display_id: `D-${id}`,
@@ -276,12 +272,12 @@ describe("sortTasksByPriority", () => {
     expect(alphaSection).toBeTruthy();
     expect(betaSection).toBeTruthy();
 
-    const alphaTaskTitles = Array.from(
-      alphaSection!.querySelectorAll('[role="button"]'),
-    ).map((el) => el.textContent);
-    const betaTaskTitles = Array.from(
-      betaSection!.querySelectorAll('[role="button"]'),
-    ).map((el) => el.textContent);
+    const alphaTaskTitles = Array.from(alphaSection!.querySelectorAll('[role="button"]')).map(
+      (el) => el.textContent,
+    );
+    const betaTaskTitles = Array.from(betaSection!.querySelectorAll('[role="button"]')).map(
+      (el) => el.textContent,
+    );
 
     // First rendered alpha task should be the dev one (a-2).
     expect(alphaTaskTitles[0]).toContain("Task a-2");

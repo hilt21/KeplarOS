@@ -1,11 +1,16 @@
-import { describe, expect, it, vi, afterEach } from "vitest";
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 import { cleanup, render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { TopBar } from "@/components/top-bar";
+import { resetTokensStore, tokensStore } from "@/lib/state/tokens-store";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
+
+beforeEach(() => {
+  resetTokensStore();
+});
 
 afterEach(() => {
   cleanup();
@@ -32,6 +37,8 @@ describe("TopBar", () => {
   });
 
   it("renders tokensUsed on the right", () => {
+    // Seed the store directly — AppShell owns the seed in production.
+    tokensStore.setState({ used: 2400, cap: 8000 });
     render(
       <TopBar segments={[]} tokensUsed={2400} tokensCap={8000} onOpenCommandPalette={() => {}} />,
     );

@@ -7,17 +7,17 @@
  *   - All workspace metadata rows render the provided info.
  *   - The env badge in the header shows the supplied env string.
  *
- * WorkspacePanel seeds the `tokensStore` from its `info` prop on mount
- * via `useEffect`. We seed the store ourselves in `beforeEach` to
- * keep the snapshot reference stable.
+ * WorkspacePanel is a read-only consumer of `tokensStore`; the store is
+ * owned by AppShell in production. Each test seeds the store explicitly
+ * to mirror the production seed.
  */
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 
 import { WorkspacePanel } from "../detail-pane/workspace-panel";
-import { tokensStore } from "@/lib/state/tokens-store";
+import { resetTokensStore, tokensStore } from "@/lib/state/tokens-store";
 
 const baseInfo = {
   goalSpaceName: "Alpha",
@@ -29,7 +29,7 @@ const baseInfo = {
 };
 
 beforeEach(() => {
-  tokensStore.setState({ used: 0, cap: 100000 });
+  resetTokensStore();
 });
 
 afterEach(() => {
@@ -37,65 +37,60 @@ afterEach(() => {
 });
 
 describe("WorkspacePanel — token meter", () => {
-  it("renders the used / cap text formatted with locale separators", async () => {
+  it("renders the used / cap text formatted with locale separators", () => {
+    tokensStore.setState({ used: 50000, cap: 100000 });
     render(
       <WorkspacePanel info={{ ...baseInfo, tokensUsed: 50000, tokensCap: 100000 }} env="dev" />,
     );
-
-    await waitFor(() => {
-      expect(screen.getByText("50,000 / 100,000")).toBeInTheDocument();
-    });
+    expect(screen.getByText("50,000 / 100,000")).toBeInTheDocument();
   });
 
-  it("sets the progress-bar inner width to (used / cap) percent", async () => {
+  it("sets the progress-bar inner width to (used / cap) percent", () => {
+    tokensStore.setState({ used: 50000, cap: 100000 });
     const { container } = render(
       <WorkspacePanel info={{ ...baseInfo, tokensUsed: 50000, tokensCap: 100000 }} env="dev" />,
     );
 
-    await waitFor(() => {
-      // WorkspacePanel renders two nested <div>s — outer is the track
-      // (width: 120), inner is the filled bar (width: `${pct}%`).
-      // Find the inner bar by inspecting the computed width against pct.
-      const divs = Array.from(container.querySelectorAll("div"));
-      const inner = divs.find((d) => {
-        const style = (d as HTMLElement).getAttribute("style") ?? "";
-        return /width:\s*50%/.test(style);
-      });
-      expect(inner).toBeTruthy();
+    // WorkspacePanel renders two nested <div>s — outer is the track
+    // (width: 120), inner is the filled bar (width: `${pct}%`).
+    // Find the inner bar by inspecting the computed width against pct.
+    const divs = Array.from(container.querySelectorAll("div"));
+    const inner = divs.find((d) => {
+      const style = (d as HTMLElement).getAttribute("style") ?? "";
+      return /width:\s*50%/.test(style);
     });
+    expect(inner).toBeTruthy();
   });
 
-  it("caps the meter at 100% when usage exceeds the cap", async () => {
+  it("caps the meter at 100% when usage exceeds the cap", () => {
+    tokensStore.setState({ used: 150000, cap: 100000 });
     const { container } = render(
       <WorkspacePanel info={{ ...baseInfo, tokensUsed: 150000, tokensCap: 100000 }} env="dev" />,
     );
 
-    await waitFor(() => {
-      const divs = Array.from(container.querySelectorAll("div"));
-      const inner = divs.find((d) => {
-        const style = (d as HTMLElement).getAttribute("style") ?? "";
-        return /width:\s*100%/.test(style);
-      });
-      expect(inner).toBeTruthy();
+    const divs = Array.from(container.querySelectorAll("div"));
+    const inner = divs.find((d) => {
+      const style = (d as HTMLElement).getAttribute("style") ?? "";
+      return /width:\s*100%/.test(style);
     });
+    expect(inner).toBeTruthy();
     // The text label still shows the raw used / cap values (no clamping
     // of the display string).
     expect(screen.getByText("150,000 / 100,000")).toBeInTheDocument();
   });
 
-  it("renders 0% when cap is 0 (uses a 1-safe denominator)", async () => {
+  it("renders 0% when cap is 0 (uses a 1-safe denominator)", () => {
+    tokensStore.setState({ used: 0, cap: 0 });
     const { container } = render(
       <WorkspacePanel info={{ ...baseInfo, tokensUsed: 0, tokensCap: 0 }} env="dev" />,
     );
 
-    await waitFor(() => {
-      const divs = Array.from(container.querySelectorAll("div"));
-      const inner = divs.find((d) => {
-        const style = (d as HTMLElement).getAttribute("style") ?? "";
-        return /width:\s*0%/.test(style);
-      });
-      expect(inner).toBeTruthy();
+    const divs = Array.from(container.querySelectorAll("div"));
+    const inner = divs.find((d) => {
+      const style = (d as HTMLElement).getAttribute("style") ?? "";
+      return /width:\s*0%/.test(style);
     });
+    expect(inner).toBeTruthy();
     expect(screen.getByText("0 / 0")).toBeInTheDocument();
   });
 

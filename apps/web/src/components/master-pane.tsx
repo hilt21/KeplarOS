@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
 import { useRouter } from "next/navigation";
-import { useContextStore, parseContextFromPath } from "@/lib/state/context-store";
+import { useContextStore } from "@/lib/state/context-store";
 import {
   WorkspaceSection,
   type GoalSpaceSummary,
@@ -31,9 +31,7 @@ const STATE_PRIORITY = [
   "cancelled",
 ] as const;
 
-export function sortTasksByPriority(
-  tasks: readonly TaskSummary[],
-): readonly TaskSummary[] {
+export function sortTasksByPriority(tasks: readonly TaskSummary[]): readonly TaskSummary[] {
   const priorityIndex = (state: TaskSummary["state"]): number => {
     const idx = STATE_PRIORITY.indexOf(state);
     return idx === -1 ? STATE_PRIORITY.length : idx;
@@ -56,13 +54,9 @@ export function MasterPane({
   const router = useRouter();
   const [filter, setFilter] = useState("");
 
+  // The context store is owned by AppShell — it syncs the URL → context
+  // store in a `useEffect`. MasterPane is a read-only consumer.
   const current = useContextStore((s) => s.current);
-  const pathname = typeof window !== "undefined" ? window.location.pathname : "/goal-spaces";
-  // Sync the context store with the URL on every render — `useContextStore.setState` is cheap.
-  const urlCtx = parseContextFromPath(pathname);
-  if (urlCtx.goalSpaceId !== current.goalSpaceId || urlCtx.taskId !== current.taskId) {
-    useContextStore.setState({ current: urlCtx });
-  }
 
   const filteredSpaces: ReadonlyArray<{ gs: GoalSpaceSummary; tasks: readonly TaskSummary[] }> =
     useMemo(() => {

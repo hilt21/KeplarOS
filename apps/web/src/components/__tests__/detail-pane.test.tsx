@@ -12,11 +12,11 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 
 import { DetailPane } from "../detail-pane";
-import { tokensStore } from "@/lib/state/tokens-store";
+import { resetTokensStore, tokensStore } from "@/lib/state/tokens-store";
 
 const baseWorkspace = {
   goalSpaceName: "Alpha",
@@ -30,7 +30,7 @@ const baseWorkspace = {
 };
 
 beforeEach(() => {
-  tokensStore.setState({ used: 0, cap: 100000 });
+  resetTokensStore();
 });
 
 afterEach(() => {
@@ -39,6 +39,7 @@ afterEach(() => {
 
 describe("DetailPane", () => {
   it("renders the workspace panel zone with the seeded metadata", () => {
+    tokensStore.setState({ used: 50000, cap: 100000 });
     render(<DetailPane workspace={baseWorkspace} env="dev" card={null} />);
 
     // Zone 1: WorkspacePanel header + key fields
@@ -63,16 +64,15 @@ describe("DetailPane", () => {
     expect(screen.getByText("Blocked Resolver")).toBeInTheDocument();
   });
 
-  it("renders the env badge and token meter from workspace info", async () => {
+  it("renders the env badge and token meter from workspace info", () => {
+    tokensStore.setState({ used: 50000, cap: 100000 });
     render(<DetailPane workspace={baseWorkspace} env="prod" card={null} />);
 
     // env badge in workspace panel header
     expect(screen.getByText("prod")).toBeInTheDocument();
 
     // Token count text — toLocaleString-formatted values
-    await waitFor(() => {
-      expect(screen.getByText("50,000 / 100,000")).toBeInTheDocument();
-    });
+    expect(screen.getByText("50,000 / 100,000")).toBeInTheDocument();
   });
 
   it("omits the CardRuntime zone when no card is passed", () => {

@@ -22,12 +22,7 @@ describe("TimelineMessage", () => {
   });
 
   it("renders tool variant with mono log", () => {
-    render(
-      <TimelineMessage
-        variant="tool"
-        body="read_file · 124ms · signaling_timing_v2.json"
-      />,
-    );
+    render(<TimelineMessage variant="tool" body="read_file · 124ms · signaling_timing_v2.json" />);
     expect(screen.getByText(/read_file/)).toBeInTheDocument();
   });
 
@@ -45,9 +40,7 @@ describe("TimelineMessage", () => {
   });
 
   it("renders system variant dimmed", () => {
-    const { container } = render(
-      <TimelineMessage variant="system" body="Waiting for approval…" />,
-    );
+    const { container } = render(<TimelineMessage variant="system" body="Waiting for approval…" />);
     expect(screen.getByText("Waiting for approval…")).toBeInTheDocument();
     expect(container.querySelector("[aria-label='Agent']")).toBeNull();
   });

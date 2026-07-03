@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, type ReactElement } from "react";
-import { tokensStore, useTokensStore } from "@/lib/state/tokens-store";
+import type { ReactElement } from "react";
+import { useTokensStore } from "@/lib/state/tokens-store";
 
 interface WorkspaceInfo {
   readonly goalSpaceName: string;
@@ -23,10 +23,10 @@ export function WorkspacePanel({ info, env }: WorkspacePanelProps): ReactElement
   const tokensUsed = useTokensStore((s) => s.used);
   const tokensCap = useTokensStore((s) => s.cap);
 
-  // Seed the store from the server-provided props on mount.
-  useEffect(() => {
-    tokensStore.setState({ used: info.tokensUsed, cap: info.tokensCap });
-  }, [info.tokensUsed, info.tokensCap]);
+  // `info.tokensUsed` / `info.tokensCap` remain on the API for forward-compat
+  // with non-AppShell call sites (tests). The store is owned by AppShell.
+  void info.tokensUsed;
+  void info.tokensCap;
 
   const safeCap = tokensCap > 0 ? tokensCap : 1;
   const pct = Math.min(100, Math.round((tokensUsed / safeCap) * 100));

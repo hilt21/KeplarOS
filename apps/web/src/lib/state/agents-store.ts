@@ -51,10 +51,7 @@ let state: AgentsStore = {
     // Idempotent: same status with same taskId is a no-op so the
     // snapshot reference stays stable and `useSyncExternalStore`
     // doesn't trigger a re-render.
-    if (
-      current.status === status &&
-      current.currentTaskId === (taskId ?? null)
-    ) {
+    if (current.status === status && current.currentTaskId === (taskId ?? null)) {
       return;
     }
     state = {

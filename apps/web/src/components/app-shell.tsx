@@ -136,14 +136,17 @@ export function AppShell({
     uiStore.set({ paletteOpen: false });
   }, []);
 
-  const handleActivateShortcut = useCallback((shortcut: { id: string }): void => {
-    // Built-in shortcuts already wire to their actions via shortcut-provider
-    // (e.g., Cmd+B toggles leftOpen, Cmd+J toggles rightOpen). For everything
-    // else, the shortcut registry owns the handler; we only need to close
-    // the palette here. The id is kept for future per-id routing.
-    void shortcut.id;
-    closeCommandPalette();
-  }, [closeCommandPalette]);
+  const handleActivateShortcut = useCallback(
+    (shortcut: { id: string }): void => {
+      // Built-in shortcuts already wire to their actions via shortcut-provider
+      // (e.g., Cmd+B toggles leftOpen, Cmd+J toggles rightOpen). For everything
+      // else, the shortcut registry owns the handler; we only need to close
+      // the palette here. The id is kept for future per-id routing.
+      void shortcut.id;
+      closeCommandPalette();
+    },
+    [closeCommandPalette],
+  );
 
   const paletteOpen = useUiStore((s) => s.paletteOpen);
 
