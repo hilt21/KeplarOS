@@ -43,6 +43,8 @@ export function MessageInput({ onSend, disabled = false }: MessageInputProps): R
         onKeyDown={onKeyDown}
         rows={2}
         placeholder="Reply or /command…"
+        aria-label="Message"
+        data-testid="message-input"
         disabled={disabled}
         style={{
           flex: 1,

@@ -146,6 +146,8 @@ export function WorkspaceSection({
                 role="button"
                 tabIndex={0}
                 aria-current={isSelected ? "true" : undefined}
+                data-testid="task-row"
+                data-task-id={task.id}
                 onClick={() => onSelectTask(task.id)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
