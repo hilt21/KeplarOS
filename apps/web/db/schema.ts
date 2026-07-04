@@ -680,7 +680,7 @@ export type Schema = typeof schema;
 
 export const usersRelations = relations(users, ({ many }) => ({
   initiatedGoalSpaces: many(goalSpaces),
-  memberships: many(nodeBoardMembers),
+  memberships: many(nodeBoardMembers, { relationName: "nodeBoardMembers_user" }),
   assignedCards: many(cards),
   triggeredConfirmations: many(humanConfirmations, {
     relationName: "humanConfirmations_triggeredBy",
