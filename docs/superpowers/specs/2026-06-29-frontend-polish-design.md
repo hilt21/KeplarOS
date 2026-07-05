@@ -755,7 +755,7 @@ Polish-related items that are **out of scope** for this spec but worth consideri
 - **PR generation**: convert a timeline session into a PR description.
 - **Agent memory graph** (Codex spec 20.1) — visualize what each agent learned across sessions.
 - **Task branching**: when an agent's plan is too aggressive, the user can branch the timeline and try a different approach.
-- **Mobile native shell** (Tauri) — same shell rendered in a desktop runtime, per [docs/specs/phase1_scope.md](../../specs/phase1_scope.md) future scope.
+- **Mobile native shell** (Tauri) — same shell rendered in a desktop runtime, per [docs/README.md § Phase 1](../../README.md#phase-1) future scope.
 
 ---
 

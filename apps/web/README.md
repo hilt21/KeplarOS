@@ -1,7 +1,7 @@
 # @keplar/web — Phase 1 S1 脚手架
 
 KEPLAR Phase 1 S1(脚手架与基础设施)的 Next.js 15 应用。本目录在
-[Phase 1 范围冻结](../docs/specs/phase1_scope.md)下只交付**开箱即跑的工程骨架**,
+[Phase 1 范围冻结](../../docs/README.md#phase-1)下只交付**开箱即跑的工程骨架**,
 不实现任何领域逻辑、状态机、API、UI 业务组件;后续子项目 S2 领域核心、S3
 API/SSE、S4 Dashboard UI 将在此基础上增量交付。
 
@@ -11,7 +11,7 @@ API/SSE、S4 Dashboard UI 将在此基础上增量交付。
 - 父分支:`20260606-dev-bootstrap`
 - Phase 1 子项目:**S1 脚手架与基础设施**
 - 上游真相源:[`DESIGN.md`](../../DESIGN.md)(UI 令牌)
-- 下游约束:[`docs/specs/phase1_scope.md`](../../docs/specs/phase1_scope.md) 第 2/3 节
+- 下游约束:[`docs/README.md` § Phase 1](../../docs/README.md#phase-1) 第 2/3 节
 
 ## 技术栈
 

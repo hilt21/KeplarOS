@@ -139,7 +139,10 @@ test("frontend polish happy path: login → goal space → click card → task v
 
   // Capture the goal space id from the URL.
   const url = new URL(page.url());
-  goalSpaceId = url.pathname.split("/").filter((s) => s.length > 0).pop();
+  goalSpaceId = url.pathname
+    .split("/")
+    .filter((s) => s.length > 0)
+    .pop();
 
   // 3. Assert the persistent 3-pane shell is visible.
   await expect(page.getByLabel("Workspaces")).toBeVisible({ timeout: 15_000 });
@@ -177,9 +180,7 @@ test("frontend polish happy path: login → goal space → click card → task v
   //    its data fetcher and the new card shows up in the section list.
   await page.goto(`/goal-spaces/${goalSpaceId}`);
   await expect(page.getByLabel("Workspaces")).toBeVisible({ timeout: 15_000 });
-  const taskRow = page
-    .locator(`[data-testid="task-row"][data-task-id="${cardId}"]`)
-    .first();
+  const taskRow = page.locator(`[data-testid="task-row"][data-task-id="${cardId}"]`).first();
   await expect(taskRow).toBeVisible({ timeout: 15_000 });
 
   await taskRow.click();
