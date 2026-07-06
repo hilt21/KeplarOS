@@ -1,0 +1,136 @@
+KEPLAR Codemap Analysis Report
+=================================
+Generated: 2026-07-06
+Scanner: Claude Code (update-codemaps skill)
+Scope: /Users/taolu/KEPLAR (full repo, focus on apps/web)
+
+────────────────────────────────────────────────────────────
+1. INITIAL SCAN
+────────────────────────────────────────────────────────────
+Target directory docs/CODEMAPS/ did not exist before this run —
+this is the first codemap generation for this repo. No prior
+codemaps to diff against. Diff% = N/A (baseline established).
+
+────────────────────────────────────────────────────────────
+2. FILES SCANNED
+────────────────────────────────────────────────────────────
+Repository structure:
+  apps/                2 (web active, desktop reserved)
+  crates/              5 Rust workspace members (not wired)
+  docs/                architecture/ + specs/ + guidelines
+  .harness/            AI dev harness (agents/rules/skills/templates)
+  .github/workflows/   2 (web-ci.yml, card-verify.yml)
+  Root files           CLAUDE.md, AGENTS.md, DESIGN.md, README.md,
+                       LICENSE, package.json, pnpm-workspace.yaml,
+                       Cargo.toml, drizzle.config.ts,
+                       drizzle-sqlite.config.ts, docker-compose.yml
+
+apps/web deep dive:
+  db/schema.ts                   1 file,   809 lines,  11 tables
+  db/migrations/                 13 SQL files (0000..0012)
+  src/app/api/v1/                27 routes  (REST + SSE)
+  src/app/                       7 pages    (App Router)
+  src/components/                30+ components (incl. subfolders)
+  src/lib/                       9 subdirs  (api/audit/auth/authorization/
+                                           db/execution/keyboard/realtime/
+                                           security/services/state/state-machine/theme)
+  src/lib/state/                 5 stores   (agents, board, context, tokens, ui)
+  __tests__/                     8 top-level + subfolders
+                                 (api/audit/auth/authz/db/state-machine/ui)
+  e2e/                           4 Playwright specs (chromium, 1 worker)
+
+────────────────────────────────────────────────────────────
+3. NEW ARTIFACTS CREATED THIS RUN
+────────────────────────────────────────────────────────────
+docs/CODEMAPS/
+  architecture.md       ~850 tokens   5-layer system + key invariants
+  backend.md            ~700 tokens   27 REST/SSE routes + middleware chain
+  frontend.md           ~650 tokens   Page tree + 30+ components + stores
+  data.md               ~700 tokens   11 tables + 13 migrations + ER
+  dependencies.md       ~550 tokens   Runtime/dev deps + CI + scripts
+                                       ─────────
+                              Total  ~3,450 tokens  (well under per-doc
+                                                      1000-token target
+                                                      except architecture)
+
+.reports/
+  codemap-diff.txt                  (this file)
+
+────────────────────────────────────────────────────────────
+4. NEW DEPENDENCIES DETECTED
+────────────────────────────────────────────────────────────
+None added by this run. The codemaps describe existing deps only.
+Phase 1 dependency footprint remains:
+  - 5 prod packages (next, react, react-dom, drizzle-orm, better-sqlite3)
+  - 17 dev packages (typescript, eslint, prettier, vitest, playwright,
+    tailwindcss 4, drizzle-kit, etc.)
+  - 0 external services wired (AI is fixture-only)
+
+Reserved but unused (do not delete without Phase 2 plan):
+  - Rust crates (keplar-{core,server,cli,rpc,scanner})
+  - Postgres in docker-compose.yml
+  - apps/desktop (placeholder)
+
+────────────────────────────────────────────────────────────
+5. ARCHITECTURE CHANGES (vs implicit baseline)
+────────────────────────────────────────────────────────────
+No code changes in this run. Only documentation was generated.
+
+Codemap observations that surfaced from the scan (informational,
+no action required):
+
+  - apps/desktop/ exists as a placeholder; Phase 3 candidate.
+  - crates/ declared but not wired into web build — Phase 2+ work.
+  - Root drizzle.config.ts points to non-existent src/core/**/*.schema.ts;
+    active schema lives at apps/web/db/schema.ts. (Documented in
+    dependencies.md as "🟡 declared".)
+  - CLAUDE.md and AGENTS.md are byte-identical (4216 bytes).
+  - Active dev focus (last 5 commits): UI polish + E2E coverage
+    (F13 frontend-polish spec), code-quality HIGH findings, db
+    relationName fix, docs reorg.
+
+────────────────────────────────────────────────────────────
+6. STALENESS WARNINGS
+────────────────────────────────────────────────────────────
+Codemaps are brand new (generated 2026-07-06).
+No 90+ day-old codemap content to warn about.
+
+Other documentation staleness check (informational):
+  - docs/architecture/* and docs/specs/* — contents appear current
+    relative to recent git activity; last commit
+    3b7e85e "docs: reorganize docs structure" aligns with this scan.
+  - DESIGN.md — referenced as source of truth for visual decisions;
+    consistent with apps/web/src/styles/tokens.css.
+  - CLAUDE.md Application Owner Runtime — still active; no
+    implementation was triggered in this run.
+
+────────────────────────────────────────────────────────────
+7. NEXT RUN RECOMMENDATIONS
+────────────────────────────────────────────────────────────
+Re-scan triggers:
+  - Major feature merge (new domain entity, new AI role, new SSE event)
+  - Schema migration (new migration > 0012)
+  - New app added to workspace (e.g. apps/desktop becomes active)
+  - Tailwind 5 / Next.js 16 / React 20 upgrade
+  - Real LLM/MCP integration replaces fixture executor
+
+Suggested follow-ups (NOT done in this run; await human approval
+per Application Owner Runtime):
+  1. Add a "📍 Codemaps" section to docs/README.md (additive edit).
+  2. Add docs/CODEMAPS/README.md index with role-based quick links.
+  3. Wire codemaps into .harness/skills/* as preferred orientation.
+  4. Consider a CONTRIBUTING.md note: "before deep-diving, read
+     docs/CODEMAPS/architecture.md".
+
+────────────────────────────────────────────────────────────
+8. FRESHNESS HEADERS (applied to each codemap)
+────────────────────────────────────────────────────────────
+  architecture.md       <!-- Generated: 2026-07-06 | ~850 tokens -->
+  backend.md            <!-- Generated: 2026-07-06 | ~700 tokens -->
+  frontend.md           <!-- Generated: 2026-07-06 | ~650 tokens -->
+  data.md               <!-- Generated: 2026-07-06 | ~700 tokens -->
+  dependencies.md       <!-- Generated: 2026-07-06 | ~550 tokens -->
+
+────────────────────────────────────────────────────────────
+END OF REPORT
+────────────────────────────────────────────────────────────

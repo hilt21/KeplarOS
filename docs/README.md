@@ -12,9 +12,11 @@
 |------|--------|------|
 | 🏗️ 架构设计 | [`architecture/`](architecture/) | 系统结构、状态机、数据流、用例、用户故事、部署拓扑、测试矩阵 |
 | 📐 规范契约 | [`specs/`](specs/) | PRD、非功能需求、权限矩阵、AI Agent 契约、数据库设计、接口规范 |
+| 📍 Codemaps | [`CODEMAPS/`](CODEMAPS/) | AI/工程师快速上手的 token-lean 架构、API、数据、依赖地图 |
 | 📋 开发计划 | 本 README | [Phase 1～5 产品开发计划](#phase-1-5-development-plan) 与维护说明 |
 
 > **提示**：项目根目录的 [README.md](../README.md) 包含快速开始和项目简介。
+> **新提示**：AI Agent 与新工程师建议从 [📍 Codemaps](CODEMAPS/README.md) 进入，再按需深入本目录的规范与架构文档。
 
 ---
 
@@ -58,17 +60,20 @@
 
 ### 按角色
 
+> 💡 **首次进入项目？** 先看 [📍 Codemaps → 按角色](CODEMAPS/README.md#by-role) 决定从哪张图起步，再按需深入本目录。
+
 | 我是                       | 我先看这些                                                                                                |
 | -------------------------- | --------------------------------------------------------------------------------------------------------- |
 | 🧑‍💼 **业务 / 产品**         | [PRD](specs/prd.md) → [用户故事](architecture/user_stories.md) → [用例图](architecture/use_case.md)        |
 | 🏛️ **架构师**              | [系统架构](architecture/system_architecture.md) → [数据流](architecture/data_flow.md) → [部署拓扑](architecture/deployment_topology.md) |
 | 💻 **前端 / 后端工程师**    | [状态流转](architecture/state_transition.md) → [接口规范](specs/interface_spec.md) → [测试矩阵](architecture/test_matrix.md) |
-| 🤖 **AI / Agent 工程师**    | [AI Agent 契约](specs/ai_agent_contracts.md) → [权限矩阵](specs/authorization_matrix.md)                  |
+| 🤖 **AI / Agent 工程师**    | [📍 Codemaps](CODEMAPS/README.md) → [AI Agent 契约](specs/ai_agent_contracts.md) → [权限矩阵](specs/authorization_matrix.md) |
 | 🧪 **QA / 测试**           | [测试矩阵](architecture/test_matrix.md) → [接口规范](specs/interface_spec.md)                              |
 | 🛠️ **运维 / SRE**          | [部署拓扑](architecture/deployment_topology.md) → [非功能性需求](specs/non_functional_requirements.md)    |
 
 ### 按场景
 
+- **🆕 第一次进项目** → 先读 [📍 Codemaps](CODEMAPS/README.md)（按角色表），再按需要回到本目录深入
 - **🆕 接手 Phase 2** → 直接读 [📋 Phase 1～5 开发计划](#phase-1-development-plan) 中的 Phase 2 节
 - **🔨 新增功能** → 先查 [测试矩阵](architecture/test_matrix.md) 决定门禁，再看 [状态流转](architecture/state_transition.md) 确认合法迁移
 - **🗄️ 修改数据库** → 必读 [数据库设计](specs/database_design.md) 与 [状态流转](architecture/state_transition.md)
@@ -231,6 +236,7 @@ verification scripts.
 | 路径                       | 角色                                        |
 | -------------------------- | ------------------------------------------- |
 | `docs/`                    | 跨项目设计资产（架构、规范、计划）           |
+| `docs/CODEMAPS/`           | AI Agent / 工程师快速上手的 token-lean 地图  |
 | `apps/<app>/README.md`     | 单个应用的使用与开发手册                     |
 | 仓库根 `README.md`         | 项目门面与快速入口                            |
 
