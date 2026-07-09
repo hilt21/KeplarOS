@@ -11,7 +11,7 @@
  */
 
 import { useEffect } from "react";
-import { boardStore, useBoardStore } from "@/lib/state/board-store";
+import { boardStore } from "@/lib/state/board-store";
 import { useAgentsStore, type AgentRoleId, type AgentStatus } from "@/lib/state/agents-store";
 import type { RealtimeEvent } from "@/lib/api/types";
 
@@ -60,12 +60,6 @@ function applyEvent(event: RealtimeEvent & AiRoleEvent): void {
 }
 
 export function useAIAgentsSync(goalSpaceId: string | null): void {
-  // useBoardStore subscribes us to changes in this goal space's events.
-  // We don't read the events via the selector — we attach a separate
-  // listener via boardStore.subscribe so we can mutate the side-effect
-  // store without re-rendering AppShell.
-  useBoardStore(goalSpaceId ?? "", () => undefined as void);
-
   useEffect(() => {
     if (!goalSpaceId) return;
     const unsubscribe = boardStore.subscribe(goalSpaceId, () => {
