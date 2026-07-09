@@ -23,12 +23,15 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 
 import { AppShell, type AppShellCardRuntimeInfo } from "../app-shell";
 import { useContextStore } from "@/lib/state/context-store";
 import { tokensStore } from "@/lib/state/tokens-store";
+import { boardStore } from "@/lib/state/board-store";
+import { useAgentsStore } from "@/lib/state/agents-store";
+import type { RealtimeEvent } from "@/lib/api/types";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -177,5 +180,41 @@ describe("AppShell", () => {
       expect(tokensStore.get().used).toBe(7777);
       expect(tokensStore.get().cap).toBe(12345);
     });
+  });
+
+  it("forwards ai_role_started SSE events into agentsStore", () => {
+    render(
+      <AppShell
+        user={user}
+        goalSpaces={goalSpaces}
+        tasksByGoalSpace={tasksByGoalSpace}
+        currentGoalSpaceHeader={null}
+        goalSpaceId="gs-alpha"
+        card={null}
+        tokensUsed={0}
+        tokensCap={100000}
+        env="dev"
+      >
+        <div data-testid="page-child">test-child</div>
+      </AppShell>,
+    );
+
+    const evt: RealtimeEvent = {
+      id: "evt-1",
+      sequence: 1,
+      goal_space_id: "gs-alpha",
+      type: "ai_role_started",
+      resource: { type: "ai_role", id: "dev_crafter" },
+      actor: { type: "ai_role", id: "dev_crafter" },
+      data: { cardId: "card-9" },
+      occurred_at: new Date().toISOString(),
+    };
+
+    act(() => {
+      boardStore.append("gs-alpha", evt);
+    });
+
+    expect(useAgentsStore.getState().byRole.dev_crafter.status).toBe("running");
+    expect(useAgentsStore.getState().byRole.dev_crafter.currentTaskId).toBe("card-9");
   });
 });

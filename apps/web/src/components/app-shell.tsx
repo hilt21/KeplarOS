@@ -22,6 +22,7 @@ import { DetailPane } from "./detail-pane";
 import type { CardRuntimeInfo } from "./detail-pane/card-runtime";
 import { CommandPalette } from "./command-palette";
 import { useContextStore, parseContextFromPath, type AppContext } from "@/lib/state/context-store";
+import { useAIAgentsSync } from "@/lib/realtime/ai-agents-sync";
 import { tokensStore } from "@/lib/state/tokens-store";
 import { uiStore, useUiStore } from "@/lib/state/ui-store";
 import { ShortcutProvider } from "@/lib/keyboard/shortcut-provider";
@@ -89,6 +90,9 @@ export function AppShell({
 }: AppShellProps): ReactElement {
   const pathname = usePathname();
   const context: AppContext = useContextStore((s) => s.current);
+
+  // Bridge SSE → agentsStore so AIPanel reflects real AI status.
+  useAIAgentsSync(goalSpaceId);
 
   // Keep the global context store in sync with the URL on every navigation.
   // `useContextStore.setState` is a cheap immutable spread + notify.
