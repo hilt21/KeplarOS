@@ -6,9 +6,9 @@ test.describe("task timeline", () => {
       data: { email: "e2e@keplar.test", password: "e2e-password" },
     });
     await page.goto("/goal-spaces");
-    const cardLink = page.getByRole("link", { name: /CARD-/ }).first();
-    await expect(cardLink).toBeVisible({ timeout: 15_000 });
-    await cardLink.click();
+    const cardRow = page.getByRole("button", { name: /CARD-/ }).first();
+    await expect(cardRow).toBeVisible({ timeout: 15_000 });
+    await cardRow.click();
     await expect(page).toHaveURL(/\/goal-spaces\/[^/]+\/tasks\/[^/]+$/);
     const breadcrumb = page.getByText("backlog");
     await expect(breadcrumb.first()).toBeVisible();

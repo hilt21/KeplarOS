@@ -7,8 +7,8 @@ test.describe("master pane", () => {
       data: { email: "e2e@keplar.test", password: "e2e-password" },
     });
     await page.goto("/goal-spaces");
-    const firstLink = page.getByRole("link", { name: /CARD-/ }).first();
-    await expect(firstLink).toBeVisible({ timeout: 15_000 });
+    const firstCard = page.getByRole("button", { name: /CARD-/ }).first();
+    await expect(firstCard).toBeVisible({ timeout: 15_000 });
     const chevron = page.getByRole("button", { name: "Collapse" }).first();
     await chevron.click();
     expect(page.getByRole("button", { name: "Expand" }).first()).toBeVisible();
