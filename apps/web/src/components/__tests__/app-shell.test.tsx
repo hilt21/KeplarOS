@@ -139,6 +139,7 @@ describe("AppShell", () => {
         user={user}
         goalSpaces={goalSpaces}
         tasksByGoalSpace={tasksByGoalSpace}
+        currentGoalSpaceHeader={null}
         goalSpaceId="gs-alpha"
         card={card}
         tokensUsed={2400}
