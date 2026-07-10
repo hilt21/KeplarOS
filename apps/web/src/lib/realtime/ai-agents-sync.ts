@@ -51,7 +51,6 @@ function isAiRoleEvent(event: RealtimeEvent): event is RealtimeEvent & AiRoleEve
 function applyEvent(event: RealtimeEvent & AiRoleEvent): void {
   const role = event.resource.id as AgentRoleId;
   if (!VALID_ROLES.has(role)) {
-    // eslint-disable-next-line no-console -- warned only on misconfigured events
     console.warn(`useAIAgentsSync: ignoring event with unknown role id "${role}"`);
     return;
   }
