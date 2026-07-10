@@ -20,7 +20,6 @@ import type { ReactElement, ReactNode } from "react";
 import {
   AppShell,
   type AppShellCardRuntimeInfo,
-  type AppShellCurrentHeader,
   type AppShellGoalSpaceSummary,
   type AppShellTaskSummary,
   type AppShellUser,
@@ -31,7 +30,6 @@ export interface AppShellWrapperProps {
   readonly goalSpaces: readonly AppShellGoalSpaceSummary[];
   readonly tasksByGoalSpace: Readonly<Record<string, readonly AppShellTaskSummary[]>>;
   readonly nodeBoardsByGoalSpace?: Readonly<Record<string, readonly { name: string }[]>> | undefined;
-  readonly currentGoalSpaceHeader: AppShellCurrentHeader | null;
   readonly goalSpaceId: string | null;
   readonly card: AppShellCardRuntimeInfo | null;
   readonly tokensUsed: number;
@@ -47,7 +45,6 @@ export function AppShellWrapper(props: AppShellWrapperProps): ReactElement {
       goalSpaces={props.goalSpaces}
       tasksByGoalSpace={props.tasksByGoalSpace}
       nodeBoardsByGoalSpace={props.nodeBoardsByGoalSpace}
-      currentGoalSpaceHeader={props.currentGoalSpaceHeader}
       goalSpaceId={props.goalSpaceId}
       card={props.card}
       tokensUsed={props.tokensUsed}

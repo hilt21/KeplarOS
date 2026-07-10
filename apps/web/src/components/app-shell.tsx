@@ -68,7 +68,6 @@ export interface AppShellProps {
   readonly goalSpaces: readonly AppShellGoalSpaceSummary[];
   readonly tasksByGoalSpace: Readonly<Record<string, readonly AppShellTaskSummary[]>>;
   readonly nodeBoardsByGoalSpace?: Readonly<Record<string, readonly { name: string }[]>> | undefined;
-  readonly currentGoalSpaceHeader: AppShellCurrentHeader | null;
   readonly goalSpaceId: string | null;
   readonly card: AppShellCardRuntimeInfo | null;
   readonly tokensUsed: number;
@@ -81,15 +80,10 @@ const PRIMARY_PANE_WIDTH = 280;
 const DETAIL_PANE_WIDTH = 320;
 
 export function AppShell({
-  // currentGoalSpaceHeader prop is kept for F2 contract compatibility;
-  // breadcrumb and DetailPane now read derivedGoalSpaceHeader (from
-  // useCurrentGoalSpaceHeader) instead. TODO(F11): remove prop when
-  // F2 callers are migrated off it.
   user,
   goalSpaces,
   tasksByGoalSpace,
   nodeBoardsByGoalSpace = {},
-  currentGoalSpaceHeader: _currentGoalSpaceHeader,
   goalSpaceId,
   card,
   tokensUsed,

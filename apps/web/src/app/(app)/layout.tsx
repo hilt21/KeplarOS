@@ -71,7 +71,6 @@ export default async function AppLayout({
         // TODO(F11/F12): replace with real boards data from listGoalSpacesWithTasksService or a new listNodeBoardsService.
         {}
       }
-      currentGoalSpaceHeader={null}
       goalSpaceId={null}
       card={null}
       tokensUsed={TOKENS_PLACEHOLDER_USED}
