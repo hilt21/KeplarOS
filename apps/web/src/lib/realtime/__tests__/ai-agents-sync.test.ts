@@ -16,7 +16,9 @@ import { boardStore } from "@/lib/state/board-store";
 import { useAgentsStore, type AgentRoleId } from "@/lib/state/agents-store";
 import type { RealtimeEvent } from "@/lib/api/types";
 
-function event(over: Partial<RealtimeEvent> & Pick<RealtimeEvent, "type" | "resource">): RealtimeEvent {
+function event(
+  over: Partial<RealtimeEvent> & Pick<RealtimeEvent, "type" | "resource">,
+): RealtimeEvent {
   return {
     id: over.id ?? `evt-${Math.random().toString(36).slice(2)}`,
     sequence: over.sequence ?? 1,
@@ -74,18 +76,24 @@ describe("useAIAgentsSync", () => {
     renderHook(() => useAIAgentsSync("gs-1"));
 
     act(() => {
-      boardStore.append("gs-1", event({
-        type: "ai_role_started",
-        resource: { type: "ai_role", id: "review_guard" },
-        actor: { type: "ai_role", id: "review_guard" },
-        data: { cardId: "card-2" },
-      }));
-      boardStore.append("gs-1", event({
-        type: "ai_role_completed",
-        resource: { type: "ai_role", id: "review_guard" },
-        actor: { type: "ai_role", id: "review_guard" },
-        data: { cardId: "card-2" },
-      }));
+      boardStore.append(
+        "gs-1",
+        event({
+          type: "ai_role_started",
+          resource: { type: "ai_role", id: "review_guard" },
+          actor: { type: "ai_role", id: "review_guard" },
+          data: { cardId: "card-2" },
+        }),
+      );
+      boardStore.append(
+        "gs-1",
+        event({
+          type: "ai_role_completed",
+          resource: { type: "ai_role", id: "review_guard" },
+          actor: { type: "ai_role", id: "review_guard" },
+          data: { cardId: "card-2" },
+        }),
+      );
     });
 
     const state = useAgentsStore.getState();
@@ -97,12 +105,15 @@ describe("useAIAgentsSync", () => {
     renderHook(() => useAIAgentsSync("gs-1"));
 
     act(() => {
-      boardStore.append("gs-1", event({
-        type: "ai_role_failed",
-        resource: { type: "ai_role", id: "todo_orchestrator" },
-        actor: { type: "ai_role", id: "todo_orchestrator" },
-        data: { cardId: "card-3", reason: "timeout" },
-      }));
+      boardStore.append(
+        "gs-1",
+        event({
+          type: "ai_role_failed",
+          resource: { type: "ai_role", id: "todo_orchestrator" },
+          actor: { type: "ai_role", id: "todo_orchestrator" },
+          data: { cardId: "card-3", reason: "timeout" },
+        }),
+      );
     });
 
     expect(useAgentsStore.getState().byRole.todo_orchestrator.status).toBe("error");
@@ -112,13 +123,16 @@ describe("useAIAgentsSync", () => {
     renderHook(() => useAIAgentsSync("gs-1"));
 
     act(() => {
-      boardStore.append("gs-other", event({
-        type: "ai_role_started",
-        resource: { type: "ai_role", id: "dev_crafter" },
-        actor: { type: "ai_role", id: "dev_crafter" },
-        data: { cardId: "card-9" },
-        goal_space_id: "gs-other",
-      }));
+      boardStore.append(
+        "gs-other",
+        event({
+          type: "ai_role_started",
+          resource: { type: "ai_role", id: "dev_crafter" },
+          actor: { type: "ai_role", id: "dev_crafter" },
+          data: { cardId: "card-9" },
+          goal_space_id: "gs-other",
+        }),
+      );
     });
 
     expect(useAgentsStore.getState().byRole.dev_crafter.status).toBe("idle");
@@ -129,12 +143,15 @@ describe("useAIAgentsSync", () => {
     renderHook(() => useAIAgentsSync("gs-1"));
 
     act(() => {
-      boardStore.append("gs-1", event({
-        type: "ai_role_started",
-        resource: { type: "ai_role", id: "unknown_role" as AgentRoleId },
-        actor: { type: "ai_role", id: "unknown_role" },
-        data: { cardId: "card-9" },
-      }));
+      boardStore.append(
+        "gs-1",
+        event({
+          type: "ai_role_started",
+          resource: { type: "ai_role", id: "unknown_role" as AgentRoleId },
+          actor: { type: "ai_role", id: "unknown_role" },
+          data: { cardId: "card-9" },
+        }),
+      );
     });
 
     for (const role of Object.keys(useAgentsStore.getState().byRole) as AgentRoleId[]) {
