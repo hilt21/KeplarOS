@@ -29,7 +29,9 @@ export interface AppShellWrapperProps {
   readonly user: AppShellUser;
   readonly goalSpaces: readonly AppShellGoalSpaceSummary[];
   readonly tasksByGoalSpace: Readonly<Record<string, readonly AppShellTaskSummary[]>>;
-  readonly nodeBoardsByGoalSpace?: Readonly<Record<string, readonly { name: string }[]>> | undefined;
+  readonly nodeBoardsByGoalSpace?:
+    | Readonly<Record<string, readonly { name: string }[]>>
+    | undefined;
   readonly goalSpaceId: string | null;
   readonly card: AppShellCardRuntimeInfo | null;
   readonly tokensUsed: number;
