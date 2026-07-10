@@ -22,9 +22,13 @@ import { DetailPane } from "./detail-pane";
 import type { CardRuntimeInfo } from "./detail-pane/card-runtime";
 import { CommandPalette } from "./command-palette";
 import { useContextStore, parseContextFromPath, type AppContext } from "@/lib/state/context-store";
+import { useAIAgentsSync } from "@/lib/realtime/ai-agents-sync";
 import { tokensStore } from "@/lib/state/tokens-store";
 import { uiStore, useUiStore } from "@/lib/state/ui-store";
 import { ShortcutProvider } from "@/lib/keyboard/shortcut-provider";
+import { API_BASE } from "@/lib/constants/api";
+import { RUNTIME_LABEL } from "@/lib/constants/runtime";
+import { useCurrentGoalSpaceHeader } from "@/lib/state/current-goal-space-header";
 
 // Re-export the F2 prop types so `AppShellWrapper` keeps importing them
 // from here without a circular edge case. F3 reads them; F2 declared them.
@@ -63,6 +67,7 @@ export interface AppShellProps {
   readonly user: AppShellUser;
   readonly goalSpaces: readonly AppShellGoalSpaceSummary[];
   readonly tasksByGoalSpace: Readonly<Record<string, readonly AppShellTaskSummary[]>>;
+  readonly nodeBoardsByGoalSpace?: Readonly<Record<string, readonly { name: string }[]>> | undefined;
   readonly currentGoalSpaceHeader: AppShellCurrentHeader | null;
   readonly goalSpaceId: string | null;
   readonly card: AppShellCardRuntimeInfo | null;
@@ -76,10 +81,15 @@ const PRIMARY_PANE_WIDTH = 280;
 const DETAIL_PANE_WIDTH = 320;
 
 export function AppShell({
+  // currentGoalSpaceHeader prop is kept for F2 contract compatibility;
+  // breadcrumb and DetailPane now read derivedGoalSpaceHeader (from
+  // useCurrentGoalSpaceHeader) instead. TODO(F11): remove prop when
+  // F2 callers are migrated off it.
   user,
   goalSpaces,
   tasksByGoalSpace,
-  currentGoalSpaceHeader,
+  nodeBoardsByGoalSpace = {},
+  currentGoalSpaceHeader: _currentGoalSpaceHeader,
   goalSpaceId,
   card,
   tokensUsed,
@@ -89,6 +99,9 @@ export function AppShell({
 }: AppShellProps): ReactElement {
   const pathname = usePathname();
   const context: AppContext = useContextStore((s) => s.current);
+
+  // Bridge SSE → agentsStore so AIPanel reflects real AI status.
+  useAIAgentsSync(goalSpaceId);
 
   // Keep the global context store in sync with the URL on every navigation.
   // `useContextStore.setState` is a cheap immutable spread + notify.
@@ -106,21 +119,30 @@ export function AppShell({
     tokensStore.setState({ used: tokensUsed, cap: tokensCap });
   }, [tokensUsed, tokensCap]);
 
+  // Derive the current goal-space header (name + first board) from the URL
+  // or the explicit `goalSpaceId` prop. Replaces the hardcoded `null` that
+  // used to leave the right-rail goal/board fields as "—".
+  const derivedGoalSpaceHeader = useCurrentGoalSpaceHeader({
+    goalSpaces,
+    nodeBoardsByGs: nodeBoardsByGoalSpace,
+    goalSpaceId,
+  });
+
   // Breadcrumb segments: KEPLAR → goal space → card.
   const segments: readonly TopBarSegment[] = useMemo<TopBarSegment[]>(() => {
     const list: TopBarSegment[] = [{ label: "KEPLAR", href: "/goal-spaces" }];
-    if (currentGoalSpaceHeader) {
+    if (derivedGoalSpaceHeader) {
       const next: TopBarSegment =
         goalSpaceId !== null
-          ? { label: currentGoalSpaceHeader.name, href: `/goal-spaces/${goalSpaceId}` }
-          : { label: currentGoalSpaceHeader.name };
+          ? { label: derivedGoalSpaceHeader.name, href: `/goal-spaces/${goalSpaceId}` }
+          : { label: derivedGoalSpaceHeader.name };
       list.push(next);
     }
     if (card) {
       list.push({ label: card.displayId });
     }
     return list;
-  }, [currentGoalSpaceHeader, goalSpaceId, card]);
+  }, [derivedGoalSpaceHeader, goalSpaceId, card]);
 
   // The F2 contract for `card` only carries display metadata. The full
   // `CardRuntimeInfo` (modified files, plan steps, audit events) is owned
@@ -197,12 +219,12 @@ export function AppShell({
           >
             <DetailPane
               workspace={{
-                goalSpaceName: currentGoalSpaceHeader?.name ?? "—",
-                boardName: currentGoalSpaceHeader?.boardName ?? "—",
+                goalSpaceName: derivedGoalSpaceHeader?.name ?? "—",
+                boardName: derivedGoalSpaceHeader?.boardName ?? "—",
                 userName: user.name,
                 userRole: user.role,
-                runtime: "Next.js · React",
-                apiBase: "/api/v1",
+                runtime: RUNTIME_LABEL,
+                apiBase: API_BASE,
                 tokensUsed,
                 tokensCap,
               }}
