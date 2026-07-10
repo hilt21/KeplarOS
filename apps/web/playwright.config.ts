@@ -30,6 +30,12 @@ export default defineConfig({
     screenshot: "only-on-failure",
     actionTimeout: 10_000,
     navigationTimeout: 30_000,
+    // Set Origin on every request (including page.request.post) so
+    // Next.js middleware CSRF check passes. Without this, tests that
+    // POST via page.request.* get 403 invalid origin.
+    extraHTTPHeaders: {
+      Origin: BASE_URL,
+    },
   },
   expect: { timeout: 10_000 },
   webServer: {
