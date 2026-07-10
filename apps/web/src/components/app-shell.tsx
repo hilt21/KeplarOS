@@ -81,6 +81,10 @@ const PRIMARY_PANE_WIDTH = 280;
 const DETAIL_PANE_WIDTH = 320;
 
 export function AppShell({
+  // currentGoalSpaceHeader prop is kept for F2 contract compatibility;
+  // breadcrumb and DetailPane now read derivedGoalSpaceHeader (from
+  // useCurrentGoalSpaceHeader) instead. TODO(F11): remove prop when
+  // F2 callers are migrated off it.
   user,
   goalSpaces,
   tasksByGoalSpace,

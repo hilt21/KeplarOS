@@ -139,7 +139,6 @@ describe("AppShell", () => {
         user={user}
         goalSpaces={goalSpaces}
         tasksByGoalSpace={tasksByGoalSpace}
-        currentGoalSpaceHeader={{ name: "Alpha", boardName: "Board A" }}
         goalSpaceId="gs-alpha"
         card={card}
         tokensUsed={2400}
@@ -198,7 +197,7 @@ describe("AppShell", () => {
         <div data-testid="page-child">test-child</div>
       </AppShell>,
     );
-    expect(screen.getAllByText("Alpha Test").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Alpha Test").length).toBeGreaterThanOrEqual(2);
   });
 
   it("forwards ai_role_started SSE events into agentsStore", () => {
