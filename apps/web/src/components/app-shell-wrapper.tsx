@@ -30,6 +30,7 @@ export interface AppShellWrapperProps {
   readonly user: AppShellUser;
   readonly goalSpaces: readonly AppShellGoalSpaceSummary[];
   readonly tasksByGoalSpace: Readonly<Record<string, readonly AppShellTaskSummary[]>>;
+  readonly nodeBoardsByGoalSpace?: Readonly<Record<string, readonly { name: string }[]>> | undefined;
   readonly currentGoalSpaceHeader: AppShellCurrentHeader | null;
   readonly goalSpaceId: string | null;
   readonly card: AppShellCardRuntimeInfo | null;
@@ -45,6 +46,7 @@ export function AppShellWrapper(props: AppShellWrapperProps): ReactElement {
       user={props.user}
       goalSpaces={props.goalSpaces}
       tasksByGoalSpace={props.tasksByGoalSpace}
+      nodeBoardsByGoalSpace={props.nodeBoardsByGoalSpace}
       currentGoalSpaceHeader={props.currentGoalSpaceHeader}
       goalSpaceId={props.goalSpaceId}
       card={props.card}

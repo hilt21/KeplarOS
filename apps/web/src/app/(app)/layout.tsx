@@ -28,9 +28,7 @@ import { AppShellWrapper } from "@/components/app-shell-wrapper";
 import type { AppShellTaskSummary } from "@/components/app-shell";
 import { getDb } from "@/lib/db/client";
 import { listGoalSpacesWithTasksService } from "@/lib/services/goal-spaces";
-
-// Placeholder caps until F10 wires the real token meter.
-const TOKENS_CAP_PLACEHOLDER = 100000;
+import { TOKENS_PLACEHOLDER_USED, TOKENS_PLACEHOLDER_CAP } from "@/lib/constants/tokens";
 
 export default async function AppLayout({
   children,
@@ -69,11 +67,12 @@ export default async function AppLayout({
       }}
       goalSpaces={goalSpaceList}
       tasksByGoalSpace={tasksByGoalSpace}
+      nodeBoardsByGoalSpace={{}}
       currentGoalSpaceHeader={null}
       goalSpaceId={null}
       card={null}
-      tokensUsed={0}
-      tokensCap={TOKENS_CAP_PLACEHOLDER}
+      tokensUsed={TOKENS_PLACEHOLDER_USED}
+      tokensCap={TOKENS_PLACEHOLDER_CAP}
       env={process.env.NODE_ENV === "production" ? "prod" : "dev"}
     >
       {children}

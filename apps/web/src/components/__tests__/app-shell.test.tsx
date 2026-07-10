@@ -182,6 +182,25 @@ describe("AppShell", () => {
     });
   });
 
+  it("derives currentGoalSpaceHeader from goalSpaces prop + goalSpaceId", () => {
+    render(
+      <AppShell
+        user={user}
+        goalSpaces={[{ id: "gs-alpha", name: "Alpha Test" }]}
+        tasksByGoalSpace={{}}
+        currentGoalSpaceHeader={null}
+        goalSpaceId="gs-alpha"
+        card={null}
+        tokensUsed={0}
+        tokensCap={100000}
+        env="dev"
+      >
+        <div data-testid="page-child">test-child</div>
+      </AppShell>,
+    );
+    expect(screen.getAllByText("Alpha Test").length).toBeGreaterThanOrEqual(1);
+  });
+
   it("forwards ai_role_started SSE events into agentsStore", () => {
     render(
       <AppShell
