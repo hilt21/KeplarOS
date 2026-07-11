@@ -1,0 +1,338 @@
+<h2>Task 视图 v3 — 对齐真 Codex CLI 截图的 4 区结构</h2>
+<p class="subtitle">真 Codex 截图：左侧（顶部 新对话+搜索+历史 / 底部 设置） + 右侧（顶部 环境信息 / 中部 子智能体 / 底部 文件细节）。v3 重新分配 KEPLAR master/detail 的内容。</p>
+
+<div class="mockup">
+  <div class="mockup-header">Persistent 3-pane shell — Task 视图 v3（master 左=workspaces+settings，detail 右=context+agents+files）</div>
+  <div class="mockup-body" style="background: #0B0F19; padding: 0; color: #F9FAFB; font-family: 'Inter', system-ui, sans-serif; font-size: 12px;">
+
+    <!-- Top bar -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 16px; border-bottom: 1px solid #1F2937;">
+      <div style="display:flex; align-items:center; gap: 10px;">
+        <div style="font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280;">KEPLAR</div>
+        <div style="font-size: 11px; color: #374151;">/</div>
+        <a style="font-size: 13px; color: #9CA3AF; padding: 2px 6px; border-radius: 3px; cursor: pointer; text-decoration: none;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">Railway Metro 2026 Q1</a>
+        <div style="font-size: 11px; color: #374151;">/</div>
+        <a style="font-size: 13px; color: #9CA3AF; padding: 2px 6px; border-radius: 3px; cursor: pointer; text-decoration: none;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">Main board</a>
+        <div style="font-size: 11px; color: #374151;">/</div>
+        <div style="font-size: 13px; font-weight: 600; color: #F9FAFB; padding: 2px 6px;">Signaling timing</div>
+        <div style="font-size: 11px; color: #6B7280; font-family: 'JetBrains Mono', monospace; margin-left: 8px;">CARD-004</div>
+      </div>
+      <div style="display:flex; align-items:center; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280;">2.4k tok</div>
+        <button class="mock-button" style="background: transparent; border: 1px solid #374151; color: #9CA3AF; padding: 4px 10px; font-size: 11px;">CMD K</button>
+      </div>
+    </div>
+
+    <!-- 3-col body: master / primary / detail -->
+    <div style="display: grid; grid-template-columns: 280px 1fr 320px; min-height: 600px;">
+
+      <!-- ==================== Master: Workspaces + Settings ==================== -->
+      <div style="border-right: 1px solid #1F2937; background: #0B0F19; display: flex; flex-direction: column;">
+
+        <!-- Top: New + Search + Groups -->
+        <div style="flex: 1; overflow-y: auto;">
+          <!-- Header + New button -->
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 12px;">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280;">WORKSPACES</div>
+            <button class="mock-button" style="background: transparent; border: 1px solid #374151; color: #9CA3AF; padding: 2px 8px; font-size: 10px;">+ NEW</button>
+          </div>
+          <!-- Search -->
+          <div style="padding: 4px 12px 8px;">
+            <input class="mock-input" placeholder="filter tasks…" style="width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 10px;" />
+          </div>
+
+          <!-- Group 1: Railway Metro 2026 Q1 (expanded, selected task) -->
+          <div>
+            <div style="display:flex; align-items:center; gap: 6px; padding: 8px 12px 4px; cursor: pointer;">
+              <div style="font-size: 12px; color: #6B7280;">▾</div>
+              <div style="width: 16px; height: 16px; background: rgba(14,165,233,0.15); border: 1px solid rgba(14,165,233,0.30); border-radius: 3px; display:flex; align-items:center; justify-content:center; font-size: 8px; color: #0EA5E9; font-weight: 600; flex-shrink: 0;">R</div>
+              <div style="font-size: 11px; font-weight: 600; color: #F9FAFB; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="Railway Metro 2026 Q1">Railway Metro 2026 Q1</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280;">5</div>
+            </div>
+            <div>
+              <div style="padding: 4px 12px 4px 28px; font-size: 12px; color: #6B7280; cursor: pointer;">
+                <div style="display:flex; align-items:center; gap: 6px;">
+                  <span style="width: 5px; height: 5px; background: #F59E0B; border-radius: 50%; flex-shrink:0;"></span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-001</span>
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Track geometry</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">3d</span>
+                </div>
+              </div>
+              <div style="padding: 4px 12px 4px 28px; font-size: 12px; color: #6B7280; cursor: pointer;">
+                <div style="display:flex; align-items:center; gap: 6px;">
+                  <span style="width: 5px; height: 5px; background: #6B7280; border-radius: 50%; flex-shrink:0;"></span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-002</span>
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Risk register</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">1w</span>
+                </div>
+              </div>
+              <div style="padding: 4px 12px 4px 28px; font-size: 12px; color: #6B7280; cursor: pointer;">
+                <div style="display:flex; align-items:center; gap: 6px;">
+                  <span style="width: 5px; height: 5px; background: #0EA5E9; border-radius: 50%; flex-shrink:0;"></span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-003</span>
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Substation layout</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">2d</span>
+                </div>
+              </div>
+              <div style="padding: 6px 12px 6px 28px; font-size: 12px; color: #F9FAFB; background: rgba(14,165,233,0.10); border-left: 2px solid #0EA5E9; cursor: pointer;">
+                <div style="display:flex; align-items:center; gap: 6px;">
+                  <span style="width: 5px; height: 5px; background: #0EA5E9; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; flex-shrink:0;"></span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #0EA5E9; min-width: 56px;">CARD-004</span>
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0; font-weight: 500;">Signaling timing</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #0EA5E9; flex-shrink:0;">now</span>
+                </div>
+                <div style="font-size: 9px; color: #0EA5E9; font-family: 'JetBrains Mono', monospace; margin-top: 2px; padding-left: 62px;">Dev Crafter · 5.2s</div>
+              </div>
+              <div style="padding: 4px 12px 4px 28px; font-size: 12px; color: #6B7280; cursor: pointer;">
+                <div style="display:flex; align-items:center; gap: 6px;">
+                  <span style="width: 5px; height: 5px; background: #10B981; border-radius: 50%; flex-shrink:0;"></span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-005</span>
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Brake timing</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">4d</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Group 2 -->
+          <div style="margin-top: 8px;">
+            <div style="display:flex; align-items:center; gap: 6px; padding: 8px 12px 4px; cursor: pointer;">
+              <div style="font-size: 12px; color: #6B7280;">▾</div>
+              <div style="width: 16px; height: 16px; background: rgba(100,116,139,0.15); border: 1px solid rgba(100,116,139,0.30); border-radius: 3px; display:flex; align-items:center; justify-content:center; font-size: 8px; color: #94A3B8; font-weight: 600; flex-shrink: 0;">B</div>
+              <div style="font-size: 11px; font-weight: 600; color: #F9FAFB; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="Brake System Retrofit">Brake System Retrofit</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280;">2</div>
+            </div>
+          </div>
+
+          <!-- Group 3 (collapsed) -->
+          <div style="margin-top: 8px;">
+            <div style="display:flex; align-items:center; gap: 6px; padding: 8px 12px 4px; cursor: pointer;">
+              <div style="font-size: 12px; color: #6B7280;">▸</div>
+              <div style="width: 16px; height: 16px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.30); border-radius: 3px; display:flex; align-items:center; justify-content:center; font-size: 8px; color: #10B981; font-weight: 600; flex-shrink: 0;">S</div>
+              <div style="font-size: 11px; font-weight: 600; color: #F9FAFB; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="Signal Validation">Signal Validation</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280;">3</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom: Settings (Codex 底部) -->
+        <div style="border-top: 1px solid #1F2937; padding: 8px 12px;">
+          <div style="display:flex; align-items:center; gap: 8px; padding: 6px 0; cursor: pointer;">
+            <div style="width: 18px; height: 18px; background: rgba(14,165,233,0.15); border-radius: 50%; display:flex; align-items:center; justify-content:center; font-size: 9px; color: #0EA5E9; font-weight: 600; flex-shrink: 0;">R</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 11px; color: #F9FAFB; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">r.gu</div>
+              <div style="font-size: 9px; color: #6B7280; font-family: 'JetBrains Mono', monospace;">initiator · Railway</div>
+            </div>
+            <div style="font-size: 12px; color: #6B7280;">⚙</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== Primary: Timeline (unchanged) ==================== -->
+      <div style="background: #0B0F19; display: flex; flex-direction: column;">
+        <div style="padding: 14px 20px; border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:baseline; gap: 10px;">
+            <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #0EA5E9;">CARD-004</div>
+            <div style="font-size: 18px; font-weight: 600; color: #F9FAFB;">Signaling timing</div>
+          </div>
+          <div style="display:flex; align-items:center; gap: 4px; margin-top: 8px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #6B7280;">
+            <span style="color: #10B981;">backlog</span>
+            <span>→</span>
+            <span style="color: #0EA5E9; background: rgba(14,165,233,0.10); padding: 1px 6px; border-radius: 2px;">todo</span>
+            <span>→</span>
+            <span style="color: #0EA5E9; font-weight: 600; background: rgba(14,165,233,0.20); padding: 1px 6px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(14,165,233,0.30);">dev</span>
+            <span>→</span>
+            <span>review</span>
+            <span>→</span>
+            <span>done</span>
+            <span style="margin-left: auto; color: #6B7280;">@r.gu</span>
+          </div>
+        </div>
+
+        <div style="flex: 1; overflow-y: auto; padding: 16px 20px;">
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 14px;">
+            <div style="max-width: 80%; background: rgba(255,255,255,0.04); border: 1px solid #1F2937; padding: 8px 12px; border-radius: 4px;">
+              <div style="font-size: 10px; color: #6B7280; margin-bottom: 2px; font-family: 'JetBrains Mono', monospace;">/execute CARD-004</div>
+              <div style="font-size: 12px; color: #9CA3AF; line-height: 1.5;">Run the dev workflow on signaling timing.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <div style="width: 20px; height: 20px; background: rgba(14,165,233,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #0EA5E9; flex-shrink: 0;">AI</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 11px; color: #9CA3AF; line-height: 1.5;">I'll start by reading the existing timing spec and the relevant test cases. Plan: 3 edits, 1 new file.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <div style="width: 20px; height: 20px; background: #111827; border: 1px solid #1F2937; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #6B7280; flex-shrink: 0;">⚙</div>
+            <div style="flex: 1; min-width: 0; background: #111827; border: 1px solid #1F2937; padding: 8px 10px; border-radius: 4px;">
+              <div style="display:flex; align-items:center; gap: 6px; font-size: 10px; color: #6B7280; font-family: 'JetBrains Mono', monospace; margin-bottom: 4px;">
+                <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%;"></span>
+                <span>read_file · 124ms</span>
+                <span style="color: #0EA5E9; margin-left: 4px;">signaling_timing_v2.json</span>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <div style="width: 20px; height: 20px; background: rgba(14,165,233,0.15); border: 1px solid rgba(14,165,233,0.30); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #0EA5E9; flex-shrink: 0;">⚙</div>
+            <div style="flex: 1; min-width: 0; background: rgba(14,165,233,0.05); border: 1px solid rgba(14,165,233,0.30); padding: 8px 10px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(14,165,233,0.15);">
+              <div style="display:flex; align-items:center; gap: 6px; font-size: 10px; color: #0EA5E9; font-family: 'JetBrains Mono', monospace;">
+                <span style="width: 6px; height: 6px; background: #0EA5E9; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite;"></span>
+                <span>apply_patch · 3.8s</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding: 12px 20px; border-top: 1px solid #1F2937; background: #0B0F19;">
+          <div style="display:flex; align-items:flex-end; gap: 8px;">
+            <textarea class="mock-input" rows="2" placeholder="Reply or /command…" style="flex: 1; resize: none; font-family: 'Inter', system-ui, sans-serif; font-size: 12px;"></textarea>
+            <button class="mock-button" style="background: #0EA5E9; color: #FFF; padding: 8px 16px; font-size: 12px;">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== Detail: Context + Agents + Files ==================== -->
+      <div style="border-left: 1px solid #1F2937; background: #0B0F19; overflow-y: auto;">
+
+        <!-- Top: Workspace context (Codex 环境信息) -->
+        <div style="padding: 12px 14px; border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px;">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280;">WORKSPACE</div>
+            <div style="font-size: 9px; color: #6B7280; font-family: 'JetBrains Mono', monospace;">dev</div>
+          </div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; line-height: 1.7;">
+            <div style="display:flex; gap: 6px;"><span style="color: #6B7280; min-width: 64px;">goal</span><span style="color: #0EA5E9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="Railway Metro 2026 Q1">Railway Metro 2026 Q1</span></div>
+            <div style="display:flex; gap: 6px;"><span style="color: #6B7280; min-width: 64px;">board</span><span style="color: #F9FAFB;">Main board (MAIN)</span></div>
+            <div style="display:flex; gap: 6px;"><span style="color: #6B7280; min-width: 64px;">user</span><span style="color: #F9FAFB;">r.gu · initiator</span></div>
+            <div style="display:flex; gap: 6px;"><span style="color: #6B7280; min-width: 64px;">runtime</span><span style="color: #F9FAFB;">Next.js 15.5.19 · React 19</span></div>
+            <div style="display:flex; gap: 6px;"><span style="color: #6B7280; min-width: 64px;">api</span><span style="color: #6B7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="/api/v1">/api/v1</span></div>
+            <div style="display:flex; gap: 6px;"><span style="color: #6B7280; min-width: 64px;">tokens</span><span style="color: #F9FAFB;">2.4k / 8k</span><div style="height: 4px; width: 60px; background: #1F2937; border-radius: 2px; margin-top: 4px;"><div style="height: 100%; width: 30%; background: #0EA5E9; border-radius: 2px;"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Middle: AI Roles (Codex 子智能体) -->
+        <div style="padding: 10px 14px; border-bottom: 1px solid #1F2937;">
+          <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280; margin-bottom: 8px;">AI ROLES</div>
+          <div style="display:flex; align-items:center; gap: 8px; padding: 5px 0; font-size: 11px;">
+            <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%; flex-shrink:0;"></span>
+            <span style="color: #9CA3AF; flex:1;">Backlog Refiner</span>
+            <span style="color: #6B7280; font-family: 'JetBrains Mono', monospace; font-size: 9px;">idle</span>
+          </div>
+          <div style="display:flex; align-items:center; gap: 8px; padding: 5px 0; font-size: 11px;">
+            <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%; flex-shrink:0;"></span>
+            <span style="color: #9CA3AF; flex:1;">Todo Orchestrator</span>
+            <span style="color: #6B7280; font-family: 'JetBrains Mono', monospace; font-size: 9px;">idle</span>
+          </div>
+          <div style="display:flex; align-items:center; gap: 8px; padding: 5px 0; font-size: 11px;">
+            <span style="width: 6px; height: 6px; background: #0EA5E9; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; flex-shrink:0;"></span>
+            <span style="color: #F9FAFB; flex:1; font-weight: 500;">Dev Crafter</span>
+            <span style="color: #0EA5E9; font-family: 'JetBrains Mono', monospace; font-size: 9px;">5.2s</span>
+          </div>
+          <div style="display:flex; align-items:center; gap: 8px; padding: 5px 0; font-size: 11px;">
+            <span style="width: 6px; height: 6px; background: #F59E0B; border-radius: 50%; flex-shrink:0;"></span>
+            <span style="color: #9CA3AF; flex:1;">Review Guard</span>
+            <span style="color: #6B7280; font-family: 'JetBrains Mono', monospace; font-size: 9px;">queued</span>
+          </div>
+          <div style="display:flex; align-items:center; gap: 8px; padding: 5px 0; font-size: 11px;">
+            <span style="width: 6px; height: 6px; background: #6B7280; border-radius: 50%; flex-shrink:0;"></span>
+            <span style="color: #9CA3AF; flex:1;">Done Reporter</span>
+            <span style="color: #6B7280; font-family: 'JetBrains Mono', monospace; font-size: 9px;">idle</span>
+          </div>
+          <div style="display:flex; align-items:center; gap: 8px; padding: 5px 0; font-size: 11px;">
+            <span style="width: 6px; height: 6px; background: #6B7280; border-radius: 50%; flex-shrink:0;"></span>
+            <span style="color: #9CA3AF; flex:1;">Blocked Resolver</span>
+            <span style="color: #6B7280; font-family: 'JetBrains Mono', monospace; font-size: 9px;">idle</span>
+          </div>
+        </div>
+
+        <!-- Bottom: Card runtime (Files/Plan/Token/Audit) -->
+        <div style="padding: 10px 14px; border-bottom: 1px solid #1F2937;">
+          <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280; margin-bottom: 6px;">CARD RUNTIME</div>
+          <div style="display:flex; align-items:center; gap: 6px; font-size: 11px; padding: 2px 0;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #0EA5E9; min-width: 56px;">CARD-004</div>
+            <div style="background: rgba(14,165,233,0.20); color: #0EA5E9; padding: 1px 6px; border-radius: 2px; font-family: 'JetBrains Mono', monospace; font-size: 9px;">dev</div>
+            <div style="color: #6B7280; font-family: 'JetBrains Mono', monospace; font-size: 9px;">@r.gu</div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 8px 14px; cursor: pointer; background: rgba(255,255,255,0.02);">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF;">MODIFIED FILES · 2</div>
+            <div style="font-size: 10px; color: #6B7280;">▾</div>
+          </div>
+          <div style="padding: 4px 14px 8px;">
+            <div style="display:flex; align-items:center; gap: 6px; padding: 3px 0; font-size: 11px;">
+              <span style="font-size: 10px; color: #F59E0B; font-family: 'JetBrains Mono', monospace;">M</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #F9FAFB; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="block_occupancy.ts">block_occupancy.ts</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">+12 -3</span>
+            </div>
+            <div style="display:flex; align-items:center; gap: 6px; padding: 3px 0; font-size: 11px;">
+              <span style="font-size: 10px; color: #10B981; font-family: 'JetBrains Mono', monospace;">+</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #F9FAFB; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="signaling_registry.json">signaling_registry.json</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">+18</span>
+            </div>
+          </div>
+        </div>
+        <div style="border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 8px 14px; cursor: pointer;">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF;">PLAN · 3 STEPS</div>
+            <div style="font-size: 10px; color: #6B7280;">▸</div>
+          </div>
+        </div>
+        <div style="border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 8px 14px; cursor: pointer;">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF;">AUDIT · 4 EVENTS</div>
+            <div style="font-size: 10px; color: #6B7280;">▸</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top: 16px;">v2 → v3 关键变化（对齐真 Codex 截图）</h3>
+
+<div class="pros-cons" style="margin-top: 8px;">
+  <div class="pros">
+    <h4>Master 左下：加 Settings（Codex 底部）</h4>
+    <ul>
+      <li>当前用户（avatar 字母 chip + 用户名 + role/workspace）</li>
+      <li>右侧 ⚙ icon → 设置入口（profile / theme / logout）</li>
+      <li>border-top 1px 视觉断开 main content</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Detail 右上：WORKSPACE（Codex 环境信息）</h4>
+    <ul>
+      <li>比照 Codex 的"env vars"——但语义不是 OS env，而是 workspace context：goal / board / user / runtime / api / tokens</li>
+      <li>mono 字体 + 64px label + flex 1 value（text-overflow ellipsis）</li>
+      <li>底部 token bar（4px 高度 + 30% 填充）—— progress indicator</li>
+    </ul>
+  </div>
+</div>
+
+<div class="pros-cons" style="margin-top: 8px;">
+  <div class="pros">
+    <h4>Detail 右中：AI ROLES（Codex 子智能体）</h4>
+    <ul>
+      <li>从 v2 的"左侧 AI ROLES"搬到右侧——对齐 Codex 子智能体位置</li>
+      <li>6 个 agent（Backlog Refiner / Todo Orchestrator / Dev Crafter / Review Guard / Done Reporter / Blocked Resolver）</li>
+      <li>每行：6px state dot（mono 颜色编码）+ name + 状态文字（idle / running N s / queued）</li>
+      <li>Dev Crafter 当前在跑（pulse + 5.2s 计时）</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Detail 右下：CARD RUNTIME + accordion</h4>
+    <ul>
+      <li>保留 v1 的 Modified files / Plan / Audit accordion（task-specific runtime）</li>
+      <li>前面加 CARD RUNTIME header 显示 CARD id / state / assignee —— 跟 AI ROLES 区视觉断开</li>
+      <li>Default 展开：Modified files（最高频需要的信息）</li>
+    </ul>
+  </div>
+</div>
+
+<p style="margin-top: 16px;"><strong>对照真 Codex 的 4 区结构（左上 / 左下 / 右上 / 右中 / 右下）全部对齐。如果 OK，我开 design section 章节 + 写 spec。</strong></p>
+
+<style>
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+</style>

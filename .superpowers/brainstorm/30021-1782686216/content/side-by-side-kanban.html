@@ -1,0 +1,192 @@
+<h2>Goal Space 详情页 — 当前 vs Codex-adapted (方向 A)</h2>
+<p class="subtitle">左：当前实现（截图）。右：方向 A — 沿用 Codex 的 motion / typographic / state-machine 思路，替换内容主题。</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">现状 (Current)</div>
+    <div class="mockup-body" style="background: #0B0F19; padding: 0; overflow: hidden;">
+      <img src="./current-goal-space.png" alt="Current goal space detail page" style="width:100%; display:block;" />
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">方向 A — Codex-adapted</div>
+    <div class="mockup-body" style="background: #0B0F19; padding: 16px; color: #F9FAFB; font-family: 'Inter', system-ui, sans-serif;">
+
+      <!-- Top Bar (refined typography) -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding: 12px 0; border-bottom: 1px solid #1F2937;">
+        <div style="display:flex; align-items:center; gap: 16px;">
+          <div style="font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280;">KEPLAR</div>
+          <div style="font-size: 11px; color: #374151;">/</div>
+          <div style="font-size: 14px; font-weight: 600; color: #F9FAFB;">Railway Metro 2026 Q1 Launch</div>
+          <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #6B7280;">draft</div>
+        </div>
+        <div style="display:flex; gap: 8px;">
+          <button class="mock-button" style="background: transparent; border: 1px solid #374151; color: #9CA3AF; padding: 4px 10px; font-size: 11px;">CMD K</button>
+        </div>
+      </div>
+
+      <!-- 3-col body: Sidebar / Kanban+Feed / Inspector -->
+      <div style="display: grid; grid-template-columns: 220px 1fr 280px; gap: 16px; margin-top: 16px;">
+
+        <!-- Left: Sessions / AI roles (mono emphasis) -->
+        <div>
+          <div style="font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280; padding: 0 0 8px;">SESSIONS</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #F9FAFB; padding: 6px 8px; background: rgba(14,165,233,0.10); border-left: 2px solid #0EA5E9;">● gs-589cdd03</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; padding: 6px 8px;">○ gs-6d94e9fe</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; padding: 6px 8px;">○ gs-baef988b</div>
+
+          <div style="font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280; padding: 16px 0 8px;">AI ROLES</div>
+          <div style="display:flex; align-items:center; gap: 8px; padding: 4px 8px; font-size: 11px;">
+            <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%;"></span>
+            <span style="color: #9CA3AF;">Backlog Refiner</span>
+            <span style="margin-left:auto; color: #6B7280; font-family: 'JetBrains Mono', monospace; font-size: 10px;">idle</span>
+          </div>
+          <div style="display:flex; align-items:center; gap: 8px; padding: 4px 8px; font-size: 11px;">
+            <span style="width: 6px; height: 6px; background: #0EA5E9; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite;"></span>
+            <span style="color: #F9FAFB;">Dev Crafter</span>
+            <span style="margin-left:auto; color: #0EA5E9; font-family: 'JetBrains Mono', monospace; font-size: 10px;">5.2s</span>
+          </div>
+          <div style="display:flex; align-items:center; gap: 8px; padding: 4px 8px; font-size: 11px;">
+            <span style="width: 6px; height: 6px; background: #F59E0B; border-radius: 50%;"></span>
+            <span style="color: #9CA3AF;">Review Guard</span>
+            <span style="margin-left:auto; color: #6B7280; font-family: 'JetBrains Mono', monospace; font-size: 10px;">queued</span>
+          </div>
+          <div style="display:flex; align-items:center; gap: 8px; padding: 4px 8px; font-size: 11px;">
+            <span style="width: 6px; height: 6px; background: #6B7280; border-radius: 50%;"></span>
+            <span style="color: #9CA3AF;">Done Reporter</span>
+            <span style="margin-left:auto; color: #6B7280; font-family: 'JetBrains Mono', monospace; font-size: 10px;">idle</span>
+          </div>
+        </div>
+
+        <!-- Middle: Kanban + AI feed -->
+        <div>
+          <div style="font-size: 18px; font-weight: 600; color: #F9FAFB; margin-bottom: 4px;">Main board</div>
+          <div style="font-size: 11px; color: #6B7280; font-family: 'JetBrains Mono', monospace; margin-bottom: 12px;">MAIN · 4 cards · 2 in-flight</div>
+
+          <!-- Kanban rows with state emphasis -->
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px;">
+            <div>
+              <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280; padding: 4px 8px;">BACKLOG · 1</div>
+              <div style="background: #111827; border: 1px solid #1F2937; padding: 8px; border-left: 3px solid #6B7280;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280;">CARD-002</div>
+                <div style="font-size: 12px; color: #F9FAFB; margin-top: 2px;">Risk register</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #0EA5E9; padding: 4px 8px;">TODO · 1</div>
+              <div style="background: rgba(14,165,233,0.10); border: 1px solid rgba(14,165,233,0.30); padding: 8px; border-left: 3px solid #0EA5E9;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #0EA5E9;">CARD-003</div>
+                <div style="font-size: 12px; color: #F9FAFB; margin-top: 2px; font-weight: 500;">Substation layout</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #0EA5E9; padding: 4px 8px; display:flex; align-items:center; gap: 6px;">
+                <span style="width: 6px; height: 6px; background: #0EA5E9; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite;"></span>
+                DEV · 1
+              </div>
+              <div style="background: rgba(14,165,233,0.10); border: 1px solid rgba(14,165,233,0.30); padding: 8px; border-left: 3px solid #0EA5E9; box-shadow: 0 0 0 1px rgba(14,165,233,0.20);">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #0EA5E9;">CARD-004</div>
+                <div style="font-size: 12px; color: #F9FAFB; margin-top: 2px; font-weight: 500;">Signaling timing</div>
+                <div style="font-size: 10px; color: #0EA5E9; margin-top: 4px; font-family: 'JetBrains Mono', monospace;">Dev Crafter · 5.2s</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #F59E0B; padding: 4px 8px;">REVIEW · 1</div>
+              <div style="background: rgba(245,158,11,0.10); border: 1px solid rgba(245,158,11,0.30); padding: 8px; border-left: 3px solid #F59E0B;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #F59E0B;">CARD-001</div>
+                <div style="font-size: 12px; color: #F9FAFB; margin-top: 2px; font-weight: 500;">Track geometry</div>
+                <div style="font-size: 10px; color: #F59E0B; margin-top: 4px;">@r.gu</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Agent Activity (Codex-style) -->
+          <div style="background: #111827; border: 1px solid #1F2937; padding: 12px;">
+            <div style="display:flex; align-items:center; gap: 8px; font-size: 11px; color: #6B7280; margin-bottom: 8px;">
+              <span style="width: 6px; height: 6px; background: #0EA5E9; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite;"></span>
+              <span style="font-family: 'JetBrains Mono', monospace;">DEV CRAFTER</span>
+              <span style="margin-left:auto; color: #0EA5E9;">5.2s</span>
+            </div>
+            <div style="font-size: 13px; line-height: 1.6; color: #F9FAFB; opacity: 0; animation: fadeInUp 280ms ease-out 100ms forwards;">
+              Reading <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0EA5E9;">signaling_timing_v2.json</span> to draft implementation plan…
+            </div>
+            <div style="font-size: 13px; line-height: 1.6; color: #F9FAFB; opacity: 0; animation: fadeInUp 280ms ease-out 600ms forwards;">
+              Plan: 3 edits to <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">block_occupancy.ts</span>, 1 file to create.
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Inspector (Audit / Card detail) -->
+        <div>
+          <div style="font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280; padding: 0 0 8px;">AUDIT TRAIL</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; line-height: 1.7;">
+            <div style="color: #6B7280; padding: 2px 0;">10:45:14 <span style="color: #10B981;">card_created</span></div>
+            <div style="color: #6B7280; padding: 2px 0;">10:45:14 <span style="color: #0EA5E9;">node_board_created</span></div>
+            <div style="color: #6B7280; padding: 2px 0; border-left: 2px solid #0EA5E9; padding-left: 6px;">10:43:18 <span style="color: #9CA3AF;">goal_space.created</span></div>
+            <div style="color: #6B7280; padding: 2px 0;">10:42:51 <span style="color: #F59E0B;">ai_role_started</span></div>
+            <div style="color: #6B7280; padding: 2px 0;">10:41:00 <span style="color: #9CA3AF;">user_login</span></div>
+          </div>
+
+          <div style="font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280; padding: 16px 0 8px;">PENDING CONFIRM</div>
+          <div style="background: rgba(245,158,11,0.10); border: 1px solid rgba(245,158,11,0.30); padding: 8px; border-left: 3px solid #F59E0B;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #F59E0B;">HC-001</div>
+            <div style="font-size: 12px; color: #F9FAFB; margin-top: 2px;">External API write</div>
+            <div style="display:flex; gap: 4px; margin-top: 8px;">
+              <button class="mock-button" style="background: #10B981; color: #FFF; padding: 4px 8px; font-size: 10px; flex:1;">Approve</button>
+              <button class="mock-button" style="background: transparent; border: 1px solid #374151; color: #9CA3AF; padding: 4px 8px; font-size: 10px; flex:1;">Reject</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top: 24px;">关键 polish 点（针对你提的三块短板）</h3>
+
+<div class="pros-cons" style="margin-top: 8px;">
+  <div class="pros">
+    <h4>动效 (motion)</h4>
+    <ul>
+      <li>新卡片进入：<code>opacity 0→1 + translateY 8px→0</code>，280ms ease-out（Codex spec）</li>
+      <li>状态变化（卡片从 backlog → todo）：<code>box-shadow 0 0 0 1px rgba(14,165,233,0.20)</code> 临时高亮 800ms</li>
+      <li>AI 工作中：左侧 status dot 用 <code>pulse 1.6s ease-in-out infinite</code>（更慢、更像心跳而非"加载"）</li>
+      <li>SSE event 到达：行内 <code>fadeInUp 280ms</code> 逐行揭示，不是整块闪入</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>排版 (typography)</h4>
+    <ul>
+      <li>建立明确角色：Display (28-32px) / Heading (18-20px) / Body (14px) / Caption (11px mono) / Data (mono)</li>
+      <li>AI 角色 + 状态 + 进度用 mono —— 数字化、可扫读</li>
+      <li>主标题用 sans weight 600 不再加色</li>
+    </ul>
+  </div>
+</div>
+
+<div class="pros-cons" style="margin-top: 8px;">
+  <div class="pros">
+    <h4>层级 (hierarchy)</h4>
+    <ul>
+      <li>状态色块（10% 透明度 + 1px border）保留 KEPLAR 现有 token</li>
+      <li>状态 dot 是 6px 实心/空心圆 + mono label —— 远程 3 米可读</li>
+      <li>Active 卡片用 box-shadow 强化"正在发生"的感觉（不只是颜色）</li>
+      <li>AI 在跑的状态在三个地方同步：左侧 status、kanban 卡片右上角进度、底部 feed</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>风险</h4>
+    <ul>
+      <li>状态色块 + 左边框的组合在 3 米外有点过花 —— 可能需要 Pro/Mission 模式切换</li>
+      <li>三条独立的状态展示可能"过曝" —— 需确认哪个是 single source of truth</li>
+    </ul>
+  </div>
+</div>
+
+<p style="margin-top: 16px;"><strong>你的判断：</strong>左边看现状感觉如何？右边 mockup 里哪些元素"对"哪些"过"？告诉我下一步朝哪个方向走——保留方向 A 主体、加 Mission Control 加权（→ B）、加 Editorial 加权（→ C）、还是这个方向里某处要调整。</p>
+
+<style>
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>

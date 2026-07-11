@@ -1,0 +1,58 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "KEPLAR" [ref=e5] [cursor=pointer]:
+          - /url: /goal-spaces
+        - button "Toggle left sidebar (Cmd+B)" [ref=e6]: ← hide (⌘B)
+      - button "Light Paper" [ref=e9]:
+        - generic [ref=e11]: Light Paper
+        - generic [ref=e12]: ▾
+    - generic [ref=e13]:
+      - complementary "Workspace navigation" [ref=e14]:
+        - heading "KEPLAR" [level=2] [ref=e16]
+        - navigation [ref=e17]:
+          - link "goal spaces" [ref=e18] [cursor=pointer]:
+            - /url: /goal-spaces
+        - status "Event stream status" [ref=e19]:
+          - generic [ref=e20]: events 0
+        - button "← hide (⌘B)" [ref=e21]
+      - main [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - main [ref=e25]:
+              - status [ref=e26]:
+                - generic [ref=e28]: // no node boards yet
+                - generic [ref=e31]:
+                  - generic [ref=e32]:
+                    - generic [ref=e33]: Board key
+                    - textbox "Board key" [ref=e34]
+                  - generic [ref=e35]:
+                    - generic [ref=e36]: Board name
+                    - textbox "Board name" [ref=e37]
+                  - generic [ref=e38]:
+                    - generic [ref=e39]: Description
+                    - textbox "Description" [ref=e40]
+                  - button "Create node board" [ref=e41]
+            - complementary [ref=e43]:
+              - generic [ref=e44]:
+                - generic [ref=e45]: Pending confirmations
+                - list [ref=e46]:
+                  - listitem [ref=e47]: // no pending confirmations
+                - generic [ref=e49]: In-flight0
+                - generic [ref=e50]:
+                  - text: Audit
+                  - list
+          - generic [ref=e51]:
+            - log [ref=e52]:
+              - paragraph [ref=e53]: // type /help for commands
+            - generic [ref=e56]:
+              - generic [ref=e57]: /
+              - textbox "Command input" [ref=e58]:
+                - /placeholder: type a command (start with /)
+              - button "enter" [ref=e59]
+      - complementary "Context" [ref=e60]:
+        - generic [ref=e61]:
+          - generic [ref=e62]: Context
+          - button "Hide right sidebar (Cmd+J)" [ref=e63]: hide (⌘J)
+  - alert [ref=e64]

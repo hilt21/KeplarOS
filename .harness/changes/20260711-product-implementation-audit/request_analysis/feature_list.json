@@ -1,0 +1,56 @@
+{
+  "change_id": "20260711-product-implementation-audit",
+  "title": "Product and implementation consistency audit",
+  "status": "testing_complete",
+  "features": [
+    {
+      "id": "F-001",
+      "title": "Evidence-based consistency audit and baseline reconciliation",
+      "description": "Audit original intent, development evolution, and current implementation; produce actionable documentation reconciliation without modifying product code.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "completed",
+      "acceptance_criteria": [
+        "Original baseline, later decisions, plans, and implementation facts are distinguished.",
+        "High-impact differences have evidence, impact, recommendation, and confidence.",
+        "A proposed current product baseline and human-decision list are delivered.",
+        "Only necessary authoritative documentation is revised, with an auditable revision record.",
+        "No business code, historical records, or pre-existing untracked content is modified."
+      ],
+      "affected_areas": [
+        "documentation",
+        "architecture",
+        "product",
+        "audit"
+      ],
+      "dependencies": [
+        "Explicit human approval after request analysis"
+      ],
+      "test_needs": [
+        "Evidence cross-check against source, migrations, tests, and Git history",
+        "Git diff and status review"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Evidence review completed or unavailable evidence documented",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "not_applicable",
+        "typecheck": "not_applicable",
+        "unit": "not_applicable",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "not_applicable",
+        "smoke": "not_applicable",
+        "e2e": "not_applicable"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e22] [cursor=pointer]:
+    - img [ref=e23]
+  - alert [ref=e16]
+  - generic [ref=e26]:
+    - banner [ref=e27]:
+      - generic [ref=e28]:
+        - link "KEPLAR" [ref=e29] [cursor=pointer]:
+          - /url: /goal-spaces
+        - button "Toggle left sidebar (Cmd+B)" [ref=e30]: ← hide (⌘B)
+      - button "Dark Codex" [ref=e33]:
+        - generic [ref=e35]: Dark Codex
+        - generic [ref=e36]: ▾
+    - generic [ref=e37]:
+      - complementary "Workspace navigation" [ref=e38]:
+        - heading "KEPLAR" [level=2] [ref=e40]
+        - navigation [ref=e41]:
+          - link "goal spaces" [ref=e42] [cursor=pointer]:
+            - /url: /goal-spaces
+        - status "Event stream status" [ref=e43]:
+          - generic [ref=e44]: events 0
+        - button "← hide (⌘B)" [ref=e45]
+      - main [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - heading "goal spaces" [level=1] [ref=e49]
+            - generic [ref=e50]: 2 total
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - generic [ref=e54]: Goal name
+              - textbox "Goal name" [ref=e55]
+            - generic [ref=e56]:
+              - generic [ref=e57]: Description
+              - textbox "Description" [ref=e58]
+            - button "Create goal space" [ref=e59]
+          - table [ref=e60]:
+            - rowgroup [ref=e61]:
+              - row "· id name status updated" [ref=e62]:
+                - columnheader "·" [ref=e63]
+                - columnheader "id" [ref=e64]
+                - columnheader "name" [ref=e65]
+                - columnheader "status" [ref=e66]
+                - columnheader "updated" [ref=e67]
+            - rowgroup [ref=e68]:
+              - row "0689c42a P3 browser beta draft 8h ago" [ref=e69]:
+                - cell [ref=e70]
+                - cell "0689c42a" [ref=e72]:
+                  - link "0689c42a" [ref=e73] [cursor=pointer]:
+                    - /url: /goal-spaces/0689c42a-7fd9-4dfa-9cef-f93c1e107989
+                - cell "P3 browser beta" [ref=e74]:
+                  - link "P3 browser beta" [ref=e75] [cursor=pointer]:
+                    - /url: /goal-spaces/0689c42a-7fd9-4dfa-9cef-f93c1e107989
+                - cell "draft" [ref=e76]
+                - cell "8h ago" [ref=e77]
+              - row "98192557 P3 browser beta draft 8h ago" [ref=e78]:
+                - cell [ref=e79]
+                - cell "98192557" [ref=e81]:
+                  - link "98192557" [ref=e82] [cursor=pointer]:
+                    - /url: /goal-spaces/98192557-4261-4939-820c-698757b4ba05
+                - cell "P3 browser beta" [ref=e83]:
+                  - link "P3 browser beta" [ref=e84] [cursor=pointer]:
+                    - /url: /goal-spaces/98192557-4261-4939-820c-698757b4ba05
+                - cell "draft" [ref=e85]
+                - cell "8h ago" [ref=e86]
+      - complementary "Context" [ref=e87]:
+        - generic [ref=e88]:
+          - generic [ref=e89]: Context
+          - button "Hide right sidebar (Cmd+J)" [ref=e90]: hide (⌘J)

@@ -1,0 +1,317 @@
+<h2>Task 视图 — Persistent multi-pane shell + master-detail</h2>
+<p class="subtitle">同一个 3 栏 shell 复用，点击 Card 后 master 切到 task list，primary 切到 timeline，detail 切到 runtime。Shell 永 unmount。</p>
+
+<div class="mockup" style="margin-bottom: 16px;">
+  <div class="mockup-header">Persistent 3-pane shell — Task 视图（context 切换 in-place）</div>
+  <div class="mockup-body" style="background: #0B0F19; padding: 0; color: #F9FAFB; font-family: 'Inter', system-ui, sans-serif;">
+
+    <!-- Top bar (与 Goal Space 视图相同 — shell 持久) -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 16px; border-bottom: 1px solid #1F2937;">
+      <div style="display:flex; align-items:center; gap: 12px;">
+        <div style="font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280;">KEPLAR</div>
+        <div style="font-size: 11px; color: #374151;">/</div>
+        <div style="font-size: 13px; color: #9CA3AF;">Railway Metro 2026 Q1</div>
+        <div style="font-size: 11px; color: #374151;">/</div>
+        <div style="font-size: 13px; font-weight: 600; color: #F9FAFB;">Main board</div>
+        <div style="font-size: 11px; color: #6B7280; font-family: 'JetBrains Mono', monospace; margin-left: 8px;">CARD-004</div>
+      </div>
+      <div style="display:flex; align-items:center; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280;">2.4k tok</div>
+        <button class="mock-button" style="background: transparent; border: 1px solid #374151; color: #9CA3AF; padding: 4px 10px; font-size: 11px;">CMD K</button>
+      </div>
+    </div>
+
+    <!-- 3-col body: master / primary / detail -->
+    <div style="display: grid; grid-template-columns: 240px 1fr 320px; min-height: 540px;">
+
+      <!-- Master: Task list (master-detail nav) -->
+      <div style="border-right: 1px solid #1F2937; background: #0B0F19;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 12px; border-bottom: 1px solid #1F2937;">
+          <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280;">TASKS</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280;">4</div>
+        </div>
+        <!-- Search -->
+        <div style="padding: 8px 12px;">
+          <input class="mock-input" placeholder="filter tasks…" style="width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 10px;" />
+        </div>
+        <!-- Task list (selected one highlighted) -->
+        <div>
+          <div style="padding: 6px 12px; font-size: 12px; color: #6B7280;">
+            <div style="display:flex; align-items:center; gap: 6px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-001</span>
+              <span style="width: 5px; height: 5px; background: #F59E0B; border-radius: 50%; flex-shrink:0;"></span>
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Track geometry</span>
+            </div>
+          </div>
+          <div style="padding: 6px 12px; font-size: 12px; color: #6B7280;">
+            <div style="display:flex; align-items:center; gap: 6px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-002</span>
+              <span style="width: 5px; height: 5px; background: #6B7280; border-radius: 50%; flex-shrink:0;"></span>
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Risk register</span>
+            </div>
+          </div>
+          <div style="padding: 6px 12px; font-size: 12px; color: #6B7280;">
+            <div style="display:flex; align-items:center; gap: 6px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-003</span>
+              <span style="width: 5px; height: 5px; background: #0EA5E9; border-radius: 50%; flex-shrink:0;"></span>
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Substation layout</span>
+            </div>
+          </div>
+          <!-- Selected -->
+          <div style="padding: 8px 12px; font-size: 12px; color: #F9FAFB; background: rgba(14,165,233,0.10); border-left: 2px solid #0EA5E9; cursor: pointer;">
+            <div style="display:flex; align-items:center; gap: 6px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #0EA5E9; min-width: 56px;">CARD-004</span>
+              <span style="width: 5px; height: 5px; background: #0EA5E9; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; flex-shrink:0;"></span>
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0; font-weight: 500;">Signaling timing</span>
+            </div>
+            <div style="font-size: 9px; color: #0EA5E9; font-family: 'JetBrains Mono', monospace; margin-top: 2px; padding-left: 62px;">Dev Crafter · 5.2s</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Primary: Timeline-based conversational UI -->
+      <div style="background: #0B0F19; display: flex; flex-direction: column;">
+        <!-- Task header with state machine breadcrumb -->
+        <div style="padding: 14px 20px; border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:baseline; gap: 10px;">
+            <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #0EA5E9;">CARD-004</div>
+            <div style="font-size: 18px; font-weight: 600; color: #F9FAFB;">Signaling timing</div>
+          </div>
+          <div style="display:flex; align-items:center; gap: 4px; margin-top: 8px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #6B7280;">
+            <span style="color: #10B981;">backlog</span>
+            <span>→</span>
+            <span style="color: #0EA5E9; background: rgba(14,165,233,0.10); padding: 1px 6px; border-radius: 2px;">todo</span>
+            <span>→</span>
+            <span style="color: #0EA5E9; font-weight: 600; background: rgba(14,165,233,0.20); padding: 1px 6px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(14,165,233,0.30);">dev</span>
+            <span>→</span>
+            <span>review</span>
+            <span>→</span>
+            <span>done</span>
+            <span style="margin-left: auto; color: #6B7280;">@r.gu</span>
+          </div>
+        </div>
+
+        <!-- Timeline messages -->
+        <div style="flex: 1; overflow-y: auto; padding: 16px 20px;">
+
+          <!-- USER message (right-aligned / distinct) -->
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 14px; opacity: 0; animation: fadeInUp 280ms ease-out forwards;">
+            <div style="max-width: 80%; background: rgba(255,255,255,0.04); border: 1px solid #1F2937; padding: 8px 12px; border-radius: 4px;">
+              <div style="font-size: 10px; color: #6B7280; margin-bottom: 2px; font-family: 'JetBrains Mono', monospace;">/execute CARD-004</div>
+              <div style="font-size: 12px; color: #9CA3AF; line-height: 1.5;">Run the dev workflow on signaling timing.</div>
+            </div>
+          </div>
+
+          <!-- AGENT thinking block -->
+          <div style="display: flex; gap: 8px; margin-bottom: 14px; opacity: 0; animation: fadeInUp 280ms ease-out 200ms forwards;">
+            <div style="width: 20px; height: 20px; background: rgba(14,165,233,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #0EA5E9; flex-shrink: 0;">AI</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 11px; color: #9CA3AF; line-height: 1.5;">
+                I'll start by reading the existing timing spec and the relevant test cases. Plan: 3 edits, 1 new file.
+              </div>
+            </div>
+          </div>
+
+          <!-- TOOL call (completed) -->
+          <div style="display: flex; gap: 8px; margin-bottom: 14px; opacity: 0; animation: fadeInUp 280ms ease-out 400ms forwards;">
+            <div style="width: 20px; height: 20px; background: #111827; border: 1px solid #1F2937; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #6B7280; flex-shrink: 0;">⚙</div>
+            <div style="flex: 1; min-width: 0; background: #111827; border: 1px solid #1F2937; padding: 8px 10px; border-radius: 4px;">
+              <div style="display:flex; align-items:center; gap: 6px; font-size: 10px; color: #6B7280; font-family: 'JetBrains Mono', monospace; margin-bottom: 4px;">
+                <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%;"></span>
+                <span>read_file · 124ms</span>
+                <span style="color: #0EA5E9; margin-left: 4px;">signaling_timing_v2.json</span>
+              </div>
+              <div style="font-size: 10px; color: #6B7280; padding-left: 12px; font-family: 'JetBrains Mono', monospace;">→ 47 lines · 1.2kb</div>
+            </div>
+          </div>
+
+          <!-- TOOL call (running / streaming) -->
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <div style="width: 20px; height: 20px; background: rgba(14,165,233,0.15); border: 1px solid rgba(14,165,233,0.30); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #0EA5E9; flex-shrink: 0;">⚙</div>
+            <div style="flex: 1; min-width: 0; background: rgba(14,165,233,0.05); border: 1px solid rgba(14,165,233,0.30); padding: 8px 10px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(14,165,233,0.15);">
+              <div style="display:flex; align-items:center; gap: 6px; font-size: 10px; color: #0EA5E9; font-family: 'JetBrains Mono', monospace; margin-bottom: 4px;">
+                <span style="width: 6px; height: 6px; background: #0EA5E9; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite;"></span>
+                <span>apply_patch · 3.8s</span>
+                <span style="color: #0EA5E9; margin-left: 4px;">block_occupancy.ts</span>
+              </div>
+              <div style="font-size: 11px; color: #94A3B8; padding-left: 12px; font-family: 'JetBrains Mono', monospace; line-height: 1.5;">
+                <span style="color: #10B981;">+ </span>occupancy[1] = {<br>
+                <span style="color: #10B981; margin-left: 12px;">+ </span>min: 1.8s, max: 4.2s<br>
+                <span style="margin-left: 12px;">}<br>
+                <span style="color: #EF4444;">- </span>// placeholder for old timing<br>
+              </div>
+            </div>
+          </div>
+
+          <!-- CONFIRMATION REQUEST -->
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <div style="width: 20px; height: 20px; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.30); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #F59E0B; flex-shrink: 0;">!</div>
+            <div style="flex: 1; min-width: 0; background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.30); padding: 10px 12px; border-left: 3px solid #F59E0B; border-radius: 4px;">
+              <div style="display:flex; align-items:center; gap: 6px; font-size: 10px; color: #F59E0B; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px;">
+                <span>HUMAN CONFIRMATION REQUIRED</span>
+              </div>
+              <div style="font-size: 12px; color: #F9FAFB; margin-bottom: 8px;">This change will publish the new timing to the shared signaling registry (external write).</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; margin-bottom: 8px;">HC-001 · risk: high · token impact: +0.4k</div>
+              <div style="display:flex; gap: 6px;">
+                <button class="mock-button" style="background: #10B981; color: #FFF; padding: 4px 12px; font-size: 11px;">Approve</button>
+                <button class="mock-button" style="background: transparent; border: 1px solid #374151; color: #9CA3AF; padding: 4px 12px; font-size: 11px;">Reject</button>
+                <button class="mock-button" style="background: transparent; border: 1px solid #374151; color: #9CA3AF; padding: 4px 12px; font-size: 11px;">Comment…</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- AGENT response (post-confirmation) -->
+          <div style="display: flex; gap: 8px; margin-bottom: 14px; opacity: 0.5;">
+            <div style="width: 20px; height: 20px; background: rgba(14,165,233,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #0EA5E9; flex-shrink: 0;">AI</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 11px; color: #6B7280; line-height: 1.5; font-style: italic;">
+                Waiting for approval…
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prompt input (Codex-style multi-line) -->
+        <div style="padding: 12px 20px; border-top: 1px solid #1F2937; background: #0B0F19;">
+          <div style="display:flex; align-items:flex-end; gap: 8px;">
+            <textarea class="mock-input" rows="2" placeholder="Reply or /command…" style="flex: 1; resize: none; font-family: 'Inter', system-ui, sans-serif; font-size: 12px;"></textarea>
+            <button class="mock-button" style="background: #0EA5E9; color: #FFF; padding: 8px 16px; font-size: 12px;">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail: Runtime (progressive disclosure) -->
+      <div style="border-left: 1px solid #1F2937; background: #0B0F19; overflow-y: auto;">
+        <!-- Always-visible header -->
+        <div style="padding: 12px 14px; border-bottom: 1px solid #1F2937;">
+          <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280; margin-bottom: 4px;">CARD DETAIL</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #0EA5E9;">CARD-004</div>
+          <div style="display:flex; gap: 8px; margin-top: 6px; font-size: 10px;">
+            <span style="background: rgba(14,165,233,0.20); color: #0EA5E9; padding: 1px 6px; border-radius: 2px; font-family: 'JetBrains Mono', monospace;">dev</span>
+            <span style="color: #6B7280; font-family: 'JetBrains Mono', monospace;">@r.gu</span>
+            <span style="color: #6B7280; font-family: 'JetBrains Mono', monospace; margin-left: auto;">2.4k</span>
+          </div>
+        </div>
+
+        <!-- Accordion 1: Modified files (expanded) -->
+        <div style="border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 14px; cursor: pointer; background: rgba(255,255,255,0.02);">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF;">MODIFIED FILES · 2</div>
+            <div style="font-size: 10px; color: #6B7280;">▾</div>
+          </div>
+          <div style="padding: 4px 14px 10px;">
+            <div style="display:flex; align-items:center; gap: 6px; padding: 4px 0; font-size: 11px;">
+              <span style="font-size: 10px; color: #F59E0B; font-family: 'JetBrains Mono', monospace;">M</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #F9FAFB;">block_occupancy.ts</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; margin-left: auto;">+12 -3</span>
+            </div>
+            <div style="display:flex; align-items:center; gap: 6px; padding: 4px 0; font-size: 11px;">
+              <span style="font-size: 10px; color: #10B981; font-family: 'JetBrains Mono', monospace;">+</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #F9FAFB;">signaling_registry.json</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; margin-left: auto;">+18</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion 2: Plan (collapsed) -->
+        <div style="border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 14px; cursor: pointer;">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF;">PLAN · 3 STEPS</div>
+            <div style="font-size: 10px; color: #6B7280;">▸</div>
+          </div>
+        </div>
+
+        <!-- Accordion 3: Token usage (collapsed) -->
+        <div style="border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 14px; cursor: pointer;">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF;">TOKEN USAGE</div>
+            <div style="font-size: 10px; color: #6B7280;">▸</div>
+          </div>
+        </div>
+
+        <!-- Accordion 4: Audit (collapsed) -->
+        <div style="border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 14px; cursor: pointer;">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF;">AUDIT · 4 EVENTS</div>
+            <div style="font-size: 10px; color: #6B7280;">▸</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top: 16px;">关键设计点（针对你提的 4 个关键词）</h3>
+
+<div class="pros-cons" style="margin-top: 8px;">
+  <div class="pros">
+    <h4>Persistent multi-pane shell</h4>
+    <ul>
+      <li>Goal Space 视图 / Task 视图共用同一组 3 栏 DOM 结构，pane 内容随 context 切换，shell 永 unmount</li>
+      <li>TopBar 跨 context 持久，只有 "Railway Metro / Main board / CARD-004" 这一行面包屑变</li>
+      <li>动画用 pane-level opacity + translateY 8px（Codex spec），不是 page-level 路由切换</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Master–detail navigation</h4>
+    <ul>
+      <li>Master（左）= 当前 board 的 task list，state dot + display_id + title（mono / ellipsis）</li>
+      <li>选中 task 切 primary timeline + detail runtime（in-place，URL 同步为 <code>/goal-spaces/[id]/tasks/[taskId]</code> 但不 unmount shell）</li>
+      <li>Master 顶部 filter input 用于任务搜索</li>
+    </ul>
+  </div>
+</div>
+
+<div class="pros-cons" style="margin-top: 8px;">
+  <div class="pros">
+    <h4>Timeline-based conversational UI</h4>
+    <ul>
+      <li>5 种 message 类型：user / agent thinking / tool call / confirmation / agent response——每种有独立的左侧 icon + 配色</li>
+      <li>Streaming 时左侧 icon pulse 1.6s，工具完成后变实心</li>
+      <li>Human confirmation 卡片是 border-left 3px 警示色 + Approve/Reject 按钮（Codex spec 8.7 适配）</li>
+      <li>底部 multi-line input 复用现有命令面板的 submit 模型</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Progressive disclosure</h4>
+    <ul>
+      <li>Detail 默认只显示 CARD id / state / assignee / token——always-visible</li>
+      <li>Modified files / Plan / Token / Audit 用 accordion 折叠，hover 不展开（避免 hover-roulette），click 切换</li>
+      <li>第一个 accordion（Modified files）默认展开——"当前 task 改了什么" 是 user 最高频需要的信息</li>
+    </ul>
+  </div>
+</div>
+
+<h3 style="margin-top: 16px;">CSS overflow 修复（直接示例在 master 列表）</h3>
+
+<pre style="background: #111827; color: #F9FAFB; padding: 12px; border-radius: 4px; font-size: 11px; font-family: 'JetBrains Mono', monospace; overflow-x: auto;"><code>/* 默认：单行省略 */
+.task-title {
+  flex: 1;
+  min-width: 0;            /* 关键：允许 flex child shrink */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: white-space 120ms ease-out, background 120ms ease-out;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* hover：展开为多行 + 高亮 */
+.task-title:hover,
+.task-title:focus-within {
+  white-space: normal;
+  overflow: visible;
+  background: var(--color-surface-elevated);
+  z-index: 5;
+  position: relative;
+}</code></pre>
+
+<p style="margin-top: 8px;">上面 mockup 的 master 列表（"CARD-001 Track geometry" 等）就是这套 CSS 的运行效果——窗口缩小时只省略 task title 部分，display_id 永远完整。</p>
+
+<p style="margin-top: 16px;"><strong>接下来：</strong>看完这版是否对方向。如果 OK，我就开 design section 章节 + 写 spec（PRD / Design Spec / Engineering Spec 三合一）到 <code>docs/superpowers/specs/2026-06-29-frontend-polish-design.md</code>。</p>
+
+<style>
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>

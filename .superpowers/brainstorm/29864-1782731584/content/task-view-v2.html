@@ -1,0 +1,327 @@
+<h2>Task 视图 v2 — Master pane 按 Goal Space 分组</h2>
+<p class="subtitle">真 Codex CLI 的左侧 = conversation 列表（time-grouped）。KEPLAR 把它升级为 goal-space 分组——project 作为 section header，tasks 挂在下面。点 project 跳 Goal Space 视图，点 task 跳 Task 视图（in-place shell 切换）。</p>
+
+<div class="mockup">
+  <div class="mockup-header">Persistent 3-pane shell — Task 视图 v2（master 改为 goal-space 分组）</div>
+  <div class="mockup-body" style="background: #0B0F19; padding: 0; color: #F9FAFB; font-family: 'Inter', system-ui, sans-serif;">
+
+    <!-- Top bar (面包屑现在可以点击切 Goal Space 视图) -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 16px; border-bottom: 1px solid #1F2937;">
+      <div style="display:flex; align-items:center; gap: 10px;">
+        <div style="font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280;">KEPLAR</div>
+        <div style="font-size: 11px; color: #374151;">/</div>
+        <a style="font-size: 13px; color: #9CA3AF; text-decoration: none; cursor: pointer; padding: 2px 6px; border-radius: 3px;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">Railway Metro 2026 Q1</a>
+        <div style="font-size: 11px; color: #374151;">/</div>
+        <a style="font-size: 13px; color: #9CA3AF; text-decoration: none; cursor: pointer; padding: 2px 6px; border-radius: 3px;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">Main board</a>
+        <div style="font-size: 11px; color: #374151;">/</div>
+        <div style="font-size: 13px; font-weight: 600; color: #F9FAFB; padding: 2px 6px;">Signaling timing</div>
+        <div style="font-size: 11px; color: #6B7280; font-family: 'JetBrains Mono', monospace; margin-left: 8px;">CARD-004</div>
+      </div>
+      <div style="display:flex; align-items:center; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280;">2.4k tok</div>
+        <button class="mock-button" style="background: transparent; border: 1px solid #374151; color: #9CA3AF; padding: 4px 10px; font-size: 11px;">CMD K</button>
+      </div>
+    </div>
+
+    <!-- 3-col body: master / primary / detail -->
+    <div style="display: grid; grid-template-columns: 280px 1fr 320px; min-height: 600px;">
+
+      <!-- Master: Goal-Space-grouped task list (master-detail nav) -->
+      <div style="border-right: 1px solid #1F2937; background: #0B0F19; display: flex; flex-direction: column;">
+        <!-- Header + New button -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 12px;">
+          <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280;">WORKSPACES</div>
+          <button class="mock-button" style="background: transparent; border: 1px solid #374151; color: #9CA3AF; padding: 2px 8px; font-size: 10px;">+ NEW</button>
+        </div>
+        <!-- Search -->
+        <div style="padding: 4px 12px 8px;">
+          <input class="mock-input" placeholder="filter tasks…" style="width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 10px;" />
+        </div>
+
+        <!-- Group 1: Railway Metro 2026 Q1 -->
+        <div>
+          <!-- Goal space section header (clickable, navigates to goal space view) -->
+          <div style="display:flex; align-items:center; gap: 6px; padding: 8px 12px 4px; cursor: pointer; border-left: 2px solid transparent;">
+            <div style="font-size: 12px; color: #6B7280;">▾</div>
+            <div style="width: 16px; height: 16px; background: rgba(14,165,233,0.15); border: 1px solid rgba(14,165,233,0.30); border-radius: 3px; display:flex; align-items:center; justify-content:center; font-size: 8px; color: #0EA5E9; font-weight: 600; flex-shrink: 0;">R</div>
+            <div style="font-size: 11px; font-weight: 600; color: #F9FAFB; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="Railway Metro 2026 Q1">Railway Metro 2026 Q1</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280;">5</div>
+          </div>
+          <!-- Tasks under this group -->
+          <div>
+            <div style="padding: 4px 12px 4px 28px; font-size: 12px; color: #6B7280; cursor: pointer;">
+              <div style="display:flex; align-items:center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: #F59E0B; border-radius: 50%; flex-shrink:0;"></span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-001</span>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Track geometry</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">3d</span>
+              </div>
+            </div>
+            <div style="padding: 4px 12px 4px 28px; font-size: 12px; color: #6B7280; cursor: pointer;">
+              <div style="display:flex; align-items:center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: #6B7280; border-radius: 50%; flex-shrink:0;"></span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-002</span>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Risk register</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">1w</span>
+              </div>
+            </div>
+            <div style="padding: 4px 12px 4px 28px; font-size: 12px; color: #6B7280; cursor: pointer;">
+              <div style="display:flex; align-items:center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: #0EA5E9; border-radius: 50%; flex-shrink:0;"></span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-003</span>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Substation layout</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">2d</span>
+              </div>
+            </div>
+            <!-- Selected: highlighted, dev, in-flight -->
+            <div style="padding: 6px 12px 6px 28px; font-size: 12px; color: #F9FAFB; background: rgba(14,165,233,0.10); border-left: 2px solid #0EA5E9; cursor: pointer;">
+              <div style="display:flex; align-items:center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: #0EA5E9; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; flex-shrink:0;"></span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #0EA5E9; min-width: 56px;">CARD-004</span>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0; font-weight: 500;">Signaling timing</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #0EA5E9; flex-shrink:0;">now</span>
+              </div>
+              <div style="font-size: 9px; color: #0EA5E9; font-family: 'JetBrains Mono', monospace; margin-top: 2px; padding-left: 62px;">Dev Crafter · 5.2s</div>
+            </div>
+            <div style="padding: 4px 12px 4px 28px; font-size: 12px; color: #6B7280; cursor: pointer;">
+              <div style="display:flex; align-items:center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: #10B981; border-radius: 50%; flex-shrink:0;"></span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-005</span>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Brake timing</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">4d</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 2: Brake System Retrofit -->
+        <div style="margin-top: 8px;">
+          <div style="display:flex; align-items:center; gap: 6px; padding: 8px 12px 4px; cursor: pointer;">
+            <div style="font-size: 12px; color: #6B7280;">▾</div>
+            <div style="width: 16px; height: 16px; background: rgba(100,116,139,0.15); border: 1px solid rgba(100,116,139,0.30); border-radius: 3px; display:flex; align-items:center; justify-content:center; font-size: 8px; color: #94A3B8; font-weight: 600; flex-shrink: 0;">B</div>
+            <div style="font-size: 11px; font-weight: 600; color: #F9FAFB; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="Brake System Retrofit">Brake System Retrofit</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280;">2</div>
+          </div>
+          <div>
+            <div style="padding: 4px 12px 4px 28px; font-size: 12px; color: #6B7280; cursor: pointer;">
+              <div style="display:flex; align-items:center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: #F59E0B; border-radius: 50%; flex-shrink:0;"></span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-010</span>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Hydraulic spec</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">1w</span>
+              </div>
+            </div>
+            <div style="padding: 4px 12px 4px 28px; font-size: 12px; color: #6B7280; cursor: pointer;">
+              <div style="display:flex; align-items:center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: #6B7280; border-radius: 50%; flex-shrink:0;"></span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; min-width: 56px;">CARD-011</span>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; min-width:0;">Pressure test</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280; flex-shrink:0;">2w</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 3: Signal Validation (collapsed to show all 3 modes) -->
+        <div style="margin-top: 8px;">
+          <div style="display:flex; align-items:center; gap: 6px; padding: 8px 12px 4px; cursor: pointer;">
+            <div style="font-size: 12px; color: #6B7280;">▸</div>
+            <div style="width: 16px; height: 16px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.30); border-radius: 3px; display:flex; align-items:center; justify-content:center; font-size: 8px; color: #10B981; font-weight: 600; flex-shrink: 0;">S</div>
+            <div style="font-size: 11px; font-weight: 600; color: #F9FAFB; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="Signal Validation">Signal Validation</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #6B7280;">3</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Primary: Timeline (unchanged from v1) -->
+      <div style="background: #0B0F19; display: flex; flex-direction: column;">
+        <div style="padding: 14px 20px; border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:baseline; gap: 10px;">
+            <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #0EA5E9;">CARD-004</div>
+            <div style="font-size: 18px; font-weight: 600; color: #F9FAFB;">Signaling timing</div>
+          </div>
+          <div style="display:flex; align-items:center; gap: 4px; margin-top: 8px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #6B7280;">
+            <span style="color: #10B981;">backlog</span>
+            <span>→</span>
+            <span style="color: #0EA5E9; background: rgba(14,165,233,0.10); padding: 1px 6px; border-radius: 2px;">todo</span>
+            <span>→</span>
+            <span style="color: #0EA5E9; font-weight: 600; background: rgba(14,165,233,0.20); padding: 1px 6px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(14,165,233,0.30);">dev</span>
+            <span>→</span>
+            <span>review</span>
+            <span>→</span>
+            <span>done</span>
+            <span style="margin-left: auto; color: #6B7280;">@r.gu</span>
+          </div>
+        </div>
+
+        <div style="flex: 1; overflow-y: auto; padding: 16px 20px;">
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 14px;">
+            <div style="max-width: 80%; background: rgba(255,255,255,0.04); border: 1px solid #1F2937; padding: 8px 12px; border-radius: 4px;">
+              <div style="font-size: 10px; color: #6B7280; margin-bottom: 2px; font-family: 'JetBrains Mono', monospace;">/execute CARD-004</div>
+              <div style="font-size: 12px; color: #9CA3AF; line-height: 1.5;">Run the dev workflow on signaling timing.</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <div style="width: 20px; height: 20px; background: rgba(14,165,233,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #0EA5E9; flex-shrink: 0;">AI</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 11px; color: #9CA3AF; line-height: 1.5;">
+                I'll start by reading the existing timing spec and the relevant test cases. Plan: 3 edits, 1 new file.
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <div style="width: 20px; height: 20px; background: #111827; border: 1px solid #1F2937; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #6B7280; flex-shrink: 0;">⚙</div>
+            <div style="flex: 1; min-width: 0; background: #111827; border: 1px solid #1F2937; padding: 8px 10px; border-radius: 4px;">
+              <div style="display:flex; align-items:center; gap: 6px; font-size: 10px; color: #6B7280; font-family: 'JetBrains Mono', monospace; margin-bottom: 4px;">
+                <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%;"></span>
+                <span>read_file · 124ms</span>
+                <span style="color: #0EA5E9; margin-left: 4px;">signaling_timing_v2.json</span>
+              </div>
+              <div style="font-size: 10px; color: #6B7280; padding-left: 12px; font-family: 'JetBrains Mono', monospace;">→ 47 lines · 1.2kb</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <div style="width: 20px; height: 20px; background: rgba(14,165,233,0.15); border: 1px solid rgba(14,165,233,0.30); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #0EA5E9; flex-shrink: 0;">⚙</div>
+            <div style="flex: 1; min-width: 0; background: rgba(14,165,233,0.05); border: 1px solid rgba(14,165,233,0.30); padding: 8px 10px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(14,165,233,0.15);">
+              <div style="display:flex; align-items:center; gap: 6px; font-size: 10px; color: #0EA5E9; font-family: 'JetBrains Mono', monospace; margin-bottom: 4px;">
+                <span style="width: 6px; height: 6px; background: #0EA5E9; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite;"></span>
+                <span>apply_patch · 3.8s</span>
+                <span style="color: #0EA5E9; margin-left: 4px;">block_occupancy.ts</span>
+              </div>
+              <div style="font-size: 11px; color: #94A3B8; padding-left: 12px; font-family: 'JetBrains Mono', monospace; line-height: 1.5;">
+                <span style="color: #10B981;">+ </span>occupancy[1] = {<br>
+                <span style="color: #10B981; margin-left: 12px;">+ </span>min: 1.8s, max: 4.2s<br>
+                <span style="margin-left: 12px;">}<br>
+                <span style="color: #EF4444;">- </span>// placeholder for old timing<br>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <div style="width: 20px; height: 20px; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.30); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #F59E0B; flex-shrink: 0;">!</div>
+            <div style="flex: 1; min-width: 0; background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.30); padding: 10px 12px; border-left: 3px solid #F59E0B; border-radius: 4px;">
+              <div style="display:flex; align-items:center; gap: 6px; font-size: 10px; color: #F59E0B; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px;">
+                <span>HUMAN CONFIRMATION REQUIRED</span>
+              </div>
+              <div style="font-size: 12px; color: #F9FAFB; margin-bottom: 8px;">This change will publish the new timing to the shared signaling registry (external write).</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; margin-bottom: 8px;">HC-001 · risk: high · token impact: +0.4k</div>
+              <div style="display:flex; gap: 6px;">
+                <button class="mock-button" style="background: #10B981; color: #FFF; padding: 4px 12px; font-size: 11px;">Approve</button>
+                <button class="mock-button" style="background: transparent; border: 1px solid #374151; color: #9CA3AF; padding: 4px 12px; font-size: 11px;">Reject</button>
+                <button class="mock-button" style="background: transparent; border: 1px solid #374151; color: #9CA3AF; padding: 4px 12px; font-size: 11px;">Comment…</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding: 12px 20px; border-top: 1px solid #1F2937; background: #0B0F19;">
+          <div style="display:flex; align-items:flex-end; gap: 8px;">
+            <textarea class="mock-input" rows="2" placeholder="Reply or /command…" style="flex: 1; resize: none; font-family: 'Inter', system-ui, sans-serif; font-size: 12px;"></textarea>
+            <button class="mock-button" style="background: #0EA5E9; color: #FFF; padding: 8px 16px; font-size: 12px;">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail: Runtime (unchanged from v1) -->
+      <div style="border-left: 1px solid #1F2937; background: #0B0F19; overflow-y: auto;">
+        <div style="padding: 12px 14px; border-bottom: 1px solid #1F2937;">
+          <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #6B7280; margin-bottom: 4px;">CARD DETAIL</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #0EA5E9;">CARD-004</div>
+          <div style="display:flex; gap: 8px; margin-top: 6px; font-size: 10px;">
+            <span style="background: rgba(14,165,233,0.20); color: #0EA5E9; padding: 1px 6px; border-radius: 2px; font-family: 'JetBrains Mono', monospace;">dev</span>
+            <span style="color: #6B7280; font-family: 'JetBrains Mono', monospace;">@r.gu</span>
+            <span style="color: #6B7280; font-family: 'JetBrains Mono', monospace; margin-left: auto;">2.4k</span>
+          </div>
+        </div>
+        <div style="border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 14px; cursor: pointer; background: rgba(255,255,255,0.02);">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF;">MODIFIED FILES · 2</div>
+            <div style="font-size: 10px; color: #6B7280;">▾</div>
+          </div>
+          <div style="padding: 4px 14px 10px;">
+            <div style="display:flex; align-items:center; gap: 6px; padding: 4px 0; font-size: 11px;">
+              <span style="font-size: 10px; color: #F59E0B; font-family: 'JetBrains Mono', monospace;">M</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #F9FAFB;">block_occupancy.ts</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; margin-left: auto;">+12 -3</span>
+            </div>
+            <div style="display:flex; align-items:center; gap: 6px; padding: 4px 0; font-size: 11px;">
+              <span style="font-size: 10px; color: #10B981; font-family: 'JetBrains Mono', monospace;">+</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #F9FAFB;">signaling_registry.json</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6B7280; margin-left: auto;">+18</span>
+            </div>
+          </div>
+        </div>
+        <div style="border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 14px; cursor: pointer;">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF;">PLAN · 3 STEPS</div>
+            <div style="font-size: 10px; color: #6B7280;">▸</div>
+          </div>
+        </div>
+        <div style="border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 14px; cursor: pointer;">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF;">TOKEN USAGE</div>
+            <div style="font-size: 10px; color: #6B7280;">▸</div>
+          </div>
+        </div>
+        <div style="border-bottom: 1px solid #1F2937;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 14px; cursor: pointer;">
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF;">AUDIT · 4 EVENTS</div>
+            <div style="font-size: 10px; color: #6B7280;">▸</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top: 16px;">v1 → v2 关键变化</h3>
+
+<div class="pros-cons" style="margin-top: 8px;">
+  <div class="pros">
+    <h4>Master pane 改为 goal-space 分组</h4>
+    <ul>
+      <li>每个 goal space 是 section header：icon（首字母）+ 名字（hover-expand overflow）+ task count（mono）</li>
+      <li>Tasks 缩进 16px 在 group 下面，按 status dot + display_id + title + 相对时间显示</li>
+      <li>支持折叠（▾/▸）—— collapsed group 不展开 children，但仍可点 group header 跳 Goal Space 视图</li>
+      <li>点 goal space section header → 切到 Goal Space 视图（kanban）</li>
+      <li>点 task → 切到 Task 视图（in-place shell 切换）</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Top bar 面包屑可点击</h4>
+    <ul>
+      <li>"Railway Metro 2026 Q1" 段可点击 → Goal Space 视图</li>
+      <li>"Main board" 段可点击 → Goal Space 视图（board 切换）</li>
+      <li>"Signaling timing" 段不可点击（当前 task，永远显示）</li>
+      <li>hover 高亮（background + rounded）—— 视觉提示可点击</li>
+    </ul>
+  </div>
+</div>
+
+<div class="pros-cons" style="margin-top: 8px;">
+  <div class="pros">
+    <h4>对齐 Codex 真界面</h4>
+    <ul>
+      <li>Codex = conversation 列表，time-grouped（"已安排 / 今天"）</li>
+      <li>KEPLAR = goal-space-grouped 任务列表——把"项目"维度加进去</li>
+      <li>其他保留 v1：timeline-based conversational UI、progressive disclosure、state machine breadcrumb、input 区</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>取舍</h4>
+    <ul>
+      <li>Master pane 缩进层级深（goal space 16px + task 28px），窄屏更拥挤——可能 240px 改 280px</li>
+      <li>Goal space 数量多时（10+）master 滚动量大——后续可加 virtualization</li>
+    </ul>
+  </div>
+</div>
+
+<p style="margin-top: 16px;"><strong>接下来：</strong>如果 v2 方向 OK（goal-space 分组的 master + 可点击面包屑），我就开 design section + 写 spec。如果还想调整——比如把折叠状态做成 always-expanded、或者把 master 改宽——告诉我。</p>
+
+<style>
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+</style>

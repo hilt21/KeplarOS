@@ -33,10 +33,13 @@ Phase 1 冻结为 **Web-first Board demo slice**。Next.js / React / TypeScript 
 
 应用运行时层负责承接前端请求、会话驱动和任务编排。Phase 1 只实现 Web 运行时，桌面运行时不得独立扩展业务语义。
 
-- **Phase 1：Web 运行时**：基于 `Next.js` API 路由承载后端服务，调用 `TypeScript` 实现的 `KeplarSystem`。
+- **当前 Web 运行时**：基于 `Next.js` API Route Handlers 承载后端服务，调用 TypeScript 的 service、authorization、state-machine、audit 和 repository 层；这是当前唯一可运行的产品路径。
 - **Future：桌面运行时**：基于 `Tauri` 作为前端容器，配合 `Rust` `Axum Server` 提供本地 API 和执行能力。该运行时不是 Phase 1 必交付项，后续必须对齐 Web-first contract。
 
 后续双运行时必须实现相同的领域接口和业务语义，遵循统一的 `api-contract` 约定，对外表现为同一套 KEPLAR 能力。
+
+> 审查说明（2026-07-11）：`crates/` 与 `apps/desktop/` 目前不是 Web 运行时的等价实现。
+> “双运行时”是架构约束和未来目标，不是当前交付事实。
 
 **这一层负责：**
 

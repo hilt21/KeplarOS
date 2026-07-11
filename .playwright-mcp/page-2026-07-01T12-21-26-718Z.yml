@@ -1,0 +1,138 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e21] [cursor=pointer]:
+    - img [ref=e22]
+  - alert [ref=e25]
+  - generic [ref=e26]:
+    - banner [ref=e27]:
+      - generic [ref=e28]:
+        - link "KEPLAR" [ref=e29] [cursor=pointer]:
+          - /url: /goal-spaces
+        - button "Toggle left sidebar (Cmd+B)" [ref=e30]: ← hide (⌘B)
+      - button "Light Paper" [ref=e33]:
+        - generic [ref=e35]: Light Paper
+        - generic [ref=e36]: ▾
+    - generic [ref=e37]:
+      - complementary "Workspace navigation" [ref=e38]:
+        - heading "KEPLAR" [level=2] [ref=e40]
+        - navigation [ref=e41]:
+          - link "goal spaces" [ref=e42] [cursor=pointer]:
+            - /url: /goal-spaces
+        - status "Event stream status" [ref=e43]:
+          - generic [ref=e44]: events 0
+        - button "← hide (⌘B)" [ref=e45]
+      - main [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - heading "goal spaces" [level=1] [ref=e49]
+            - generic [ref=e50]: 9 total
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - generic [ref=e54]: Goal name
+              - textbox "Goal name" [ref=e55]
+            - generic [ref=e56]:
+              - generic [ref=e57]: Description
+              - textbox "Description" [ref=e58]
+            - button "Create goal space" [ref=e59]
+          - table [ref=e60]:
+            - rowgroup [ref=e61]:
+              - row "· id name status updated" [ref=e62]:
+                - columnheader "·" [ref=e63]
+                - columnheader "id" [ref=e64]
+                - columnheader "name" [ref=e65]
+                - columnheader "status" [ref=e66]
+                - columnheader "updated" [ref=e67]
+            - rowgroup [ref=e68]:
+              - row "589cdd03 P3 browser beta draft 3d ago" [ref=e69]:
+                - cell [ref=e70]
+                - cell "589cdd03" [ref=e72]:
+                  - link "589cdd03" [ref=e73] [cursor=pointer]:
+                    - /url: /goal-spaces/589cdd03-2987-41b1-90f6-4136ec7a8b01
+                - cell "P3 browser beta" [ref=e74]:
+                  - link "P3 browser beta" [ref=e75] [cursor=pointer]:
+                    - /url: /goal-spaces/589cdd03-2987-41b1-90f6-4136ec7a8b01
+                - cell "draft" [ref=e76]
+                - cell "3d ago" [ref=e77]
+              - row "6d94e9fe P3 browser beta draft 3d ago" [ref=e78]:
+                - cell [ref=e79]
+                - cell "6d94e9fe" [ref=e81]:
+                  - link "6d94e9fe" [ref=e82] [cursor=pointer]:
+                    - /url: /goal-spaces/6d94e9fe-3fe6-4865-bec9-786600a34f9e
+                - cell "P3 browser beta" [ref=e83]:
+                  - link "P3 browser beta" [ref=e84] [cursor=pointer]:
+                    - /url: /goal-spaces/6d94e9fe-3fe6-4865-bec9-786600a34f9e
+                - cell "draft" [ref=e85]
+                - cell "3d ago" [ref=e86]
+              - row "baef988b test draft 3d ago" [ref=e87]:
+                - cell [ref=e88]
+                - cell "baef988b" [ref=e90]:
+                  - link "baef988b" [ref=e91] [cursor=pointer]:
+                    - /url: /goal-spaces/baef988b-ae6b-4991-affa-00319d957a64
+                - cell "test" [ref=e92]:
+                  - link "test" [ref=e93] [cursor=pointer]:
+                    - /url: /goal-spaces/baef988b-ae6b-4991-affa-00319d957a64
+                - cell "draft" [ref=e94]
+                - cell "3d ago" [ref=e95]
+              - row "cf716d34 P3 browser beta draft 3d ago" [ref=e96]:
+                - cell [ref=e97]
+                - cell "cf716d34" [ref=e99]:
+                  - link "cf716d34" [ref=e100] [cursor=pointer]:
+                    - /url: /goal-spaces/cf716d34-62db-4306-9ead-fed733b43a29
+                - cell "P3 browser beta" [ref=e101]:
+                  - link "P3 browser beta" [ref=e102] [cursor=pointer]:
+                    - /url: /goal-spaces/cf716d34-62db-4306-9ead-fed733b43a29
+                - cell "draft" [ref=e103]
+                - cell "3d ago" [ref=e104]
+              - row "c391766d P3 browser beta draft 3d ago" [ref=e105]:
+                - cell [ref=e106]
+                - cell "c391766d" [ref=e108]:
+                  - link "c391766d" [ref=e109] [cursor=pointer]:
+                    - /url: /goal-spaces/c391766d-7932-4d46-93ff-cefd37c0fb1b
+                - cell "P3 browser beta" [ref=e110]:
+                  - link "P3 browser beta" [ref=e111] [cursor=pointer]:
+                    - /url: /goal-spaces/c391766d-7932-4d46-93ff-cefd37c0fb1b
+                - cell "draft" [ref=e112]
+                - cell "3d ago" [ref=e113]
+              - row "04ad3af0 P3 browser beta draft 3d ago" [ref=e114]:
+                - cell [ref=e115]
+                - cell "04ad3af0" [ref=e117]:
+                  - link "04ad3af0" [ref=e118] [cursor=pointer]:
+                    - /url: /goal-spaces/04ad3af0-bf74-4def-ae38-6b43b8edb0b3
+                - cell "P3 browser beta" [ref=e119]:
+                  - link "P3 browser beta" [ref=e120] [cursor=pointer]:
+                    - /url: /goal-spaces/04ad3af0-bf74-4def-ae38-6b43b8edb0b3
+                - cell "draft" [ref=e121]
+                - cell "3d ago" [ref=e122]
+              - row "0846d0d9 draft 3d ago" [ref=e123]:
+                - cell [ref=e124]
+                - cell "0846d0d9" [ref=e126]:
+                  - link "0846d0d9" [ref=e127] [cursor=pointer]:
+                    - /url: /goal-spaces/0846d0d9-a0ae-497d-9798-27ab0d711241
+                - cell [ref=e128]:
+                  - link:
+                    - /url: /goal-spaces/0846d0d9-a0ae-497d-9798-27ab0d711241
+                - cell "draft" [ref=e129]
+                - cell "3d ago" [ref=e130]
+              - row "0689c42a P3 browser beta draft 3d ago" [ref=e131]:
+                - cell [ref=e132]
+                - cell "0689c42a" [ref=e134]:
+                  - link "0689c42a" [ref=e135] [cursor=pointer]:
+                    - /url: /goal-spaces/0689c42a-7fd9-4dfa-9cef-f93c1e107989
+                - cell "P3 browser beta" [ref=e136]:
+                  - link "P3 browser beta" [ref=e137] [cursor=pointer]:
+                    - /url: /goal-spaces/0689c42a-7fd9-4dfa-9cef-f93c1e107989
+                - cell "draft" [ref=e138]
+                - cell "3d ago" [ref=e139]
+              - row "98192557 P3 browser beta draft 3d ago" [ref=e140]:
+                - cell [ref=e141]
+                - cell "98192557" [ref=e143]:
+                  - link "98192557" [ref=e144] [cursor=pointer]:
+                    - /url: /goal-spaces/98192557-4261-4939-820c-698757b4ba05
+                - cell "P3 browser beta" [ref=e145]:
+                  - link "P3 browser beta" [ref=e146] [cursor=pointer]:
+                    - /url: /goal-spaces/98192557-4261-4939-820c-698757b4ba05
+                - cell "draft" [ref=e147]
+                - cell "3d ago" [ref=e148]
+      - complementary "Context" [ref=e149]:
+        - generic [ref=e150]:
+          - generic [ref=e151]: Context
+          - button "Hide right sidebar (Cmd+J)" [ref=e152]: hide (⌘J)

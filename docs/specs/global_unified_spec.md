@@ -1,3 +1,17 @@
+# 历史规格片段（不作为当前基线）
+
+> **状态：已过时，2026-07-11 审查标记。** 本文件是无章节的历史摘录，且至少包含
+> “未接入 Playwright”的过时表述；当前仓库已有 Playwright 配置和 E2E 套件。保留原文
+> 以保存历史信息，但不得将其作为产品、测试或阶段范围的事实源。
+>
+> 当前产品范围请见 [`prd.md` §15](prd.md#15-当前版本产品基线2026-07-11-审查更新)，
+> 架构和测试约束分别见 `../architecture/` 与本目录的专项规格；完整审查见
+> [`../review/2026-07-11-product-implementation-consistency-audit.md`](../review/2026-07-11-product-implementation-consistency-audit.md)。
+
+---
+
+## 保留的历史摘录
+
 - **编码规范：** 当前 `apps/web` 已提供 ESLint 与 Prettier 配置，Phase 1 前端 TypeScript/React 代码以此统一风格。Rust 代码使用 rustfmt 默认配置和 Clippy 分析。命名方式：TS 侧采用驼峰，数据库字段和 JSON 接口字段采用小写下划线映射（使用 Drizzle 可自动转换）。
 - **日志与监控：** Phase 1 必须记录运行时关键事件（目标创建、会话开始/结束、AI 执行结果、人工确认、审计写入、SSE 投递失败），可先使用结构化应用日志。OpenTelemetry 调用链路和指标采集属于后续生产化能力，不作为首轮冻结门禁。
 - **配置管理：** Phase 1 至少支持 `DATABASE_URL`、`KEPLAR_DB_DRIVER`、`KEPLAR_DB_PATH`、端口号等环境变量。当前 `docker-compose.yml` 仅提供 PostgreSQL 依赖服务，不代表 Web/API/worker 已具备容器化部署；生产级 Docker/Kubernetes 配置后续冻结。

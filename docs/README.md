@@ -184,9 +184,14 @@ verification scripts.
 
 ---
 
-### 🚧 Phase 2 — Web Collaboration Beta（进行中）
+### 🚧 Phase 2 — Web Collaboration Beta（核心能力已交付，阶段收口待补）
 
 > Phase 2 从已完成的 Web-first 基线出发，把 demo 升级为可协作 Beta。
+
+当前代码已具备认证 API、Goal Space/Node Board/Card 生命周期、确认门禁、
+确定性 fixture AI 执行、审计/SSE 和 Web 工作流。该状态不表示自然语言
+Story 生成、真实外部执行或生产化能力已完成；Phase 3 的部分 UI/E2E 工作
+也有代码证据但 Harness 交付记录尚未全部闭环。
 
 **关键方向**：
 
@@ -197,15 +202,19 @@ verification scripts.
 
 **继续延期**（承袭 §3）：Tauri · Rust Axum · 生产 K8s · 企业 SSO · 真实 MCP/ACP/A2A 外部写集成
 
-> 📋 Phase 2 详细计划留档在 `.harness/changes/20260619-phase2-*`。
-> 范围冻结后单独成文（拟 `docs/specs/phase2_scope.md`，由 Phase 2 owner 按 application-owner workflow 产出）。
+> 📋 Phase 2 详细计划留档在 `.harness/changes/20260619-phase2-*`。当前可验证的
+> 产品范围见 [`specs/prd.md` §15](specs/prd.md#15-当前版本产品基线2026-07-11-审查更新)，
+> 差异与待补交付记录见
+> [`review/2026-07-11-product-implementation-consistency-audit.md`](review/2026-07-11-product-implementation-consistency-audit.md)。
 
 ---
 
-### 🔮 Phase 3 — 待规划
+### 🚧 Phase 3 — Web Beta Hardening（部分已实现，未完成阶段收口）
 
-候选方向：桌面 / 移动 native shell（Tauri）、更丰富的外部 AI 集成、企业级 SaaS 化等。
-具体范围与门禁待 Phase 2 完成后再冻结。
+已留档范围包括登录、Goal Space/Node Board 创建、browser-first E2E、实时可靠性和
+SQLite 约束验证，详见 `docs/superpowers/plans/2026-06-26-phase3-web-beta-hardening.md`。
+当前不得把该计划整体视为已完成：其部分 Harness 条目仍处于 in-progress 或缺少 delivery
+记录。桌面/移动 native shell、外部 AI 集成和企业 SaaS 化仍是后续候选方向。
 
 ### 🔮 Phase 4 — 待规划
 
