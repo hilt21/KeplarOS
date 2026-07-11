@@ -1,120 +1,124 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-interface GoalSpaceEnvelope {
-  readonly success: boolean;
-  readonly error?: {
-    readonly message?: string;
-  };
-}
+type Draft = Record<string, unknown>;
 
 export function CreateGoalSpaceForm(): React.ReactElement {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [goal, setGoal] = useState("");
+  const [draftText, setDraftText] = useState("");
+  const [applicationId, setApplicationId] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  // Hydration marker — see LoginForm for rationale.
-  const [hydrated, setHydrated] = useState(false);
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
+  const [busy, setBusy] = useState(false);
 
-  async function handleSubmit(event?: FormEvent<HTMLFormElement>): Promise<void> {
-    event?.preventDefault();
+  async function generate(): Promise<void> {
+    setBusy(true);
     setError(null);
-    setIsSubmitting(true);
-
     try {
-      const response = await fetch("/api/v1/goal-spaces", {
+      const response = await fetch("/api/v1/story-drafts/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goal }),
+        credentials: "include",
+      });
+      const body = (await response.json()) as {
+        success: boolean;
+        data?: { draft: Draft };
+        error?: { message?: string };
+      };
+      if (!body.success || !body.data)
+        throw new Error(body.error?.message ?? "Unable to generate draft.");
+      setDraftText(JSON.stringify(body.data.draft, null, 2));
+      setApplicationId(crypto.randomUUID());
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Unable to generate draft.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function apply(): Promise<void> {
+    setBusy(true);
+    setError(null);
+    try {
+      const draft = JSON.parse(draftText) as Draft;
+      const response = await fetch("/api/v1/story-drafts/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          name,
-          description,
-          constraints: [],
-          acceptance_criteria: [],
-        }),
+        body: JSON.stringify({ story_application_id: applicationId, draft }),
       });
-      const envelope = (await response.json()) as GoalSpaceEnvelope;
-
-      if (!envelope.success) {
-        setError(envelope.error?.message ?? "Unable to create goal space.");
-        return;
-      }
-
-      setName("");
-      setDescription("");
+      const body = (await response.json()) as {
+        success: boolean;
+        data?: { goal_space_id: string };
+        error?: { message?: string };
+      };
+      if (!body.success || !body.data)
+        throw new Error(body.error?.message ?? "Unable to apply draft.");
+      router.push(`/goal-spaces/${body.data.goal_space_id}`);
       router.refresh();
-    } catch {
-      setError("Unable to create goal space.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Draft must be valid JSON.");
     } finally {
-      setIsSubmitting(false);
+      setBusy(false);
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="grid gap-[var(--space-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] p-[var(--space-md)]"
-    >
-      <div className="grid gap-[var(--space-sm)] md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] md:items-end">
-        <div className="grid gap-[var(--space-2xs)]">
+    <section className="grid gap-[var(--space-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] p-[var(--space-md)]">
+      <label
+        className="text-[var(--font-micro)] uppercase text-[var(--color-text-muted)]"
+        htmlFor="story-goal"
+      >
+        Business goal
+      </label>
+      <textarea
+        id="story-goal"
+        value={goal}
+        onChange={(event) => setGoal(event.currentTarget.value)}
+        rows={3}
+        className="border border-[var(--color-border)] bg-[var(--color-bg)] p-[var(--space-sm)] text-[var(--font-small)]"
+      />
+      <button
+        type="button"
+        onClick={() => void generate()}
+        disabled={busy || !goal.trim()}
+        className="w-fit bg-[var(--color-primary)] px-[var(--space-md)] py-[var(--space-xs)] text-[var(--font-small)] text-[var(--color-bg)] disabled:opacity-70"
+      >
+        {busy ? "Working…" : "Generate deterministic draft"}
+      </button>
+      {draftText ? (
+        <>
           <label
-            htmlFor="goal-space-name"
-            className="text-[var(--font-micro)] font-medium uppercase text-[var(--color-text-muted)]"
+            className="text-[var(--font-micro)] uppercase text-[var(--color-text-muted)]"
+            htmlFor="story-draft"
           >
-            Goal name
+            Editable Story draft (deterministic demo)
           </label>
-          <input
-            id="goal-space-name"
-            name="name"
-            type="text"
-            required
-            value={name}
-            onChange={(event) => setName(event.currentTarget.value)}
-            className="min-h-10 border border-[var(--color-border)] bg-[var(--color-bg)] px-[var(--space-sm)] py-[var(--space-xs)] text-[var(--font-small)] text-[var(--color-text-primary)] outline-none transition-colors focus:border-[var(--color-primary)]"
+          <textarea
+            id="story-draft"
+            value={draftText}
+            onChange={(event) => setDraftText(event.currentTarget.value)}
+            rows={18}
+            className="font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-micro)] border border-[var(--color-border)] bg-[var(--color-bg)] p-[var(--space-sm)]"
           />
-        </div>
-
-        <div className="grid gap-[var(--space-2xs)]">
-          <label
-            htmlFor="goal-space-description"
-            className="text-[var(--font-micro)] font-medium uppercase text-[var(--color-text-muted)]"
+          <button
+            type="button"
+            onClick={() => void apply()}
+            disabled={busy}
+            className="w-fit bg-[var(--color-primary)] px-[var(--space-md)] py-[var(--space-xs)] text-[var(--font-small)] text-[var(--color-bg)] disabled:opacity-70"
           >
-            Description
-          </label>
-          <input
-            id="goal-space-description"
-            name="description"
-            type="text"
-            required
-            value={description}
-            onChange={(event) => setDescription(event.currentTarget.value)}
-            className="min-h-10 border border-[var(--color-border)] bg-[var(--color-bg)] px-[var(--space-sm)] py-[var(--space-xs)] text-[var(--font-small)] text-[var(--color-text-primary)] outline-none transition-colors focus:border-[var(--color-primary)]"
-          />
-        </div>
-
-        <button
-          type="button"
-          onClick={() => void handleSubmit()}
-          disabled={!hydrated || isSubmitting}
-          data-hydrated={hydrated ? "true" : "false"}
-          className="min-h-10 bg-[var(--color-primary)] px-[var(--space-md)] py-[var(--space-xs)] text-[var(--font-small)] font-semibold text-[var(--color-bg)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {isSubmitting ? "Creating goal space" : "Create goal space"}
-        </button>
-      </div>
-
+            Apply draft and create workspace
+          </button>
+        </>
+      ) : null}
       {error ? (
         <p role="alert" className="text-[var(--font-small)] text-[var(--color-error)]">
           {error}
         </p>
       ) : null}
-    </form>
+    </section>
   );
 }

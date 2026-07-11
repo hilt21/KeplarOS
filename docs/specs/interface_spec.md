@@ -99,6 +99,17 @@ interface LoginResponse {
 
 ## 3. 目标空间接口
 
+### 3.0 Story 草稿接口（Web Beta deterministic demo）
+
+`POST /api/v1/story-drafts/generate` accepts `{ goal }` from an initiator and
+returns an editable structured draft with `source: "deterministic_demo"`.
+It performs no external I/O.
+
+`POST /api/v1/story-drafts/apply` accepts `{ story_application_id, draft }`.
+It creates a new Goal Space, one `initial` Node Board, and initial Cards in a
+single audited transaction. Repeating the same application ID returns the
+existing Goal Space without duplicating Cards.
+
 ### 3.1 创建目标空间
 
 ```

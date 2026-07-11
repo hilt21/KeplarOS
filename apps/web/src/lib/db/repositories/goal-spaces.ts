@@ -42,6 +42,7 @@ export interface GoalSpaceRow {
   readonly status: GoalSpaceStatus;
   readonly progress: number;
   readonly templateId: string | null;
+  readonly storyApplicationId?: string | null;
   readonly tags: string[];
   readonly startedAt: string | null;
   readonly completedAt: string | null;
@@ -83,6 +84,7 @@ export function createGoalSpace(
   initiatorId: string,
   input: CreateGoalSpaceRow,
   id: string,
+  storyApplicationId?: string,
 ): GoalSpaceRow {
   const row = tx
     .insert(goalSpaces)
@@ -96,6 +98,7 @@ export function createGoalSpace(
       status: "draft",
       progress: 0,
       tags: [],
+      storyApplicationId: storyApplicationId ?? null,
     })
     .returning()
     .get();

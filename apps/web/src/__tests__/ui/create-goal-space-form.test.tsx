@@ -4,120 +4,70 @@ import "@testing-library/jest-dom/vitest";
 
 import { CreateGoalSpaceForm } from "@/components/create-goal-space-form";
 
+const push = vi.fn();
 const refresh = vi.fn();
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    refresh,
-  }),
-}));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh }) }));
 
 describe("CreateGoalSpaceForm", () => {
   beforeEach(() => {
+    push.mockClear();
     refresh.mockClear();
   });
-
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
-  it("posts a goal space and refreshes on success", async () => {
-    const fetchMock = vi.fn(async () =>
-      Response.json({
-        success: true,
-        data: {
-          id: "goal-space-1",
-          name: "Reduce board review latency",
-          description: "Coordinate executive review handoffs.",
-          constraints: [],
-          acceptance_criteria: [],
-          status: "draft",
-          progress: 0,
-          initiator_id: "user-1",
-          created_at: "2026-06-26T00:00:00.000Z",
-          updated_at: "2026-06-26T00:00:00.000Z",
-        },
-      }),
-    );
-    vi.stubGlobal("fetch", fetchMock);
-
-    render(<CreateGoalSpaceForm />);
-
-    fireEvent.change(screen.getByLabelText("Goal name"), {
-      target: { value: "Reduce board review latency" },
-    });
-    fireEvent.change(screen.getByLabelText("Description"), {
-      target: { value: "Coordinate executive review handoffs." },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Create goal space" }));
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith("/api/v1/goal-spaces", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          name: "Reduce board review latency",
-          description: "Coordinate executive review handoffs.",
-          constraints: [],
-          acceptance_criteria: [],
-        }),
-      });
-    });
-    expect(refresh).toHaveBeenCalledTimes(1);
-    expect(screen.getByLabelText("Goal name")).toHaveValue("");
-    expect(screen.getByLabelText("Description")).toHaveValue("");
-  });
-
-  it("renders the API error message and does not refresh", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () =>
+  it("generates an editable deterministic draft then applies it", async () => {
+    const draft = {
+      goal: "Reduce review latency",
+      problem_statement: "Reduce review latency",
+      constraints: [],
+      acceptance_criteria: [],
+      output_requirements: [],
+      risk_hints: [],
+      cards: [
+        { title: "Initial planning", description: "Plan", priority: 50, risk_level: "medium" },
+      ],
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Response.json({ success: true, data: { draft, source: "deterministic_demo" } }),
+      )
+      .mockResolvedValueOnce(
         Response.json({
-          success: false,
-          error: {
-            code: "VALIDATION_ERROR",
-            message: "Goal name is required.",
-          },
+          success: true,
+          data: { goal_space_id: "goal-space-1", applied: true, card_ids: ["card-1"] },
         }),
-      ),
-    );
-
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("crypto", { randomUUID: () => "application-1" });
     render(<CreateGoalSpaceForm />);
-
-    fireEvent.change(screen.getByLabelText("Goal name"), {
-      target: { value: " " },
-    });
-    fireEvent.change(screen.getByLabelText("Description"), {
-      target: { value: "Coordinate executive review handoffs." },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Create goal space" }));
-
-    expect(await screen.findByText("Goal name is required.")).toBeInTheDocument();
-    expect(refresh).not.toHaveBeenCalled();
-  });
-
-  it("renders a fallback error when creation throws", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => {
-        throw new Error("Network unavailable");
+    fireEvent.change(screen.getByLabelText("Business goal"), { target: { value: draft.goal } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate deterministic draft" }));
+    const editor = await screen.findByLabelText(/Editable Story draft/);
+    expect(editor).toHaveValue(JSON.stringify(draft, null, 2));
+    fireEvent.click(screen.getByRole("button", { name: "Apply draft and create workspace" }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/goal-spaces/goal-space-1"));
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/v1/story-drafts/apply",
+      expect.objectContaining({
+        body: JSON.stringify({ story_application_id: "application-1", draft }),
       }),
     );
+  });
 
+  it("renders a generation error", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ success: false, error: { message: "Goal is required." } })),
+    );
     render(<CreateGoalSpaceForm />);
-
-    fireEvent.change(screen.getByLabelText("Goal name"), {
-      target: { value: "Reduce board review latency" },
-    });
-    fireEvent.change(screen.getByLabelText("Description"), {
-      target: { value: "Coordinate executive review handoffs." },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Create goal space" }));
-
-    expect(await screen.findByText("Unable to create goal space.")).toBeInTheDocument();
-    expect(refresh).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText("Business goal"), { target: { value: "x" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate deterministic draft" }));
+    expect(await screen.findByText("Goal is required.")).toBeInTheDocument();
   });
 });

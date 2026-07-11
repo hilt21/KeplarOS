@@ -42,10 +42,6 @@ const SEEDED_USER_ROLE = "initiator";
 const E2E_PASSWORD = "e2e-password";
 
 const GOAL_SPACE_NAME = "P3 browser beta";
-const GOAL_SPACE_DESCRIPTION = "Browser-created goal space.";
-
-const BOARD_KEY = "MAIN";
-const BOARD_NAME = "Main board";
 
 const CARD_TITLE = "E2E verification card";
 
@@ -152,15 +148,11 @@ test("phase 2 board happy path: login → create goal space → create board →
   // data fetch comfortably.
   await expect(page).toHaveURL(/\/goal-spaces$/, { timeout: 30_000 });
 
-  // 2. Create a goal space through the P3-02 CreateGoalSpaceForm.
-  await page.locator('button[data-hydrated="true"]').waitFor();
-  await page.getByLabel("Goal name").fill(GOAL_SPACE_NAME);
-  await page.getByLabel("Description").fill(GOAL_SPACE_DESCRIPTION);
-  await page.getByRole("button", { name: "Create goal space" }).click();
-
-  const goalSpaceLink = page.getByRole("link", { name: new RegExp(GOAL_SPACE_NAME) }).first();
-  await expect(goalSpaceLink).toBeVisible({ timeout: 15_000 });
-  await goalSpaceLink.click();
+  // 2. Generate, review, and apply the deterministic Story draft.
+  await page.getByLabel("Business goal").fill(GOAL_SPACE_NAME);
+  await page.getByRole("button", { name: "Generate deterministic draft" }).click();
+  await expect(page.getByLabel(/Editable Story draft/)).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: "Apply draft and create workspace" }).click();
   await expect(page).toHaveURL(/\/goal-spaces\/[A-Za-z0-9_-]+$/);
 
   // Capture the goal space id from the URL for afterAll cleanup.
@@ -168,20 +160,7 @@ test("phase 2 board happy path: login → create goal space → create board →
   const pathSegments = url.pathname.split("/").filter((s) => s.length > 0);
   goalSpaceId = pathSegments[pathSegments.length - 1];
 
-  // 3. Create the first node board through the P3-03 CreateNodeBoardForm
-  //    mounted in the empty-board branch of the goal-space detail page.
-  //    Wait for that form's submit button to be hydrated before
-  //    interacting — the goal-space detail page is first-compiled by
-  //    the dev server on this navigation, and `getByLabel` does not
-  //    auto-wait for React to attach event handlers.
-  await page
-    .locator('button[data-hydrated="true"]:has-text("Create node board")')
-    .first()
-    .waitFor({ timeout: 30_000 });
-  await expect(page.getByLabel("Board key")).toBeVisible({ timeout: 15_000 });
-  await page.getByLabel("Board key").fill(BOARD_KEY);
-  await page.getByLabel("Board name").fill(BOARD_NAME);
-  await page.getByRole("button", { name: "Create node board" }).click();
+  // 3. Apply created the initial node board, so Kanban is immediately usable.
   await expect(page.getByTestId("lane-backlog")).toBeVisible({ timeout: 15_000 });
 
   // 4. Use the command palette to create a new card. Intercept the

@@ -103,7 +103,7 @@ describe("T-003: inferred row types compile and have the expected column set", (
     expect(insert.dependencies).toBeUndefined();
   });
 
-  it("GoalSpace row carries 17 columns from § 3.1 (DB-001: name + 6 added columns)", () => {
+  it("GoalSpace row carries the § 3.1 columns including story application id", () => {
     const sample: GoalSpace = {
       id: "0".repeat(32),
       initiatorId: "0".repeat(32),
@@ -114,6 +114,7 @@ describe("T-003: inferred row types compile and have the expected column set", (
       status: "draft",
       progress: 0,
       templateId: null,
+      storyApplicationId: null,
       tags: [],
       startedAt: null,
       completedAt: null,
@@ -123,7 +124,7 @@ describe("T-003: inferred row types compile and have the expected column set", (
       createdAt: "2026-06-07 00:00:00",
       updatedAt: "2026-06-07 00:00:00",
     };
-    expect(Object.keys(sample)).toHaveLength(17);
+    expect(Object.keys(sample)).toHaveLength(18);
   });
 
   it("aggregated schema export contains all 12 tables (S1 back-compat + Wave 3 SEC-006)", () => {

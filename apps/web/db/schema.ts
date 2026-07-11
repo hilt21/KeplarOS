@@ -188,6 +188,7 @@ export const goalSpaces = sqliteTable(
     status: text("status", { enum: GOAL_SPACE_STATUS_VALUES }).notNull().default("draft"),
     progress: real("progress").notNull().default(0),
     templateId: text("template_id"),
+    storyApplicationId: text("story_application_id"),
     tags: text("tags", { mode: "json" })
       .$type<string[]>()
       .notNull()
@@ -208,6 +209,9 @@ export const goalSpaces = sqliteTable(
     initiatorIdx: index("idx_goal_spaces_initiator").on(t.initiatorId),
     statusIdx: index("idx_goal_spaces_status").on(t.status),
     deletedAtIdx: index("idx_goal_spaces_deleted_at").on(t.deletedAt),
+    storyApplicationIdUnique: uniqueIndex("idx_goal_spaces_story_application_id_unique").on(
+      t.storyApplicationId,
+    ),
   }),
 );
 

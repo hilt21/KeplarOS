@@ -38,9 +38,6 @@ const SEEDED_USER_ROLE = "initiator";
 const E2E_PASSWORD = "e2e-password";
 
 const GOAL_SPACE_NAME = "F13 frontend polish beta";
-const GOAL_SPACE_DESCRIPTION = "Browser-created goal space (frontend polish).";
-const BOARD_KEY = "MAIN";
-const BOARD_NAME = "Main board";
 const CARD_TITLE = "F13 polish verification card";
 const USER_MESSAGE = "test message from F13";
 
@@ -126,15 +123,11 @@ test("frontend polish happy path: login → goal space → click card → task v
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/goal-spaces$/, { timeout: 30_000 });
 
-  // 2. Create a goal space through the existing CreateGoalSpaceForm.
-  await page.locator('button[data-hydrated="true"]').waitFor();
-  await page.getByLabel("Goal name").fill(GOAL_SPACE_NAME);
-  await page.getByLabel("Description").fill(GOAL_SPACE_DESCRIPTION);
-  await page.getByRole("button", { name: "Create goal space" }).click();
-
-  const goalSpaceLink = page.getByRole("link", { name: new RegExp(GOAL_SPACE_NAME) }).first();
-  await expect(goalSpaceLink).toBeVisible({ timeout: 15_000 });
-  await goalSpaceLink.click();
+  // 2. Create the workspace through the Story draft flow.
+  await page.getByLabel("Business goal").fill(GOAL_SPACE_NAME);
+  await page.getByRole("button", { name: "Generate deterministic draft" }).click();
+  await expect(page.getByLabel(/Editable Story draft/)).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: "Apply draft and create workspace" }).click();
   await expect(page).toHaveURL(/\/goal-spaces\/[A-Za-z0-9_-]+$/, { timeout: 30_000 });
 
   // Capture the goal space id from the URL.
@@ -149,14 +142,7 @@ test("frontend polish happy path: login → goal space → click card → task v
   await expect(page.getByLabel("Context")).toBeVisible();
   await expect(page.locator("main").first()).toBeVisible();
 
-  // 4. Create a board so we can place a task row.
-  await page
-    .locator('button[data-hydrated="true"]:has-text("Create node board")')
-    .first()
-    .waitFor({ timeout: 30_000 });
-  await page.getByLabel("Board key").fill(BOARD_KEY);
-  await page.getByLabel("Board name").fill(BOARD_NAME);
-  await page.getByRole("button", { name: "Create node board" }).click();
+  // 4. The applied draft already contains the initial board.
   await expect(page.getByTestId("lane-backlog")).toBeVisible({ timeout: 15_000 });
 
   // 5. Create a card via the command palette so MasterPane gets a task row.

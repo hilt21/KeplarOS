@@ -6,6 +6,15 @@ This document defines the Phase 1 AI execution contract. It is the implementatio
 
 Phase 1 may use stub or fixture-backed executors for demo stability, but every executor must conform to this contract so real LLM calls can replace stubs without changing domain behavior.
 
+## Current Story Draft Slice (2026-07-11)
+
+The Web Beta exposes a deterministic, no-I/O Story draft flow. An initiator may
+generate and edit a complete structured draft, then explicitly apply it to a
+new Goal Space. Application creates one `initial` Node Board and initial Cards
+in one transaction, records `story_draft.applied`, and uses a unique
+`story_application_id` to make retries idempotent. This is a demo planning
+boundary, not a real Backlog Refiner or LLM integration.
+
 ## 2. Shared Executor Contract
 
 `task_id` is the `agent_executions.id` persisted by the API before invoking an executor. `session_id` groups executions that belong to the same goal-space run.
