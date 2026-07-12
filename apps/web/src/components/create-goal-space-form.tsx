@@ -42,8 +42,16 @@ export function CreateGoalSpaceForm(): React.ReactElement {
   async function apply(): Promise<void> {
     setBusy(true);
     setError(null);
+    let draft: Draft;
     try {
-      const draft = JSON.parse(draftText) as Draft;
+      draft = JSON.parse(draftText) as Draft;
+    } catch {
+      setError("Draft must be valid JSON.");
+      setBusy(false);
+      return;
+    }
+
+    try {
       const response = await fetch("/api/v1/story-drafts/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,7 +68,7 @@ export function CreateGoalSpaceForm(): React.ReactElement {
       router.push(`/goal-spaces/${body.data.goal_space_id}`);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Draft must be valid JSON.");
+      setError(cause instanceof Error ? cause.message : "Unable to apply draft.");
     } finally {
       setBusy(false);
     }
@@ -76,16 +84,18 @@ export function CreateGoalSpaceForm(): React.ReactElement {
       </label>
       <textarea
         id="story-goal"
+        name="story_goal"
+        autoComplete="off"
         value={goal}
         onChange={(event) => setGoal(event.currentTarget.value)}
         rows={3}
-        className="border border-[var(--color-border)] bg-[var(--color-bg)] p-[var(--space-sm)] text-[var(--font-small)]"
+        className="border border-[var(--color-border)] bg-[var(--color-bg)] p-[var(--space-sm)] text-[var(--font-small)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-2"
       />
       <button
         type="button"
         onClick={() => void generate()}
         disabled={busy || !goal.trim()}
-        className="w-fit bg-[var(--color-primary)] px-[var(--space-md)] py-[var(--space-xs)] text-[var(--font-small)] text-[var(--color-bg)] disabled:opacity-70"
+        className="w-fit bg-[var(--color-primary)] px-[var(--space-md)] py-[var(--space-xs)] text-[var(--font-small)] text-[var(--color-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-2 disabled:opacity-70"
       >
         {busy ? "Working…" : "Generate deterministic draft"}
       </button>
@@ -99,16 +109,18 @@ export function CreateGoalSpaceForm(): React.ReactElement {
           </label>
           <textarea
             id="story-draft"
+            name="story_draft"
+            autoComplete="off"
             value={draftText}
             onChange={(event) => setDraftText(event.currentTarget.value)}
             rows={18}
-            className="font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-micro)] border border-[var(--color-border)] bg-[var(--color-bg)] p-[var(--space-sm)]"
+            className="font-[var(--font-jetbrains-mono,monospace)] text-[var(--font-micro)] border border-[var(--color-border)] bg-[var(--color-bg)] p-[var(--space-sm)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-2"
           />
           <button
             type="button"
             onClick={() => void apply()}
             disabled={busy}
-            className="w-fit bg-[var(--color-primary)] px-[var(--space-md)] py-[var(--space-xs)] text-[var(--font-small)] text-[var(--color-bg)] disabled:opacity-70"
+            className="w-fit bg-[var(--color-primary)] px-[var(--space-md)] py-[var(--space-xs)] text-[var(--font-small)] text-[var(--color-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-2 disabled:opacity-70"
           >
             Apply draft and create workspace
           </button>

@@ -25,6 +25,7 @@ type RealtimeEventType =
   | 'session_started'
   | 'session_completed'
   | 'session_failed'
+  | 'story_draft.applied'
 
 interface RealtimeEvent<T = Record<string, unknown>> {
   id: string
@@ -52,6 +53,11 @@ Rules:
 - `resource` identifies the object the event primarily updates.
 - `data` contains only the minimal payload needed to update the Dashboard.
 - Events are append-only once published.
+
+`story_draft.applied` uses the created Goal Space as its `resource`. Its
+`data` includes `story_application_id` and `card_ids`, so clients can
+reconcile the applied draft with its initial Cards without creating cards a
+second time during replay.
 
 ## 3. Event Persistence
 

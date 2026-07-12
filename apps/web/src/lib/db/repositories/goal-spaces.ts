@@ -186,6 +186,24 @@ export function getGoalSpaceById(db: DrizzleDb | AuditTx, id: string): GoalSpace
   return (row as GoalSpaceRow | undefined) ?? null;
 }
 
+export function findGoalSpaceByStoryApplication(
+  db: DrizzleDb | AuditTx,
+  initiatorId: string,
+  storyApplicationId: string,
+): { id: string } | null {
+  const row = db
+    .select({ id: goalSpaces.id })
+    .from(goalSpaces)
+    .where(
+      and(
+        eq(goalSpaces.initiatorId, initiatorId),
+        eq(goalSpaces.storyApplicationId, storyApplicationId),
+      ),
+    )
+    .get();
+  return row ?? null;
+}
+
 export function listGoalSpaces(
   db: DrizzleDb,
   query: ListGoalSpacesQuery,

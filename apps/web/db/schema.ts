@@ -209,9 +209,9 @@ export const goalSpaces = sqliteTable(
     initiatorIdx: index("idx_goal_spaces_initiator").on(t.initiatorId),
     statusIdx: index("idx_goal_spaces_status").on(t.status),
     deletedAtIdx: index("idx_goal_spaces_deleted_at").on(t.deletedAt),
-    storyApplicationIdUnique: uniqueIndex("idx_goal_spaces_story_application_id_unique").on(
-      t.storyApplicationId,
-    ),
+    initiatorStoryApplicationIdUnique: uniqueIndex(
+      "idx_goal_spaces_initiator_story_application_id_unique",
+    ).on(t.initiatorId, t.storyApplicationId),
   }),
 );
 

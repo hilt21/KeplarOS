@@ -19,6 +19,10 @@ apps/web/db/dev.db
 apps/web/db/dev.db-journal
 apps/web/db/dev.db-wal
 apps/web/db/dev.db-shm
+apps/web/db/e2e.db
+apps/web/db/e2e.db-journal
+apps/web/db/e2e.db-wal
+apps/web/db/e2e.db-shm
 apps/web/.drizzle/
 
 # Drizzle-kit generated migration metadata (auto-regenerated on `drizzle-kit generate`)

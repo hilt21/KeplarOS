@@ -64,7 +64,7 @@ describe("LoginForm", () => {
         }),
       });
     });
-    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(refresh).not.toHaveBeenCalled();
     expect(push).toHaveBeenCalledWith("/goal-spaces");
   });
 

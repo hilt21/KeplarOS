@@ -1,0 +1,456 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e21] [cursor=pointer]
+  - alert [ref=e25]
+  - generic [ref=e26]:
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e29]: KEPLAR
+        - generic [ref=e30]:
+          - generic [ref=e31]: /
+          - link "KEPLAR" [ref=e32] [cursor=pointer]:
+            - /url: /goal-spaces
+      - generic [ref=e33]:
+        - generic [ref=e34]: 0 tok
+        - button "Open command palette" [ref=e35] [cursor=pointer]: CMD K
+    - generic [ref=e36]:
+      - generic "Workspaces" [ref=e37]:
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - generic [ref=e40]:
+              - generic [ref=e41]: WORKSPACES
+              - button "+ NEW" [ref=e42] [cursor=pointer]
+            - textbox "filter tasks…" [ref=e44]
+            - generic [ref=e45]:
+              - generic [ref=e46] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e47]: ▾
+                - generic [ref=e48]: P
+                - button "P3 browser beta" [ref=e49]
+                - generic [ref=e50]: "2"
+              - generic [ref=e51]:
+                - button "CARD-002 E2E verification card" [ref=e52] [cursor=pointer]:
+                  - generic [ref=e53]:
+                    - generic [ref=e55]: CARD-002
+                    - generic [ref=e56]: E2E verification card
+                - button "CARD-001 Initial planning" [ref=e57] [cursor=pointer]:
+                  - generic [ref=e58]:
+                    - generic [ref=e60]: CARD-001
+                    - generic [ref=e61]: Initial planning
+            - generic [ref=e62]:
+              - generic [ref=e63] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e64]: ▾
+                - generic [ref=e65]: F
+                - button "F13 frontend polish beta" [ref=e66]
+                - generic [ref=e67]: "2"
+              - generic [ref=e68]:
+                - button "CARD-002 F13 polish verification card" [ref=e69] [cursor=pointer]:
+                  - generic [ref=e70]:
+                    - generic [ref=e72]: CARD-002
+                    - generic [ref=e73]: F13 polish verification card
+                - button "CARD-001 Initial planning" [ref=e74] [cursor=pointer]:
+                  - generic [ref=e75]:
+                    - generic [ref=e77]: CARD-001
+                    - generic [ref=e78]: Initial planning
+            - generic [ref=e79]:
+              - generic [ref=e80] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e81]: ▾
+                - generic [ref=e82]: P
+                - button "P3 browser beta" [ref=e83]
+                - generic [ref=e84]: "2"
+              - generic [ref=e85]:
+                - button "CARD-002 E2E verification card" [ref=e86] [cursor=pointer]:
+                  - generic [ref=e87]:
+                    - generic [ref=e89]: CARD-002
+                    - generic [ref=e90]: E2E verification card
+                - button "CARD-001 Initial planning" [ref=e91] [cursor=pointer]:
+                  - generic [ref=e92]:
+                    - generic [ref=e94]: CARD-001
+                    - generic [ref=e95]: Initial planning
+            - generic [ref=e96]:
+              - generic [ref=e97] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e98]: ▾
+                - generic [ref=e99]: E
+                - button "E2E base goal space" [ref=e100]
+                - generic [ref=e101]: "1"
+              - button "CARD-001 E2E base card" [ref=e103] [cursor=pointer]:
+                - generic [ref=e104]:
+                  - generic [ref=e106]: CARD-001
+                  - generic [ref=e107]: E2E base card
+            - generic [ref=e109] [cursor=pointer]:
+              - button "Collapse" [expanded] [ref=e110]: ▾
+              - generic [ref=e111]: P
+              - button "P3 browser beta" [ref=e112]
+              - generic [ref=e113]: "0"
+            - generic [ref=e114]:
+              - generic [ref=e115] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e116]: ▾
+                - generic [ref=e117]: P
+                - button "P3 browser beta" [ref=e118]
+                - generic [ref=e119]: "1"
+              - button "CARD-001 E2E verification card" [ref=e121] [cursor=pointer]:
+                - generic [ref=e122]:
+                  - generic [ref=e124]: CARD-001
+                  - generic [ref=e125]: E2E verification card
+            - generic [ref=e126]:
+              - generic [ref=e127] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e128]: ▾
+                - generic [ref=e129]: P
+                - button "P3 browser beta" [ref=e130]
+                - generic [ref=e131]: "1"
+              - button "CARD-001 E2E verification card" [ref=e133] [cursor=pointer]:
+                - generic [ref=e134]:
+                  - generic [ref=e136]: CARD-001
+                  - generic [ref=e137]: E2E verification card
+            - generic [ref=e139] [cursor=pointer]:
+              - button "Collapse" [expanded] [ref=e140]: ▾
+              - generic [ref=e141]: F
+              - button "F13 frontend polish beta" [ref=e142]
+              - generic [ref=e143]: "0"
+            - generic [ref=e144]:
+              - generic [ref=e145] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e146]: ▾
+                - generic [ref=e147]: P
+                - button "P3 browser beta" [ref=e148]
+                - generic [ref=e149]: "1"
+              - button "CARD-001 E2E verification card" [ref=e151] [cursor=pointer]:
+                - generic [ref=e152]:
+                  - generic [ref=e154]: CARD-001
+                  - generic [ref=e155]: E2E verification card
+            - generic [ref=e156]:
+              - generic [ref=e157] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e158]: ▾
+                - generic [ref=e159]: F
+                - button "F13 frontend polish beta" [ref=e160]
+                - generic [ref=e161]: "1"
+              - button "CARD-001 F13 polish verification card" [ref=e163] [cursor=pointer]:
+                - generic [ref=e164]:
+                  - generic [ref=e166]: CARD-001
+                  - generic [ref=e167]: F13 polish verification card
+            - generic [ref=e168]:
+              - generic [ref=e169] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e170]: ▾
+                - generic [ref=e171]: P
+                - button "P3 browser beta" [ref=e172]
+                - generic [ref=e173]: "1"
+              - button "CARD-001 E2E verification card" [ref=e175] [cursor=pointer]:
+                - generic [ref=e176]:
+                  - generic [ref=e178]: CARD-001
+                  - generic [ref=e179]: E2E verification card
+            - generic [ref=e180]:
+              - generic [ref=e181] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e182]: ▾
+                - generic [ref=e183]: P
+                - button "P3 browser beta" [ref=e184]
+                - generic [ref=e185]: "1"
+              - button "CARD-001 E2E verification card" [ref=e187] [cursor=pointer]:
+                - generic [ref=e188]:
+                  - generic [ref=e190]: CARD-001
+                  - generic [ref=e191]: E2E verification card
+            - generic [ref=e192]:
+              - generic [ref=e193] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e194]: ▾
+                - generic [ref=e195]: P
+                - button "P3 browser beta" [ref=e196]
+                - generic [ref=e197]: "1"
+              - button "CARD-001 E2E verification card" [ref=e199] [cursor=pointer]:
+                - generic [ref=e200]:
+                  - generic [ref=e202]: CARD-001
+                  - generic [ref=e203]: E2E verification card
+            - generic [ref=e204]:
+              - generic [ref=e205] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e206]: ▾
+                - generic [ref=e207]: F
+                - button "F13 frontend polish beta" [ref=e208]
+                - generic [ref=e209]: "1"
+              - button "CARD-001 F13 polish verification card" [ref=e211] [cursor=pointer]:
+                - generic [ref=e212]:
+                  - generic [ref=e214]: CARD-001
+                  - generic [ref=e215]: F13 polish verification card
+            - generic [ref=e216]:
+              - generic [ref=e217] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e218]: ▾
+                - generic [ref=e219]: P
+                - button "P3 browser beta" [ref=e220]
+                - generic [ref=e221]: "1"
+              - button "CARD-001 E2E verification card" [ref=e223] [cursor=pointer]:
+                - generic [ref=e224]:
+                  - generic [ref=e226]: CARD-001
+                  - generic [ref=e227]: E2E verification card
+            - generic [ref=e228]:
+              - generic [ref=e229] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e230]: ▾
+                - generic [ref=e231]: F
+                - button "F13 frontend polish beta" [ref=e232]
+                - generic [ref=e233]: "1"
+              - button "CARD-001 F13 polish verification card" [ref=e235] [cursor=pointer]:
+                - generic [ref=e236]:
+                  - generic [ref=e238]: CARD-001
+                  - generic [ref=e239]: F13 polish verification card
+            - generic [ref=e240]:
+              - generic [ref=e241] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e242]: ▾
+                - generic [ref=e243]: P
+                - button "P3 browser beta" [ref=e244]
+                - generic [ref=e245]: "1"
+              - button "CARD-001 E2E verification card" [ref=e247] [cursor=pointer]:
+                - generic [ref=e248]:
+                  - generic [ref=e250]: CARD-001
+                  - generic [ref=e251]: E2E verification card
+            - generic [ref=e252]:
+              - generic [ref=e253] [cursor=pointer]:
+                - button "Collapse" [expanded] [ref=e254]: ▾
+                - generic [ref=e255]: F
+                - button "F13 frontend polish beta" [ref=e256]
+                - generic [ref=e257]: "1"
+              - button "CARD-001 F13 polish verification card" [ref=e259] [cursor=pointer]:
+                - generic [ref=e260]:
+                  - generic [ref=e262]: CARD-001
+                  - generic [ref=e263]: F13 polish verification card
+          - button "E2E Initiator initiator · Open settings" [ref=e264] [cursor=pointer]:
+            - generic [ref=e265]: E
+            - generic [ref=e266]:
+              - generic [ref=e267]: E2E Initiator
+              - generic [ref=e268]: initiator ·
+            - generic "Open settings" [ref=e269]: ⚙
+      - main [ref=e270]:
+        - generic [ref=e271]:
+          - generic [ref=e272]:
+            - heading "goal spaces" [level=1] [ref=e273]
+            - generic [ref=e274]: 18 total
+          - generic [ref=e275]:
+            - generic [ref=e276]: Business goal
+            - textbox "Business goal" [ref=e277]
+            - button "Generate deterministic draft" [disabled] [ref=e278]
+          - table [ref=e279]:
+            - rowgroup [ref=e280]:
+              - row [ref=e281]:
+                - columnheader "·" [ref=e282]
+                - columnheader "id" [ref=e283]
+                - columnheader "name" [ref=e284]
+                - columnheader "status" [ref=e285]
+                - columnheader "updated" [ref=e286]
+            - rowgroup [ref=e287]:
+              - row [ref=e288]:
+                - cell [ref=e289]
+                - cell [ref=e291]:
+                  - link "d6b45550" [ref=e292] [cursor=pointer]:
+                    - /url: /goal-spaces/d6b45550-84d4-4a98-bf3c-ce2cd2b0c56a
+                - cell [ref=e293]:
+                  - link "P3 browser beta" [ref=e294] [cursor=pointer]:
+                    - /url: /goal-spaces/d6b45550-84d4-4a98-bf3c-ce2cd2b0c56a
+                - cell "cancelled" [ref=e295]
+                - cell "1d ago" [ref=e296]
+              - row [ref=e297]:
+                - cell [ref=e298]
+                - cell [ref=e300]:
+                  - link "323a78de" [ref=e301] [cursor=pointer]:
+                    - /url: /goal-spaces/323a78de-2fa5-4def-870c-045e460256fe
+                - cell [ref=e302]:
+                  - link "F13 frontend polish beta" [ref=e303] [cursor=pointer]:
+                    - /url: /goal-spaces/323a78de-2fa5-4def-870c-045e460256fe
+                - cell "cancelled" [ref=e304]
+                - cell "1d ago" [ref=e305]
+              - row [ref=e306]:
+                - cell [ref=e307]
+                - cell [ref=e309]:
+                  - link "ba3f341a" [ref=e310] [cursor=pointer]:
+                    - /url: /goal-spaces/ba3f341a-2b2d-4bf5-a258-52974631b5ec
+                - cell [ref=e311]:
+                  - link "P3 browser beta" [ref=e312] [cursor=pointer]:
+                    - /url: /goal-spaces/ba3f341a-2b2d-4bf5-a258-52974631b5ec
+                - cell "cancelled" [ref=e313]
+                - cell "1d ago" [ref=e314]
+              - row [ref=e315]:
+                - cell [ref=e316]
+                - cell [ref=e318]:
+                  - link "e2e-gs-0" [ref=e319] [cursor=pointer]:
+                    - /url: /goal-spaces/e2e-gs-00000001
+                - cell [ref=e320]:
+                  - link "E2E base goal space" [ref=e321] [cursor=pointer]:
+                    - /url: /goal-spaces/e2e-gs-00000001
+                - cell "active" [ref=e322]
+                - cell "1d ago" [ref=e323]
+              - row [ref=e324]:
+                - cell [ref=e325]
+                - cell [ref=e327]:
+                  - link "95b6df66" [ref=e328] [cursor=pointer]:
+                    - /url: /goal-spaces/95b6df66-4df5-4ab5-b4bf-188ee6cb488c
+                - cell [ref=e329]:
+                  - link "P3 browser beta" [ref=e330] [cursor=pointer]:
+                    - /url: /goal-spaces/95b6df66-4df5-4ab5-b4bf-188ee6cb488c
+                - cell "draft" [ref=e331]
+                - cell "1d ago" [ref=e332]
+              - row [ref=e333]:
+                - cell [ref=e334]
+                - cell [ref=e336]:
+                  - link "f7643408" [ref=e337] [cursor=pointer]:
+                    - /url: /goal-spaces/f7643408-b498-4d8c-ab98-2b2ef12bd8f3
+                - cell [ref=e338]:
+                  - link "P3 browser beta" [ref=e339] [cursor=pointer]:
+                    - /url: /goal-spaces/f7643408-b498-4d8c-ab98-2b2ef12bd8f3
+                - cell "cancelled" [ref=e340]
+                - cell "1d ago" [ref=e341]
+              - row [ref=e342]:
+                - cell [ref=e343]
+                - cell [ref=e345]:
+                  - link "23a4fda7" [ref=e346] [cursor=pointer]:
+                    - /url: /goal-spaces/23a4fda7-495f-4e87-b5c4-60368cbe9355
+                - cell [ref=e347]:
+                  - link "P3 browser beta" [ref=e348] [cursor=pointer]:
+                    - /url: /goal-spaces/23a4fda7-495f-4e87-b5c4-60368cbe9355
+                - cell "cancelled" [ref=e349]
+                - cell "1d ago" [ref=e350]
+              - row [ref=e351]:
+                - cell [ref=e352]
+                - cell [ref=e354]:
+                  - link "88bdfb28" [ref=e355] [cursor=pointer]:
+                    - /url: /goal-spaces/88bdfb28-d3c7-4995-bcee-0e6e1b089da6
+                - cell [ref=e356]:
+                  - link "F13 frontend polish beta" [ref=e357] [cursor=pointer]:
+                    - /url: /goal-spaces/88bdfb28-d3c7-4995-bcee-0e6e1b089da6
+                - cell "draft" [ref=e358]
+                - cell "1d ago" [ref=e359]
+              - row [ref=e360]:
+                - cell [ref=e361]
+                - cell [ref=e363]:
+                  - link "33a1b6cb" [ref=e364] [cursor=pointer]:
+                    - /url: /goal-spaces/33a1b6cb-a934-40da-9189-7a85afa3aa48
+                - cell [ref=e365]:
+                  - link "P3 browser beta" [ref=e366] [cursor=pointer]:
+                    - /url: /goal-spaces/33a1b6cb-a934-40da-9189-7a85afa3aa48
+                - cell "cancelled" [ref=e367]
+                - cell "1d ago" [ref=e368]
+              - row [ref=e369]:
+                - cell [ref=e370]
+                - cell [ref=e372]:
+                  - link "18c553cb" [ref=e373] [cursor=pointer]:
+                    - /url: /goal-spaces/18c553cb-349a-4a29-b220-6f758dfcdd55
+                - cell [ref=e374]:
+                  - link "F13 frontend polish beta" [ref=e375] [cursor=pointer]:
+                    - /url: /goal-spaces/18c553cb-349a-4a29-b220-6f758dfcdd55
+                - cell "cancelled" [ref=e376]
+                - cell "1d ago" [ref=e377]
+              - row [ref=e378]:
+                - cell [ref=e379]
+                - cell [ref=e381]:
+                  - link "e24d5e07" [ref=e382] [cursor=pointer]:
+                    - /url: /goal-spaces/e24d5e07-b4d2-4834-8220-3b064be0db2a
+                - cell [ref=e383]:
+                  - link "P3 browser beta" [ref=e384] [cursor=pointer]:
+                    - /url: /goal-spaces/e24d5e07-b4d2-4834-8220-3b064be0db2a
+                - cell "cancelled" [ref=e385]
+                - cell "1d ago" [ref=e386]
+              - row [ref=e387]:
+                - cell [ref=e388]
+                - cell [ref=e390]:
+                  - link "80566ba7" [ref=e391] [cursor=pointer]:
+                    - /url: /goal-spaces/80566ba7-d155-4b06-b6a4-058150ea0c2b
+                - cell [ref=e392]:
+                  - link "P3 browser beta" [ref=e393] [cursor=pointer]:
+                    - /url: /goal-spaces/80566ba7-d155-4b06-b6a4-058150ea0c2b
+                - cell "cancelled" [ref=e394]
+                - cell "1d ago" [ref=e395]
+              - row [ref=e396]:
+                - cell [ref=e397]
+                - cell [ref=e399]:
+                  - link "d1a6983a" [ref=e400] [cursor=pointer]:
+                    - /url: /goal-spaces/d1a6983a-906c-4092-80cf-3eb80336d723
+                - cell [ref=e401]:
+                  - link "P3 browser beta" [ref=e402] [cursor=pointer]:
+                    - /url: /goal-spaces/d1a6983a-906c-4092-80cf-3eb80336d723
+                - cell "draft" [ref=e403]
+                - cell "1d ago" [ref=e404]
+              - row [ref=e405]:
+                - cell [ref=e406]
+                - cell [ref=e408]:
+                  - link "58fc29a0" [ref=e409] [cursor=pointer]:
+                    - /url: /goal-spaces/58fc29a0-57af-4f44-971c-f350ac09e53b
+                - cell [ref=e410]:
+                  - link "F13 frontend polish beta" [ref=e411] [cursor=pointer]:
+                    - /url: /goal-spaces/58fc29a0-57af-4f44-971c-f350ac09e53b
+                - cell "cancelled" [ref=e412]
+                - cell "1d ago" [ref=e413]
+              - row [ref=e414]:
+                - cell [ref=e415]
+                - cell [ref=e417]:
+                  - link "9a91d6d0" [ref=e418] [cursor=pointer]:
+                    - /url: /goal-spaces/9a91d6d0-699f-457e-ada8-62a76d1e42c9
+                - cell [ref=e419]:
+                  - link "P3 browser beta" [ref=e420] [cursor=pointer]:
+                    - /url: /goal-spaces/9a91d6d0-699f-457e-ada8-62a76d1e42c9
+                - cell "draft" [ref=e421]
+                - cell "1d ago" [ref=e422]
+              - row [ref=e423]:
+                - cell [ref=e424]
+                - cell [ref=e426]:
+                  - link "0cd9edf5" [ref=e427] [cursor=pointer]:
+                    - /url: /goal-spaces/0cd9edf5-ccdf-48db-a03f-518e680d3230
+                - cell [ref=e428]:
+                  - link "F13 frontend polish beta" [ref=e429] [cursor=pointer]:
+                    - /url: /goal-spaces/0cd9edf5-ccdf-48db-a03f-518e680d3230
+                - cell "draft" [ref=e430]
+                - cell "1d ago" [ref=e431]
+              - row [ref=e432]:
+                - cell [ref=e433]
+                - cell [ref=e435]:
+                  - link "c700f596" [ref=e436] [cursor=pointer]:
+                    - /url: /goal-spaces/c700f596-c2c4-41ef-80c6-e984f749bf52
+                - cell [ref=e437]:
+                  - link "P3 browser beta" [ref=e438] [cursor=pointer]:
+                    - /url: /goal-spaces/c700f596-c2c4-41ef-80c6-e984f749bf52
+                - cell "draft" [ref=e439]
+                - cell "7d ago" [ref=e440]
+              - row [ref=e441]:
+                - cell [ref=e442]
+                - cell [ref=e444]:
+                  - link "bbd543dd" [ref=e445] [cursor=pointer]:
+                    - /url: /goal-spaces/bbd543dd-5b78-4dbd-9453-34b41eea8159
+                - cell [ref=e446]:
+                  - link "F13 frontend polish beta" [ref=e447] [cursor=pointer]:
+                    - /url: /goal-spaces/bbd543dd-5b78-4dbd-9453-34b41eea8159
+                - cell "draft" [ref=e448]
+                - cell "7d ago" [ref=e449]
+      - generic "Context" [ref=e450]:
+        - generic [ref=e451]:
+          - generic [ref=e452]:
+            - generic [ref=e453]:
+              - generic [ref=e454]: WORKSPACE
+              - generic [ref=e455]: dev
+            - generic [ref=e456]:
+              - generic [ref=e457]:
+                - generic [ref=e458]: goal
+                - generic [ref=e459]: —
+              - generic [ref=e460]:
+                - generic [ref=e461]: board
+                - generic [ref=e462]: —
+              - generic [ref=e463]:
+                - generic [ref=e464]: user
+                - generic [ref=e465]: E2E Initiator · initiator
+              - generic [ref=e466]:
+                - generic [ref=e467]: runtime
+                - generic [ref=e468]: Next.js · React
+              - generic [ref=e469]:
+                - generic [ref=e470]: api
+                - generic [ref=e471]: /api/v1
+              - generic [ref=e472]:
+                - generic [ref=e473]: tokens
+                - generic [ref=e474]: 0 / 100,000
+          - generic [ref=e476]:
+            - generic [ref=e477]: AI ROLES
+            - generic [ref=e478]:
+              - generic [ref=e480]: Backlog Refiner
+              - generic [ref=e481]: idle
+            - generic [ref=e482]:
+              - generic [ref=e484]: Todo Orchestrator
+              - generic [ref=e485]: idle
+            - generic [ref=e486]:
+              - generic [ref=e488]: Dev Crafter
+              - generic [ref=e489]: idle
+            - generic [ref=e490]:
+              - generic [ref=e492]: Review Guard
+              - generic [ref=e493]: idle
+            - generic [ref=e494]:
+              - generic [ref=e496]: Done Reporter
+              - generic [ref=e497]: idle
+            - generic [ref=e498]:
+              - generic [ref=e500]: Blocked Resolver
+              - generic [ref=e501]: idle

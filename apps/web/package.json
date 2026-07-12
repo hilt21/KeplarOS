@@ -21,7 +21,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "node scripts/migrate.mjs",
+    "e2e:prepare": "node scripts/prepare-e2e-db.mjs",
     "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm format:check"

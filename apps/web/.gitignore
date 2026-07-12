@@ -32,6 +32,10 @@ db/dev.db
 db/dev.db-journal
 db/dev.db-wal
 db/dev.db-shm
+db/e2e.db
+db/e2e.db-journal
+db/e2e.db-wal
+db/e2e.db-shm
 .drizzle/
 
 # Test

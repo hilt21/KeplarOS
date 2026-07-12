@@ -45,10 +45,14 @@ describe("CreateGoalSpaceForm", () => {
     vi.stubGlobal("fetch", fetchMock);
     vi.stubGlobal("crypto", { randomUUID: () => "application-1" });
     render(<CreateGoalSpaceForm />);
+    expect(screen.getByLabelText("Business goal")).toHaveAttribute("name", "story_goal");
+    expect(screen.getByLabelText("Business goal")).toHaveAttribute("autocomplete", "off");
     fireEvent.change(screen.getByLabelText("Business goal"), { target: { value: draft.goal } });
     fireEvent.click(screen.getByRole("button", { name: "Generate deterministic draft" }));
     const editor = await screen.findByLabelText(/Editable Story draft/);
     expect(editor).toHaveValue(JSON.stringify(draft, null, 2));
+    expect(editor).toHaveAttribute("name", "story_draft");
+    expect(editor).toHaveAttribute("autocomplete", "off");
     fireEvent.click(screen.getByRole("button", { name: "Apply draft and create workspace" }));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/goal-spaces/goal-space-1"));
     expect(fetchMock).toHaveBeenNthCalledWith(
@@ -69,5 +73,47 @@ describe("CreateGoalSpaceForm", () => {
     fireEvent.change(screen.getByLabelText("Business goal"), { target: { value: "x" } });
     fireEvent.click(screen.getByRole("button", { name: "Generate deterministic draft" }));
     expect(await screen.findByText("Goal is required.")).toBeInTheDocument();
+  });
+
+  it("renders the API error when applying a generated draft fails", async () => {
+    const draft = { goal: "Reduce review latency" };
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(Response.json({ success: true, data: { draft } }))
+        .mockResolvedValueOnce(
+          Response.json({ success: false, error: { message: "Draft has too many cards." } }),
+        ),
+    );
+    vi.stubGlobal("crypto", { randomUUID: () => "application-1" });
+    render(<CreateGoalSpaceForm />);
+
+    fireEvent.change(screen.getByLabelText("Business goal"), { target: { value: draft.goal } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate deterministic draft" }));
+    await screen.findByLabelText(/Editable Story draft/);
+    fireEvent.click(screen.getByRole("button", { name: "Apply draft and create workspace" }));
+
+    expect(await screen.findByText("Draft has too many cards.")).toBeInTheDocument();
+  });
+
+  it("renders a JSON parse error before calling the apply API", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      Response.json({ success: true, data: { draft: { goal: "Reduce review latency" } } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("crypto", { randomUUID: () => "application-1" });
+    render(<CreateGoalSpaceForm />);
+
+    fireEvent.change(screen.getByLabelText("Business goal"), {
+      target: { value: "Reduce review latency" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Generate deterministic draft" }));
+    const editor = await screen.findByLabelText(/Editable Story draft/);
+    fireEvent.change(editor, { target: { value: "not json" } });
+    fireEvent.click(screen.getByRole("button", { name: "Apply draft and create workspace" }));
+
+    expect(await screen.findByText("Draft must be valid JSON.")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

@@ -22,6 +22,10 @@ const DEFAULT_PATH = resolve(process.cwd(), "db/dev.db");
 
 let _cached: { sqlite: Database.Database; db: BetterSQLite3Database<typeof schema> } | null = null;
 
+export function resolveDatabasePath(databasePath = process.env.KEPLAR_DB_PATH): string {
+  return databasePath ? resolve(databasePath) : DEFAULT_PATH;
+}
+
 /**
  * 取得(或创建)Drizzle + better-sqlite3 实例,默认路径 `apps/web/db/dev.db`。
  * 首次调用创建文件 + 目录 + pragma;后续调用返回同一实例。
@@ -29,10 +33,11 @@ let _cached: { sqlite: Database.Database; db: BetterSQLite3Database<typeof schem
 export function getDb(): BetterSQLite3Database<typeof schema> {
   if (_cached) return _cached.db;
 
-  const dir = dirname(DEFAULT_PATH);
+  const databasePath = resolveDatabasePath();
+  const dir = dirname(databasePath);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
-  const sqlite = new Database(DEFAULT_PATH);
+  const sqlite = new Database(databasePath);
   // WAL:提高并发读 + 写序列化;F-004 realtime sequence 单调递增依赖写串行
   sqlite.pragma("journal_mode = WAL");
   // 外键:goal_spaces / node_boards / cards 等 schema 用了 .references(),

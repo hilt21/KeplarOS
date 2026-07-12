@@ -120,4 +120,61 @@ describe("realtime cursor regressions", () => {
       sqlite.close();
     }
   });
+
+  it("cancels the locked live stream reader without rejecting the response body", async () => {
+    const { sqlite, db } = makeTestDb();
+    const liveStreamCancelled = vi.fn();
+    try {
+      mocks.db = db;
+      seedFixture(db, { userId: "user-init", goalSpaceId: "gs-1", boardId: "board-1" });
+      mocks.createSseStream.mockReturnValueOnce(
+        new ReadableStream<Uint8Array>({
+          cancel: liveStreamCancelled,
+        }),
+      );
+
+      const { GET } = await import("@/app/api/v1/sse/route");
+      const response = await GET(
+        createJsonRequest(
+          "/api/v1/sse?goal_space_id=gs-1",
+          "GET",
+          undefined,
+          withTestSession(actor),
+        ),
+      );
+
+      await expect(response.body?.cancel("client disconnected")).resolves.toBeUndefined();
+      expect(liveStreamCancelled).toHaveBeenCalledWith("client disconnected");
+    } finally {
+      sqlite.close();
+    }
+  });
+
+  it("propagates a live stream cleanup failure", async () => {
+    const { sqlite, db } = makeTestDb();
+    const cleanupError = new Error("live stream cleanup failed");
+    try {
+      mocks.db = db;
+      seedFixture(db, { userId: "user-init", goalSpaceId: "gs-1", boardId: "board-1" });
+      mocks.createSseStream.mockReturnValueOnce(
+        new ReadableStream<Uint8Array>({
+          cancel: () => Promise.reject(cleanupError),
+        }),
+      );
+
+      const { GET } = await import("@/app/api/v1/sse/route");
+      const response = await GET(
+        createJsonRequest(
+          "/api/v1/sse?goal_space_id=gs-1",
+          "GET",
+          undefined,
+          withTestSession(actor),
+        ),
+      );
+
+      await expect(response.body?.cancel("client disconnected")).rejects.toBe(cleanupError);
+    } finally {
+      sqlite.close();
+    }
+  });
 });

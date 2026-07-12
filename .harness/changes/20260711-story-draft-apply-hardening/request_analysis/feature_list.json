@@ -1,0 +1,67 @@
+{
+  "change_id": "20260711-story-draft-apply-hardening",
+  "title": "Harden Story draft application",
+  "status": "request_analysis",
+  "features": [
+    {
+      "id": "F-001",
+      "title": "Deployable, scoped, and validated Story draft application",
+      "description": "Repair migration execution, initiator-scoped idempotency, strict Story validation, traceability, and verification for the deterministic Story draft apply flow.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "The checked-in migration command applies 0013 and 0014 to empty and verified pre-0013 SQLite databases.",
+        "Story application idempotency is scoped to the authenticated initiator and does not disclose another initiator's Goal Space.",
+        "A same-initiator application-key unique conflict returns a 200 replay without duplicate domain, audit, or realtime rows.",
+        "Every supplied Story field is strictly validated and bounded; invalid input returns INVALID_FIELD and creates no persistent rows.",
+        "Accepted output requirements and risk hints are available in immutable audit details.",
+        "The browser flow proves an edited draft creates the edited initial Card.",
+        "The flow remains deterministic, no-I/O, and non-executing."
+      ],
+      "affected_areas": [
+        "api",
+        "database",
+        "authorization",
+        "audit",
+        "realtime",
+        "ui",
+        "tests",
+        "documentation"
+      ],
+      "dependencies": [
+        "Explicit human approval",
+        "Approved 2026-07-11 Story draft hardening plan"
+      ],
+      "test_needs": [
+        "Migration CLI test",
+        "Service and SQLite integration tests",
+        "API contract and authorization tests",
+        "Atomicity and idempotency race-path test",
+        "Component error test",
+        "Browser E2E edited-draft test"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass or have documented exceptions",
+        "No unresolved blocking review finding",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "required",
+        "api_contract": "required",
+        "migration": "required",
+        "smoke": "required",
+        "e2e": "required"
+      },
+      "implementation_status": "in_progress",
+      "test_status": "not_started",
+      "done_status": "not_started"
+    }
+  ]
+}

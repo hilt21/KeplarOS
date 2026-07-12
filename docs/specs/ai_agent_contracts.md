@@ -11,9 +11,11 @@ Phase 1 may use stub or fixture-backed executors for demo stability, but every e
 The Web Beta exposes a deterministic, no-I/O Story draft flow. An initiator may
 generate and edit a complete structured draft, then explicitly apply it to a
 new Goal Space. Application creates one `initial` Node Board and initial Cards
-in one transaction, records `story_draft.applied`, and uses a unique
-`story_application_id` to make retries idempotent. This is a demo planning
-boundary, not a real Backlog Refiner or LLM integration.
+in one transaction, records `story_draft.applied`, and uses an
+initiator-scoped `story_application_id` to make retries idempotent. Accepted
+`output_requirements` and `risk_hints` are stored only as immutable audit
+trace details for that application. This is a demo planning boundary: it
+performs no real LLM call or execution.
 
 ## 2. Shared Executor Contract
 

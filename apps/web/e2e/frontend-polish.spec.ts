@@ -23,11 +23,6 @@
  */
 
 import { test, expect } from "@playwright/test";
-import { resolve, dirname } from "node:path";
-import { existsSync, mkdirSync } from "node:fs";
-import Database from "better-sqlite3";
-
-import { hashPassword } from "../src/lib/auth/password";
 
 // ─── constants ─────────────────────────────────────────────────────────
 
@@ -41,27 +36,7 @@ const GOAL_SPACE_NAME = "F13 frontend polish beta";
 const CARD_TITLE = "F13 polish verification card";
 const USER_MESSAGE = "test message from F13";
 
-const DEV_DB_PATH = resolve(process.cwd(), "db/dev.db");
-
 // ─── helpers ──────────────────────────────────────────────────────────
-
-function ensureDbFile(): void {
-  const dir = dirname(DEV_DB_PATH);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-}
-
-async function seedUser(db: Database.Database): Promise<void> {
-  const now = new Date().toISOString();
-  db.prepare(
-    `INSERT OR REPLACE INTO users (id, name, email, role, preferences, created_at)
-     VALUES (?, ?, ?, ?, '{}', ?)`,
-  ).run(SEEDED_USER_ID, SEEDED_USER_NAME, SEEDED_USER_EMAIL, SEEDED_USER_ROLE, now);
-  const passwordHash = await hashPassword(E2E_PASSWORD);
-  db.prepare(
-    `INSERT OR REPLACE INTO auth_credentials (user_id, password_hash, failed_login_attempts, last_rotated_at)
-     VALUES (?, ?, 0, ?)`,
-  ).run(SEEDED_USER_ID, passwordHash, now);
-}
 
 function extractSessionCookie(setCookie: string | undefined): string | null {
   if (!setCookie) return null;
@@ -75,20 +50,12 @@ let goalSpaceId: string | undefined;
 let cardId: string | undefined;
 
 test.beforeAll(async ({ request, baseURL }) => {
-  ensureDbFile();
-  const db = new Database(DEV_DB_PATH);
-  try {
-    await seedUser(db);
-  } finally {
-    db.close();
-  }
-
   // Warm up the dev server: Next.js compiles routes on first hit.
   const warmupUrl = `${baseURL ?? "http://127.0.0.1:3000"}/api/v1/auth/me`;
   for (let i = 0; i < 8; i += 1) {
     try {
       const res = await request.get(warmupUrl);
-      if (res.status() > 0) return;
+      if (res.status() === 401) return;
     } catch {
       await new Promise((r) => setTimeout(r, 500 * (i + 1)));
     }

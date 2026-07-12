@@ -44,7 +44,6 @@ export function LoginForm(): React.ReactElement {
         return;
       }
 
-      router.refresh();
       router.push("/goal-spaces");
     } catch {
       setError("Unable to sign in.");

@@ -41,6 +41,7 @@ erDiagram
         string status "draft|active|completed|cancelled"
         float progress "0-100"
         uuid initiator_id FK
+        string story_application_id "nullable; scoped idempotency key"
         timestamp created_at
         timestamp updated_at
         timestamp started_at
@@ -203,6 +204,7 @@ erDiagram
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'draft' | 状态：draft/active/completed/cancelled |
 | progress | FLOAT | DEFAULT 0 | 完成进度 0-100 |
 | initiator_id | UUID | FK → users.id | 发起人 |
+| story_application_id | TEXT | NULL | Story 草稿应用幂等键；仅在同一 initiator 内唯一；SQLite 不设长度约束，接口层限制为 4,000 字符 |
 | started_at | TIMESTAMP | | 进入 Active 时间 |
 | completed_at | TIMESTAMP | | 进入 Completed 时间 |
 | cancelled_at | TIMESTAMP | | 进入 Cancelled 时间 |
@@ -215,6 +217,7 @@ erDiagram
 ```sql
 CREATE INDEX idx_goal_spaces_status ON goal_spaces(status);
 CREATE INDEX idx_goal_spaces_initiator ON goal_spaces(initiator_id);
+CREATE UNIQUE INDEX idx_goal_spaces_initiator_story_application_id_unique ON goal_spaces(initiator_id, story_application_id);
 CREATE INDEX idx_goal_spaces_created ON goal_spaces(created_at DESC);
 ```
 

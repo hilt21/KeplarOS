@@ -107,8 +107,17 @@ It performs no external I/O.
 
 `POST /api/v1/story-drafts/apply` accepts `{ story_application_id, draft }`.
 It creates a new Goal Space, one `initial` Node Board, and initial Cards in a
-single audited transaction. Repeating the same application ID returns the
-existing Goal Space without duplicating Cards.
+single audited transaction. `story_application_id` is idempotent only per
+authenticated initiator: a same-initiator retry returns `200` with
+`applied: false` and the existing Goal Space, while another initiator using
+the same value creates and can access only their own Goal Space. The first
+application returns `201` with `applied: true`.
+
+The editable draft is strictly validated before any write. Invalid fields
+return `400 INVALID_FIELD` and create no Goal Space, Board, Card, audit entry,
+or realtime event. The apply boundary permits at most 50 Cards, at most 50
+items in each top-level string collection, and at most 4,000 characters in
+each editable string.
 
 ### 3.1 创建目标空间
 

@@ -84,34 +84,47 @@ export async function GET(request: Request): Promise<Response> {
     });
 
     // Compose: replay frames first, then live frames.
+    let liveReader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    let closed = false;
+    const closeComposed = (controller: ReadableStreamDefaultController<Uint8Array>): void => {
+      if (closed) return;
+      closed = true;
+      try {
+        controller.close();
+      } catch {
+        // already closed
+      }
+    };
+
     const composed = new ReadableStream<Uint8Array>({
       start(controller) {
         for (const chunk of replayedFrames) {
           controller.enqueue(chunk);
         }
         const reader = liveStream.getReader();
+        liveReader = reader;
         const pump = async (): Promise<void> => {
           try {
             while (true) {
               const { done, value } = await reader.read();
               if (done) {
-                controller.close();
+                closeComposed(controller);
                 return;
               }
               controller.enqueue(value);
             }
           } catch {
-            try {
-              controller.close();
-            } catch {
-              // already closed
-            }
+            closeComposed(controller);
           }
         };
         void pump();
       },
-      cancel() {
-        void liveStream.cancel();
+      async cancel(reason) {
+        const reader = liveReader;
+        liveReader = undefined;
+        if (reader) {
+          await reader.cancel(reason);
+        }
       },
     });
 

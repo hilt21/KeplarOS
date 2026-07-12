@@ -12,9 +12,12 @@
  */
 
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_DB_PATH } from "./e2e/db-path";
 
 const PORT = 3000;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
+
+process.env.KEPLAR_DB_PATH = E2E_DB_PATH;
 
 export default defineConfig({
   testDir: "e2e",
@@ -39,9 +42,10 @@ export default defineConfig({
   },
   expect: { timeout: 10_000 },
   webServer: {
-    command: "pnpm dev",
+    command: "pnpm e2e:prepare && pnpm exec next dev --port 3000",
+    env: { KEPLAR_DB_PATH: E2E_DB_PATH },
     port: PORT,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
     stdout: "ignore",
     stderr: "pipe",
