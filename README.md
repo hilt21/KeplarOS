@@ -160,7 +160,7 @@ Detailed implementation plans and technical contracts live in
 
 ### Prerequisites
 
-- **Node.js**: `20.10.0` (see `.nvmrc`; use `nvm use` to align)
+- **Node.js**: `25.2.1` (see `.nvmrc`; use `nvm use` to align)
 - **Package manager**: `pnpm` `11.x` (enable via `corepack enable pnpm` or `npm i -g pnpm@11`)
 - **SQLite**: bundled through `better-sqlite3`; no external database service is
   required for local development

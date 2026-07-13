@@ -60,7 +60,7 @@
 
 `web-ci.yml` (triggered on push to master + PRs touching `apps/web/**`):
 1. gitleaks secret scan
-2. Setup Node 20.10.0 + corepack pnpm@11.5.1
+2. Setup Node 25.2.1 + corepack pnpm@11.5.1
 3. `pnpm install --frozen-lockfile`
 4. Install Playwright chromium
 5. `pnpm check` (typecheck && lint && test && build && format:check)

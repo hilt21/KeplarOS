@@ -1,0 +1,62 @@
+{
+  "change_id": "20260713-node25-migration",
+  "title": "Migrate KEPLAR to Node 25",
+  "status": "delivery",
+  "features": [
+    {
+      "id": "F-001",
+      "title": "Align KEPLAR runtime contract with Node 25",
+      "description": "Move the Node runtime pin, package engines, and active developer documentation to Node 25.2.1, then verify the existing application toolchain under that runtime.",
+      "scope": "in",
+      "priority": "P0",
+      "status": "completed",
+      "acceptance_criteria": [
+        ".nvmrc pins Node 25.2.1.",
+        "Root and Web package engines accept >=25.0.0 <26.0.0.",
+        "README and the dependency codemap describe Node 25.2.1.",
+        "Frozen-lockfile install has no KEPLAR unsupported-engine warning.",
+        "pnpm check, pnpm smoke, and pnpm e2e are executed under Node 25 with truthful evidence recorded."
+      ],
+      "affected_areas": [
+        "runtime-tooling",
+        "package-manifests",
+        "ci-runtime-input",
+        "developer-documentation",
+        "verification"
+      ],
+      "dependencies": [
+        "Node 25.2.1",
+        "pnpm 11.5.1",
+        "existing pnpm lockfile"
+      ],
+      "test_needs": [
+        "Frozen lockfile install",
+        "Typecheck, lint, unit test, build, and format aggregate",
+        "Smoke test",
+        "Playwright E2E test"
+      ],
+      "definition_of_done": [
+        "Acceptance criteria satisfied",
+        "Implementation status is completed",
+        "Required tests pass or have a documented unavailable or failing exception with risk",
+        "Required verification matrix items pass or have documented exceptions",
+        "No unresolved blocking review findings",
+        "No unapproved scope deviation",
+        "Sprint progress updated"
+      ],
+      "verification": {
+        "lint": "required",
+        "typecheck": "required",
+        "unit": "required",
+        "integration": "not_applicable",
+        "api_contract": "not_applicable",
+        "migration": "required",
+        "smoke": "required",
+        "e2e": "required"
+      },
+      "implementation_status": "completed",
+      "test_status": "passed",
+      "done_status": "completed"
+    }
+  ]
+}
